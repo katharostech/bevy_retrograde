@@ -1,3 +1,6 @@
+//! Bevy Retro is an experimental 2D, pixel-perfect renderer for Bevy that can target both web and
+//! desktop using OpenGL.
+
 use bevy::{app::ManualEventReader, asset::AssetStage, prelude::*, window::WindowCreated};
 
 #[cfg(not(wasm))]
