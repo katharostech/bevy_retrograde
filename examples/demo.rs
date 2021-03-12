@@ -5,10 +5,6 @@ fn main() {
     App::build()
         .add_plugins(DefaultPlugins)
         .add_plugin(RetroPlugin)
-        .insert_resource(RetroRenderOptions {
-            background_color: (0.1, 0.1, 0.2, 1.0),
-            ..Default::default()
-        })
         .add_startup_system(setup.system())
         .run();
 }

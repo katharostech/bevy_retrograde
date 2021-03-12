@@ -14,6 +14,7 @@ pub use components::*;
 
 #[derive(Debug, Clone, Copy, StageLabel, Hash, PartialEq, Eq)]
 pub enum RetroStage {
+    PreRender,
     Render,
 }
 
@@ -27,11 +28,18 @@ impl Plugin for RetroPlugin {
         add_assets(app);
 
         app.init_resource::<RetroRenderOptions>()
+            .init_resource::<RetroRenderImage>()
             .add_stage_after(
                 AssetStage::AssetEvents,
+                RetroStage::PreRender,
+                SystemStage::parallel(),
+            )
+            .add_stage_after(
+                RetroStage::PreRender,
                 RetroStage::Render,
                 SystemStage::parallel(),
             )
+            .add_system_to_stage(RetroStage::PreRender, pre_render_system.system())
             .add_system_to_stage(RetroStage::Render, render_system.exclusive_system());
     }
 }

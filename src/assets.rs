@@ -10,8 +10,7 @@ use image::{io::Reader as ImageReader, RgbaImage};
 #[derive(TypeUuid)]
 #[uuid = "48d2e3c8-2f48-4330-b7fe-fac3e81c60f3"]
 pub struct SpriteImage {
-    image: RgbaImage,
-    size: Size<u32>,
+    pub image: RgbaImage,
 }
 
 /// Add asset types and asset loader to the app builder
@@ -78,12 +77,8 @@ async fn load_sprite<'a, 'b>(
         .unwrap() // Unwrap because we know the `&[u8]` will return no IO Error
         .decode()?
         .to_rgba8();
-    let (width, height) = image.dimensions();
 
-    load_context.set_default_asset(LoadedAsset::new(SpriteImage {
-        size: Size::new(width, height),
-        image,
-    }));
+    load_context.set_default_asset(LoadedAsset::new(SpriteImage { image }));
 
     Ok(())
 }
