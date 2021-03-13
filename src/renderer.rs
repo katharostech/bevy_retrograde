@@ -212,7 +212,6 @@ impl<T: AsRef<[U]>, U> SliceAsBytes<U> for T {
 struct RetroRenderer {
     #[cfg(not(wasm))]
     pub window_contexts: HashMap<bevy::window::WindowId, RawContext<NotCurrent>>,
-    #[cfg(not(wasm))]
     pub window_aspect_ratios: HashMap<bevy::window::WindowId, f32>,
     pub gl_handles: HashMap<bevy::window::WindowId, glow::Context>,
     pub gl_objects: HashMap<bevy::window::WindowId, GlObjects>,
@@ -270,13 +269,13 @@ impl RetroRenderer {
                 let gl = self.gl_handles.get(&window_id).unwrap();
                 gl.viewport(0, 0, window.width() as i32, window.height() as i32);
 
+                self.window_aspect_ratios.insert(
+                    window_id,
+                    window.physical_width() as f32 / window.physical_height() as f32,
+                );
+
                 #[cfg(not(wasm))]
                 {
-                    self.window_aspect_ratios.insert(
-                        window_id,
-                        window.physical_width() as f32 / window.physical_height() as f32,
-                    );
-
                     self.window_contexts
                         .insert(window_id, context.treat_as_not_current());
                 }
@@ -300,12 +299,18 @@ impl RetroRenderer {
                 let window = windows
                     .get(window_created_event.id)
                     .expect("Received window created event for non-existent window.");
+                let winit_windows = world.get_resource::<bevy::winit::WinitWindows>().unwrap();
+                let winit_window = winit_windows.get_window(window.id()).unwrap();
+
+                // Set the window aspect ratio
+                self.window_aspect_ratios.insert(
+                    window.id(),
+                    winit_window.inner_size().width as f32
+                        / winit_window.inner_size().height as f32,
+                );
 
                 #[cfg(not(wasm))]
                 let (gl, context) = {
-                    let winit_windows = world.get_resource::<bevy::winit::WinitWindows>().unwrap();
-                    let winit_window = winit_windows.get_window(window.id()).unwrap();
-
                     // Create the raw context from the winit window
                     let context = ContextBuilder::new()
                         .build_raw_x11_context(
@@ -320,13 +325,6 @@ impl RetroRenderer {
 
                     // Make the new context current
                     let context = context.make_current().unwrap();
-
-                    // Set the window aspect ratio
-                    self.window_aspect_ratios.insert(
-                        window.id(),
-                        winit_window.inner_size().width as f32
-                            / winit_window.inner_size().height as f32,
-                    );
 
                     // Get the gl function pointer
                     (
@@ -556,38 +554,41 @@ impl RetroRenderer {
         let render_image = world.get_resource::<RenderFrame>().unwrap();
 
         for window in world.get_resource::<Windows>().unwrap().iter() {
-            // Set the WASM canvas to the size of the window
-            #[cfg(wasm)]
-            let window_aspect_ratio = {
-                let winit_windows = world.get_resource::<bevy::winit::WinitWindows>().unwrap();
-                let winit_window = winit_windows.get_window(window.id()).unwrap();
+            let window_aspect_ratio = *self.window_aspect_ratios.get(&window.id()).unwrap();
 
-                // Get the browser window size
-                let browser_window = web_sys::window().unwrap();
-                let window_width = browser_window.inner_width().unwrap().as_f64().unwrap();
-                let window_height = browser_window.inner_height().unwrap().as_f64().unwrap();
+            // TODO: Find out a way to detect browser resize events and recalculate the canvas size when the browser
+            // resizes:
 
-                // Set the canvas to the browser size
-                winit_window.set_inner_size(winit::dpi::Size::Physical(winit::dpi::PhysicalSize {
-                    width: window_width as u32,
-                    height: window_height as u32,
-                }));
+            // // Set the WASM canvas to the size of the window
+            // #[cfg(wasm)]
+            // let window_aspect_ratio = {
+            //     let winit_windows = world.get_resource::<bevy::winit::WinitWindows>().unwrap();
+            //     let winit_window = winit_windows.get_window(window.id()).unwrap();
 
-                winit_window.inner_size().width as f32 / winit_window.inner_size().height as f32
-            };
+            //     // Get the browser window size
+            //     let browser_window = web_sys::window().unwrap();
+            //     let window_width = browser_window.inner_width().unwrap().as_f64().unwrap();
+            //     let window_height = browser_window.inner_height().unwrap().as_f64().unwrap();
+
+            //     // Set the canvas to the browser size
+            //     winit_window.set_inner_size(winit::dpi::Size::Physical(winit::dpi::PhysicalSize {
+            //         width: window_width as u32,
+            //         height: window_height as u32,
+            //     }));
+
+            //     winit_window.inner_size().width as f32 / winit_window.inner_size().height as f32
+            // };
 
             unsafe {
                 let gl_objects = self.gl_objects.get(&window.id()).unwrap();
                 let gl = self.gl_handles.get(&window.id()).unwrap();
 
                 #[cfg(not(wasm))]
-                let (context, window_aspect_ratio) = {
+                let context = {
                     let context = self.window_contexts.remove(&window.id()).unwrap();
                     let context = context.make_current().unwrap();
 
-                    let window_aspect_ratio = *self.window_aspect_ratios.get(&window.id()).unwrap();
-
-                    (context, window_aspect_ratio)
+                    context
                 };
 
                 // Set the clear color and clear the screen
@@ -607,9 +608,6 @@ impl RetroRenderer {
                 // Load the texture image
                 load_render_texture(&gl, gl_objects.render_texture, &render_image);
 
-                // Bind the texture
-                gl.active_texture(glow::TEXTURE0);
-                gl.bind_texture(glow::TEXTURE_2D, Some(gl_objects.render_texture));
                 // Set the texture uniform
                 gl.uniform_1_i32(
                     gl.get_uniform_location(gl_objects.shader_program, "renderTexture")
@@ -627,8 +625,11 @@ impl RetroRenderer {
                 // Draw the quad
                 gl.draw_elements(glow::TRIANGLES, 6, glow::UNSIGNED_INT, 0);
 
+                #[cfg(wasm)]
+                gl.flush();
+
                 // Print any debug messages
-                #[cfg(not(wasm))]
+                #[cfg(all(not(wasm), debug_assertions))]
                 for log in gl.get_debug_message_log(10) {
                     bevy::log::debug!("GL debug: {:?}", log);
                 }
