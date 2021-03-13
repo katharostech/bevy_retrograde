@@ -43,3 +43,6 @@ cfg_aliases = "0.1.1"
 [profile.dev]
 opt-level = 3
 debug = 1
+
+[profile.release]
+lto = true

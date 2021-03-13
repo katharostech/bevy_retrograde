@@ -14,7 +14,7 @@ use glutin::{ContextBuilder, NotCurrent, RawContext};
 use glutin::platform::unix::{RawContextExt, WindowExtUnix};
 
 #[cfg(windows)]
-use glutin::platform::windows::{RawContextExt, WindowExtUnix};
+use glutin::platform::windows::{RawContextExt, WindowExtWindows};
 
 use glow::HasContext;
 use image::RgbaImage;
@@ -312,6 +312,7 @@ impl RetroRenderer {
                 #[cfg(not(wasm))]
                 let (gl, context) = {
                     // Create the raw context from the winit window
+                    #[cfg(unix)]
                     let context = ContextBuilder::new()
                         .build_raw_x11_context(
                             winit_window
@@ -321,6 +322,11 @@ impl RetroRenderer {
                                 .xlib_window()
                                 .expect("TODO: Support non-x11 windows"),
                         )
+                        .expect("TODO: handle error");
+
+                    #[cfg(windows)]
+                    let context = ContextBuilder::new()
+                        .build_raw_context(winit_window.hwnd())
                         .expect("TODO: handle error");
 
                     // Make the new context current
