@@ -28,7 +28,7 @@ impl Plugin for RetroPlugin {
         add_assets(app);
 
         app.init_resource::<RetroRenderOptions>()
-            .init_resource::<RetroRenderImage>()
+            .init_resource::<RenderFrame>()
             .add_stage_after(
                 AssetStage::AssetEvents,
                 RetroStage::PreRender,

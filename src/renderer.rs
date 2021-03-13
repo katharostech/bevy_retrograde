@@ -1,8 +1,10 @@
 use bevy::{
     app::{Events, ManualEventReader},
+    math::clamp,
     prelude::*,
     utils::HashMap,
     window::{WindowCreated, WindowResized},
+    winit::WinitWindows,
 };
 
 #[cfg(not(wasm))]
@@ -15,53 +17,172 @@ use glutin::platform::unix::{RawContextExt, WindowExtUnix};
 use glutin::platform::windows::{RawContextExt, WindowExtUnix};
 
 use glow::HasContext;
+use image::RgbaImage;
 
-use crate::SpriteImage;
+use crate::{Camera, CameraSize, Color, Position, SpriteImage, Visible};
 
 #[derive(Clone, Debug)]
 pub struct RetroRenderOptions {
-    pub viewport_scaling_mode: ViewPortScalingMode,
-    pub background_color: (f32, f32, f32, f32),
     pub pixel_aspect_raio: f32,
 }
 
 impl Default for RetroRenderOptions {
     fn default() -> Self {
         Self {
-            viewport_scaling_mode: Default::default(),
-            background_color: (0.0, 0.0, 0.0, 1.0),
             pixel_aspect_raio: 1.0,
         }
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum ViewPortScalingMode {
-    FixedVertical,
-    FixedHorizontal,
-}
-
-impl Default for ViewPortScalingMode {
-    fn default() -> Self {
-        Self::FixedVertical
-    }
-}
-
+/// The information that is sent to the renderer every frame so that it can render the frame
 #[derive(Default, Debug, Clone)]
-pub(crate) struct RetroRenderImage(image::RgbaImage);
+pub(crate) struct RenderFrame {
+    image: RgbaImage,
+    background_color: Color,
+}
 
+/// This system is the system that takes all of the sprites in the scene and produces the final RGBA
+/// image that is rendered.
 pub(crate) fn pre_render_system(
-    sprite_image_handles: Query<&Handle<SpriteImage>>,
+    sprites: Query<(&Handle<SpriteImage>, &Visible, &Position)>,
+    cameras: Query<(&Camera, &Position)>,
     sprite_image_assets: Res<Assets<SpriteImage>>,
-    mut render_image: ResMut<RetroRenderImage>,
+    windows: Res<Windows>,
+    winit_windows: Res<WinitWindows>,
+    mut render_image_out: ResMut<RenderFrame>,
 ) {
-    if let Some(handle) = sprite_image_handles.iter().next() {
-        if let Some(sprite) = sprite_image_assets.get(handle) {
-            *render_image = RetroRenderImage(sprite.image.clone());
-        } else {
-            *render_image = RetroRenderImage(Default::default());
+    use image::*;
+
+    // Get the camera
+    let mut camera_iter = cameras.iter();
+    let (camera, camera_pos) = if let Some(camera_components) = camera_iter.next() {
+        camera_components
+    } else {
+        return;
+    };
+    if camera_iter.next().is_some() {
+        panic!("Only one Retro camera is supported");
+    }
+
+    // Get the current window
+    let window = if let Some(window) = windows.get_primary() {
+        window
+    } else {
+        return;
+    };
+    let winit_window = winit_windows.get_window(window.id()).unwrap();
+    // Get the window's aspect ratio
+    let aspect_ratio =
+        winit_window.inner_size().width as f32 / winit_window.inner_size().height as f32;
+
+    // Get the camera height and width
+    let camera_height = if let CameraSize::FixedHeight(height) = camera.size {
+        height
+    } else {
+        panic!("Only fixed height camera size is support, open an issue and I'll fix it!");
+    };
+    let camera_width = (camera_height as f32 * aspect_ratio).floor() as u32;
+
+    // Get the offset of the center of the camera in camera space
+    let camera_center_offset_x = (camera_width as f32 / 2.0).floor() as i32;
+    let camera_center_offset_y = (camera_height as f32 / 2.0).floor() as i32;
+
+    // Create the render image
+    let mut render_image = RgbaImage::new(camera_width, camera_height);
+
+    // Add sprites to the render image
+    for (sprite_handle, visible, sprite_pos) in sprites.iter() {
+        // Skip invisible sprites
+        if !**visible {
+            return;
+        }
+
+        if let Some(sprite) = sprite_image_assets.get(sprite_handle) {
+            let (width, height) = sprite.image.dimensions();
+
+            // Get the offset to the center of the sprite
+            let sprite_center_offset_x = (width as f32 / 2.0).floor() as i32;
+            let sprite_center_offset_y = (height as f32 / 2.0).floor() as i32;
+
+            // Get the sprite position in camera space
+            let sprite_camera_space_x = sprite_pos.x - camera_pos.x;
+            let sprite_camera_space_y = sprite_pos.y - camera_pos.y;
+
+            // Get the sprite position in image space
+            let sprite_image_space_x = camera_center_offset_x + sprite_camera_space_x;
+            let sprite_image_space_y = camera_center_offset_y + sprite_camera_space_y;
+
+            // Get the min and max x and y screen position of the sprite in image space
+            let sprite_image_space_min_x = clamp(
+                sprite_image_space_x - sprite_center_offset_x,
+                0,
+                camera_width as i32,
+            ) as u32;
+            let sprite_image_space_max_x = clamp(
+                sprite_image_space_x + sprite_center_offset_x,
+                0,
+                camera_width as i32,
+            ) as u32;
+            let sprite_image_space_min_y = clamp(
+                sprite_image_space_y - sprite_center_offset_y,
+                0,
+                camera_height as i32,
+            ) as u32;
+            let sprite_image_space_max_y = clamp(
+                sprite_image_space_y + sprite_center_offset_y,
+                0,
+                camera_height as i32,
+            ) as u32;
+
+            // Calculate height and width of the visible portion of the sprite
+            let sprite_visible_width = sprite_image_space_max_x - sprite_image_space_min_x;
+            let sprite_visible_height = sprite_image_space_max_y - sprite_image_space_min_y;
+
+            // Cull the sprite if it's clamped width or height is 0
+            if sprite_visible_width == 0 || sprite_visible_height == 0 {
+                continue;
+            }
+
+            // Get a view into the visible portion ov the sprite image
+            let sprite_image_view = &sprite.image.view(
+                // If the sprite is cut off at the left, then the x should be equal to how much it
+                // is cut off.
+                if sprite_image_space_min_x == 0 {
+                    width - sprite_image_space_max_x
+
+                // Otherwise it is zero
+                } else {
+                    0
+                },
+                // And the same for the y
+                if sprite_image_space_min_y == 0 {
+                    height - sprite_image_space_max_y
+
+                // Otherwise it is zero
+                } else {
+                    0
+                },
+                sprite_visible_width,
+                sprite_visible_height,
+            );
+
+            // Get a sub-image of the camera for where our sprite is to be rendered
+            let mut render_sub_image = render_image.sub_image(
+                sprite_image_space_min_x,
+                sprite_image_space_min_y,
+                sprite_visible_width,
+                sprite_visible_height,
+            );
+
+            // Copy the sprite image onto our render image
+            render_sub_image.copy_from(sprite_image_view, 0, 0).unwrap();
         }
     }
+
+    *render_image_out = RenderFrame {
+        image: render_image,
+        background_color: camera.background_color,
+    };
 }
 
 pub(crate) fn get_render_system() -> impl FnMut(&mut World) {
@@ -164,8 +285,6 @@ impl RetroRenderer {
 
     /// Handle window creation
     fn handle_window_create_events(&mut self, world: &mut World) {
-        let render_options = world.get_resource::<RetroRenderOptions>().unwrap();
-
         // Get all the windows in the world
         let windows = world.get_resource::<Windows>().unwrap();
         let window_created_events = world.get_resource::<Events<WindowCreated>>().unwrap();
@@ -308,14 +427,6 @@ impl RetroRenderer {
                 // Make the program the current program
                 gl.use_program(Some(shader_program));
 
-                // Set the clear color
-                gl.clear_color(
-                    render_options.background_color.0,
-                    render_options.background_color.1,
-                    render_options.background_color.2,
-                    render_options.background_color.3,
-                );
-
                 // Make a square
                 #[rustfmt::skip]
                 const QUAD_VERTICES: &[f32] = &[
@@ -421,12 +532,7 @@ impl RetroRenderer {
         self.handle_window_resize_events(world);
 
         let render_options = world.get_resource::<RetroRenderOptions>().unwrap();
-        if render_options.viewport_scaling_mode == ViewPortScalingMode::FixedHorizontal {
-            unimplemented!(
-                "TODO: Fixed horizontal mode not implemented yet, open an issue if you want it!"
-            );
-        }
-        let render_image = world.get_resource::<RetroRenderImage>().unwrap();
+        let render_image = world.get_resource::<RenderFrame>().unwrap();
 
         for window in world.get_resource::<Windows>().unwrap().iter() {
             // Set the WASM canvas to the size of the window
@@ -463,12 +569,19 @@ impl RetroRenderer {
                     (context, window_aspect_ratio)
                 };
 
-                // Set the clear color
+                // Set the clear color and clear the screen
+                let background_color = render_image.background_color;
+                gl.clear_color(
+                    background_color.r,
+                    background_color.g,
+                    background_color.b,
+                    background_color.a,
+                );
                 gl.clear(glow::COLOR_BUFFER_BIT);
 
                 // Get the render image aspect ratio
                 let image_aspect_ratio =
-                    render_image.0.width() as f32 / render_image.0.height() as f32;
+                    render_image.image.width() as f32 / render_image.image.height() as f32;
 
                 // Load the texture image
                 let render_texture = load_and_bind_texture(&gl, glow::TEXTURE0, render_image);
@@ -556,14 +669,14 @@ fn handle_program_link_errors(gl: &glow::Context, program: <glow::Context as Has
 fn load_and_bind_texture(
     gl: &glow::Context,
     texture_id: u32,
-    render_image: &RetroRenderImage,
+    render_image: &RenderFrame,
 ) -> <glow::Context as HasContext>::Texture {
     unsafe {
         // Select the texture unit
         gl.active_texture(texture_id);
 
         // Get the texture image
-        let image = &render_image.0;
+        let image = &render_image.image;
         let (width, height, pixels) = (image.width(), image.height(), image.clone().into_raw());
 
         // Create the GL texture for our rectangle
