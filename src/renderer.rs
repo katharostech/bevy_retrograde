@@ -1,8 +1,9 @@
 use bevy::{
     app::{Events, ManualEventReader},
+    log::*,
     prelude::*,
     utils::HashMap,
-    window::WindowCreated,
+    window::{WindowCreated, WindowResized},
 };
 
 #[cfg(not(wasm))]
@@ -15,6 +16,7 @@ use glutin::platform::unix::{RawContextExt, WindowExtUnix};
 use glutin::platform::windows::{RawContextExt, WindowExtUnix};
 
 use glow::HasContext;
+use winit::dpi::LogicalSize;
 
 use crate::SpriteImage;
 
@@ -92,7 +94,7 @@ struct RetroRenderer {
     pub gl_handles: HashMap<bevy::window::WindowId, glow::Context>,
     pub gl_objects: HashMap<bevy::window::WindowId, GlObjects>,
     pub window_created_event_reader: ManualEventReader<WindowCreated>,
-    pub frame: u32,
+    pub window_resized_event_reader: ManualEventReader<WindowResized>,
 }
 
 /// # Safety
@@ -110,6 +112,51 @@ struct GlObjects {
 }
 
 impl RetroRenderer {
+    /// Handle window resize
+    fn handle_window_resize_events(&mut self, world: &mut World) {
+        // Get all the windows in the world
+        let windows = world.get_resource::<Windows>().unwrap();
+        let window_resized_events = world.get_resource::<Events<WindowResized>>().unwrap();
+
+        // for every window resize event
+        for window_resized_event in self
+            .window_resized_event_reader
+            .iter(&window_resized_events)
+        {
+            debug!("{:#?}", window_resized_event);
+
+            unsafe {
+                let window_id = window_resized_event.id;
+                let window = windows.get(window_id).unwrap();
+
+                // Resize the GL context ( must be manually done for MacOS and Wayland )
+                #[cfg(not(wasm))]
+                let context = {
+                    let context = self.window_contexts.remove(&window_id).unwrap();
+
+                    let context = context.make_current().unwrap();
+
+                    context.resize(glutin::dpi::PhysicalSize {
+                        width: window.physical_width(),
+                        height: window.physical_height(),
+                    });
+
+                    context
+                };
+
+                // Resize the GL viewport
+                let gl = self.gl_handles.get(&window_id).unwrap();
+                gl.viewport(0, 0, window.width() as i32, window.height() as i32);
+
+                #[cfg(not(wasm))]
+                {
+                    self.window_contexts
+                        .insert(window_id, context.treat_as_not_current());
+                }
+            }
+        }
+    }
+
     /// Handle window creation
     fn handle_window_create_events(&mut self, world: &mut World) {
         let render_options = world.get_resource::<RetroRenderOptions>().unwrap();
@@ -166,6 +213,18 @@ impl RetroRenderer {
                     let winit_windows = world.get_resource::<bevy::winit::WinitWindows>().unwrap();
                     let winit_window = winit_windows.get_window(window.id()).unwrap();
 
+                    // Get the browser window size
+                    let browser_window = web_sys::window().unwrap();
+                    let window_width = browser_window.inner_width().unwrap().as_f64().unwrap();
+                    let window_height = browser_window.inner_height().unwrap().as_f64().unwrap();
+
+                    // Set the canvas to the browser size
+                    winit_window.set_inner_size(winit::dpi::Size::Logical(LogicalSize {
+                        width: window_width,
+                        height: window_height,
+                    }));
+
+                    // Get the webgl context
                     let webgl2_context = winit_window
                         .canvas()
                         .get_context("webgl2")
@@ -345,11 +404,29 @@ impl RetroRenderer {
 
     fn update(&mut self, world: &mut World) {
         self.handle_window_create_events(world);
+        self.handle_window_resize_events(world);
 
-        self.frame = self.frame.wrapping_add(1);
         let render_image = world.get_resource::<RetroRenderImage>().unwrap();
 
         for window in world.get_resource::<Windows>().unwrap().iter() {
+            // Set the WASM canvas to the size of the window
+            #[cfg(wasm)]
+            {
+                let winit_windows = world.get_resource::<bevy::winit::WinitWindows>().unwrap();
+                let winit_window = winit_windows.get_window(window.id()).unwrap();
+
+                // Get the browser window size
+                let browser_window = web_sys::window().unwrap();
+                let window_width = browser_window.inner_width().unwrap().as_f64().unwrap();
+                let window_height = browser_window.inner_height().unwrap().as_f64().unwrap();
+
+                // Set the canvas to the browser size
+                winit_window.set_inner_size(winit::dpi::Size::Logical(LogicalSize {
+                    width: window_width,
+                    height: window_height,
+                }));
+            }
+
             unsafe {
                 let gl_objects = self.gl_objects.get(&window.id()).unwrap();
                 let gl = self.gl_handles.get(&window.id()).unwrap();
@@ -396,8 +473,6 @@ impl RetroRenderer {
             }
         }
     }
-
-    // TODO: Drop gl resources when the app exits
 }
 
 impl Drop for RetroRenderer {
