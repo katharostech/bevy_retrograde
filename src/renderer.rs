@@ -232,6 +232,7 @@ unsafe impl Sync for RetroRenderer {}
 struct GlObjects {
     shader_program: <glow::Context as HasContext>::Program,
     vao: <glow::Context as HasContext>::VertexArray,
+    render_texture: <glow::Context as HasContext>::Texture,
 }
 
 impl RetroRenderer {
@@ -509,11 +510,31 @@ impl RetroRenderer {
                 // Enable the uv vertex attribute
                 gl.enable_vertex_attrib_array(1);
 
+                // Create a texture that we will render to
+                gl.active_texture(glow::TEXTURE0);
+                let render_texture = gl.create_texture().unwrap();
+                gl.bind_texture(glow::TEXTURE_2D, Some(render_texture));
+
+                // Set our texure parameters
+                gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_S, glow::REPEAT as i32);
+                gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_T, glow::REPEAT as i32);
+                gl.tex_parameter_i32(
+                    glow::TEXTURE_2D,
+                    glow::TEXTURE_MIN_FILTER,
+                    glow::NEAREST as i32,
+                );
+                gl.tex_parameter_i32(
+                    glow::TEXTURE_2D,
+                    glow::TEXTURE_MAG_FILTER,
+                    glow::NEAREST as i32,
+                );
+
                 self.gl_objects.insert(
                     window.id(),
                     GlObjects {
                         shader_program,
                         vao,
+                        render_texture,
                     },
                 );
                 self.gl_handles.insert(window.id(), gl);
@@ -584,11 +605,11 @@ impl RetroRenderer {
                     render_image.image.width() as f32 / render_image.image.height() as f32;
 
                 // Load the texture image
-                let render_texture = load_and_bind_texture(&gl, glow::TEXTURE0, render_image);
+                load_render_texture(&gl, gl_objects.render_texture, &render_image);
 
                 // Bind the texture
                 gl.active_texture(glow::TEXTURE0);
-                gl.bind_texture(glow::TEXTURE_2D, Some(render_texture));
+                gl.bind_texture(glow::TEXTURE_2D, Some(gl_objects.render_texture));
                 // Set the texture uniform
                 gl.uniform_1_i32(
                     gl.get_uniform_location(gl_objects.shader_program, "renderTexture")
@@ -666,36 +687,18 @@ fn handle_program_link_errors(gl: &glow::Context, program: <glow::Context as Has
     }
 }
 
-fn load_and_bind_texture(
+fn load_render_texture(
     gl: &glow::Context,
-    texture_id: u32,
+    texture: <glow::Context as HasContext>::Texture,
     render_image: &RenderFrame,
-) -> <glow::Context as HasContext>::Texture {
+) {
     unsafe {
-        // Select the texture unit
-        gl.active_texture(texture_id);
-
         // Get the texture image
         let image = &render_image.image;
         let (width, height, pixels) = (image.width(), image.height(), image.clone().into_raw());
 
-        // Create the GL texture for our rectangle
-        let texture = gl.create_texture().unwrap();
+        // Bind the texture
         gl.bind_texture(glow::TEXTURE_2D, Some(texture));
-
-        // Set our texure parameters
-        gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_S, glow::REPEAT as i32);
-        gl.tex_parameter_i32(glow::TEXTURE_2D, glow::TEXTURE_WRAP_T, glow::REPEAT as i32);
-        gl.tex_parameter_i32(
-            glow::TEXTURE_2D,
-            glow::TEXTURE_MIN_FILTER,
-            glow::NEAREST as i32,
-        );
-        gl.tex_parameter_i32(
-            glow::TEXTURE_2D,
-            glow::TEXTURE_MAG_FILTER,
-            glow::NEAREST as i32,
-        );
 
         // Set our image data
         gl.tex_image_2d(
@@ -709,7 +712,5 @@ fn load_and_bind_texture(
             glow::UNSIGNED_BYTE,
             Some(&pixels),
         );
-
-        texture
     }
 }

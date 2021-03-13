@@ -25,7 +25,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         // Spawn the camera
         .spawn(CameraBundle {
             camera: Camera {
-                size: CameraSize::FixedHeight(100),
+                size: CameraSize::FixedHeight(200),
                 ..Default::default()
             },
             ..Default::default()
