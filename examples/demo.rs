@@ -3,6 +3,14 @@ use bevy_retro::*;
 
 fn main() {
     App::build()
+        .insert_resource(WindowDescriptor {
+            title: "Bevy Retro Demo".into(),
+            ..Default::default()
+        })
+        .insert_resource(RetroRenderOptions {
+            pixel_aspect_raio: 4.0 / 3.0,
+            ..Default::default()
+        })
         .add_plugins(DefaultPlugins)
         .add_plugin(RetroPlugin)
         .add_startup_system(setup.system())

@@ -1,6 +1,5 @@
 use bevy::{
     app::{Events, ManualEventReader},
-    log::*,
     prelude::*,
     utils::HashMap,
     window::{WindowCreated, WindowResized},
@@ -16,7 +15,6 @@ use glutin::platform::unix::{RawContextExt, WindowExtUnix};
 use glutin::platform::windows::{RawContextExt, WindowExtUnix};
 
 use glow::HasContext;
-use winit::dpi::LogicalSize;
 
 use crate::SpriteImage;
 
@@ -24,6 +22,7 @@ use crate::SpriteImage;
 pub struct RetroRenderOptions {
     pub viewport_scaling_mode: ViewPortScalingMode,
     pub background_color: (f32, f32, f32, f32),
+    pub pixel_aspect_raio: f32,
 }
 
 impl Default for RetroRenderOptions {
@@ -31,11 +30,12 @@ impl Default for RetroRenderOptions {
         Self {
             viewport_scaling_mode: Default::default(),
             background_color: (0.0, 0.0, 0.0, 1.0),
+            pixel_aspect_raio: 1.0,
         }
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ViewPortScalingMode {
     FixedVertical,
     FixedHorizontal,
@@ -91,6 +91,8 @@ impl<T: AsRef<[U]>, U> SliceAsBytes<U> for T {
 struct RetroRenderer {
     #[cfg(not(wasm))]
     pub window_contexts: HashMap<bevy::window::WindowId, RawContext<NotCurrent>>,
+    #[cfg(not(wasm))]
+    pub window_aspect_ratios: HashMap<bevy::window::WindowId, f32>,
     pub gl_handles: HashMap<bevy::window::WindowId, glow::Context>,
     pub gl_objects: HashMap<bevy::window::WindowId, GlObjects>,
     pub window_created_event_reader: ManualEventReader<WindowCreated>,
@@ -123,8 +125,6 @@ impl RetroRenderer {
             .window_resized_event_reader
             .iter(&window_resized_events)
         {
-            debug!("{:#?}", window_resized_event);
-
             unsafe {
                 let window_id = window_resized_event.id;
                 let window = windows.get(window_id).unwrap();
@@ -150,6 +150,11 @@ impl RetroRenderer {
 
                 #[cfg(not(wasm))]
                 {
+                    self.window_aspect_ratios.insert(
+                        window_id,
+                        window.physical_width() as f32 / window.physical_height() as f32,
+                    );
+
                     self.window_contexts
                         .insert(window_id, context.treat_as_not_current());
                 }
@@ -196,6 +201,13 @@ impl RetroRenderer {
                     // Make the new context current
                     let context = context.make_current().unwrap();
 
+                    // Set the window aspect ratio
+                    self.window_aspect_ratios.insert(
+                        window.id(),
+                        winit_window.inner_size().width as f32
+                            / winit_window.inner_size().height as f32,
+                    );
+
                     // Get the gl function pointer
                     (
                         glow::Context::from_loader_function(|s| {
@@ -219,10 +231,12 @@ impl RetroRenderer {
                     let window_height = browser_window.inner_height().unwrap().as_f64().unwrap();
 
                     // Set the canvas to the browser size
-                    winit_window.set_inner_size(winit::dpi::Size::Logical(LogicalSize {
-                        width: window_width,
-                        height: window_height,
-                    }));
+                    winit_window.set_inner_size(winit::dpi::Size::Logical(
+                        winit::dpi::LogicalSize {
+                            width: window_width,
+                            height: window_height,
+                        },
+                    ));
 
                     // Get the webgl context
                     let webgl2_context = winit_window
@@ -306,10 +320,10 @@ impl RetroRenderer {
                 #[rustfmt::skip]
                 const QUAD_VERTICES: &[f32] = &[
                     // Positions (3)    // UV (2)
-                    -0.8, -1.0,  0.0,   0., 0.,          // bottom left
-                     0.8, -1.0,  0.0,   0., 1.,          // bottom right
-                     0.8,  1.0,  0.0,   1., 1.,          // top right
-                    -0.8,  1.0,  0.0,   1., 0.,          // top left
+                    -1.0, -1.0,  0.0,   0., 1.,          // bottom left
+                     1.0, -1.0,  0.0,   1., 1.,          // bottom right
+                     1.0,  1.0,  0.0,   1., 0.,          // top right
+                    -1.0,  1.0,  0.0,   0., 0.,          // top left
                 ];
                 const QUAD_INDICES: &[u32] = &[
                     0, 1, 2, // First triangle
@@ -406,12 +420,18 @@ impl RetroRenderer {
         self.handle_window_create_events(world);
         self.handle_window_resize_events(world);
 
+        let render_options = world.get_resource::<RetroRenderOptions>().unwrap();
+        if render_options.viewport_scaling_mode == ViewPortScalingMode::FixedHorizontal {
+            unimplemented!(
+                "TODO: Fixed horizontal mode not implemented yet, open an issue if you want it!"
+            );
+        }
         let render_image = world.get_resource::<RetroRenderImage>().unwrap();
 
         for window in world.get_resource::<Windows>().unwrap().iter() {
             // Set the WASM canvas to the size of the window
             #[cfg(wasm)]
-            {
+            let window_aspect_ratio = {
                 let winit_windows = world.get_resource::<bevy::winit::WinitWindows>().unwrap();
                 let winit_window = winit_windows.get_window(window.id()).unwrap();
 
@@ -421,26 +441,34 @@ impl RetroRenderer {
                 let window_height = browser_window.inner_height().unwrap().as_f64().unwrap();
 
                 // Set the canvas to the browser size
-                winit_window.set_inner_size(winit::dpi::Size::Logical(LogicalSize {
-                    width: window_width,
-                    height: window_height,
+                winit_window.set_inner_size(winit::dpi::Size::Physical(winit::dpi::PhysicalSize {
+                    width: window_width as u32,
+                    height: window_height as u32,
                 }));
-            }
+
+                winit_window.inner_size().width as f32 / winit_window.inner_size().height as f32
+            };
 
             unsafe {
                 let gl_objects = self.gl_objects.get(&window.id()).unwrap();
                 let gl = self.gl_handles.get(&window.id()).unwrap();
 
                 #[cfg(not(wasm))]
-                let context = {
+                let (context, window_aspect_ratio) = {
                     let context = self.window_contexts.remove(&window.id()).unwrap();
                     let context = context.make_current().unwrap();
 
-                    context
+                    let window_aspect_ratio = *self.window_aspect_ratios.get(&window.id()).unwrap();
+
+                    (context, window_aspect_ratio)
                 };
 
                 // Set the clear color
                 gl.clear(glow::COLOR_BUFFER_BIT);
+
+                // Get the render image aspect ratio
+                let image_aspect_ratio =
+                    render_image.0.width() as f32 / render_image.0.height() as f32;
 
                 // Load the texture image
                 let render_texture = load_and_bind_texture(&gl, glow::TEXTURE0, render_image);
@@ -455,13 +483,20 @@ impl RetroRenderer {
                     0,
                 );
 
+                // Set the window aspect ratio uniform
+                gl.uniform_1_f32(
+                    gl.get_uniform_location(gl_objects.shader_program, "aspectCorrectionFactor")
+                        .as_ref(),
+                    window_aspect_ratio / image_aspect_ratio / render_options.pixel_aspect_raio,
+                );
+
                 // Draw the quad
                 gl.draw_elements(glow::TRIANGLES, 6, glow::UNSIGNED_INT, 0);
 
                 // Print any debug messages
                 #[cfg(not(wasm))]
                 for log in gl.get_debug_message_log(10) {
-                    dbg!(log);
+                    bevy::log::debug!("GL debug: {:?}", log);
                 }
 
                 #[cfg(not(wasm))]

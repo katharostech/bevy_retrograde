@@ -5,7 +5,6 @@ precision mediump float;
 in vec2 vUv;
 out vec4 fragColor;
 
-// uniform float time;
 uniform sampler2D renderTexture;
 
 void main() {
