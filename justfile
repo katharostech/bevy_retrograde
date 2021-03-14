@@ -9,7 +9,7 @@ run-example-web example='demo':
     wasm-bindgen --out-dir target/wasm/{{example}} --target web target/wasm32-unknown-unknown/debug/examples/{{example}}.wasm
     cp wasm_resources/index.tpl.html target/wasm/{{example}}/index.html
     sed -i s/\$example/{{example}}/ target/wasm/{{example}}/index.html
-    ln -fs ../../../assets target/wasm/{{example}}/assets
+    ln -fs ../../../assets target/wasm/{{example}}
     basic-http-server target/wasm/{{example}}
 
 readme:
