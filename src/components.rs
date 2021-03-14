@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 
-use crate::SpriteImage;
+use petgraph::{graph::NodeIndex, stable_graph::StableGraph, Directed};
+
+use crate::Image;
 
 macro_rules! impl_deref {
     ($struct:ident, $target:path) => {
@@ -23,13 +25,20 @@ macro_rules! impl_deref {
 /// The retro camera bundle
 #[derive(Bundle, Default, Debug, Clone)]
 pub struct CameraBundle {
+    /// The camera config
+    pub camera: Camera,
+
     /// The position of the center of the camera
     ///
     /// If the width or height of the camera is an even number, the center pixel will be the pixel
     /// to the top-left of the true center.
     pub position: Position,
-    /// The camera config
-    pub camera: Camera,
+
+    /// The corresponding scene node for the camera
+    pub scene_node: SceneNode,
+
+    /// The global world position of the sprite
+    pub world_position: WorldPosition,
 }
 
 /// An 8-bit RGBA color
@@ -98,21 +107,116 @@ impl Default for CameraSize {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 /// The position of a 2D object in the world
-pub struct Position(pub IVec3);
-impl_deref!(Position, IVec3);
+pub struct Position {
+    /// The actual position
+    pub(crate) pos: IVec3,
+    // TODO: Maybe bevy's change detection is good enough to handle this
+    /// Whether or not this position has changed since it was last propagated to the global
+    /// transform
+    pub(crate) dirty: bool,
+}
+
+impl Position {
+    // Create a new position
+    pub fn new(x: i32, y: i32, z: i32) -> Self {
+        Self {
+            pos: IVec3::new(x, y, z),
+            dirty: true,
+        }
+    }
+}
+
+impl From<IVec3> for Position {
+    fn from(pos: IVec3) -> Self {
+        Self { pos, dirty: true }
+    }
+}
+
+impl Default for Position {
+    fn default() -> Self {
+        Self {
+            pos: Default::default(),
+            dirty: true,
+        }
+    }
+}
+
+impl std::ops::Deref for Position {
+    type Target = IVec3;
+
+    fn deref(&self) -> &Self::Target {
+        &self.pos
+    }
+}
+
+impl std::ops::DerefMut for Position {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.pos
+    }
+}
 
 /// A bundle containing all the components necessary to render a sprite
 #[derive(Bundle, Default)]
 pub struct SpriteBundle {
     /// The image data of the sprite
-    pub image: Handle<SpriteImage>,
+    pub image: Handle<Image>,
+    /// The corresponding scene node for the sprite
+    pub scene_node: SceneNode,
     /// The visibility of the sprite
     pub visible: Visible,
     /// The position of the center of the sprite in world space
     pub position: Position,
+    /// The global world position of the sprite
+    pub world_position: WorldPosition,
 }
+
+/// The graph containing the hierarchy structure of the scene
+#[derive(Debug, Clone)]
+pub struct SceneGraph(pub(crate) StableGraph<Entity, (), Directed>);
+
+impl Default for SceneGraph {
+    fn default() -> Self {
+        Self(StableGraph::new())
+    }
+}
+
+impl SceneGraph {
+    pub fn add_node(&mut self, entity: Entity) -> SceneNode {
+        SceneNode(self.0.add_node(entity))
+    }
+
+    pub fn add_child(&mut self, parent: SceneNode, child: SceneNode) {
+        self.0.update_edge(parent.0, child.0, ());
+    }
+
+    pub fn remove_child(&mut self, parent: SceneNode, child: SceneNode) {
+        if let Some(edge) = self.0.find_edge(parent.0, child.0) {
+            self.0.remove_edge(edge);
+        }
+    }
+}
+
+/// An element in the scene
+#[derive(Debug, Clone, Copy)]
+pub struct SceneNode(pub(crate) NodeIndex);
+
+impl Default for SceneNode {
+    fn default() -> Self {
+        use rand::prelude::*;
+        let mut rng = thread_rng();
+        Self(NodeIndex::new(rng.gen()))
+    }
+}
+
+/// The global position in the world
+///
+/// Can only be considered up-to-date with the actual sprite world position if `dirty == false`
+/// for this sprite and all of it's parents
+#[derive(Debug, Clone, Default, Copy)]
+pub struct WorldPosition(pub IVec3);
+impl_deref!(WorldPosition, IVec3);
 
 /// Indicates whether or not an object should be rendered
 #[derive(Debug, Clone, Copy)]

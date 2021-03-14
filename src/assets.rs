@@ -4,19 +4,20 @@ use bevy::{
     reflect::TypeUuid,
     utils::BoxedFuture,
 };
+use fixedbitset::FixedBitSet;
 use image::{io::Reader as ImageReader, RgbaImage};
 
 /// An LDtk map asset
 #[derive(TypeUuid)]
 #[uuid = "48d2e3c8-2f48-4330-b7fe-fac3e81c60f3"]
-pub struct SpriteImage {
+pub struct Image {
     pub image: RgbaImage,
+    pub collision: FixedBitSet,
 }
 
 /// Add asset types and asset loader to the app builder
 pub(crate) fn add_assets(app: &mut AppBuilder) {
-    app.add_asset::<SpriteImage>()
-        .init_asset_loader::<SpriteLoader>();
+    app.add_asset::<Image>().init_asset_loader::<SpriteLoader>();
 }
 
 /// An error that occurs when loading a GLTF file
@@ -78,7 +79,16 @@ async fn load_sprite<'a, 'b>(
         .decode()?
         .to_rgba8();
 
-    load_context.set_default_asset(LoadedAsset::new(SpriteImage { image }));
+    // Calculate collision bitset
+    let mut collision = FixedBitSet::with_capacity(image.pixels().len());
+    for (i, pixel) in image.pixels().enumerate() {
+        // For every non-fully transparent pixel add a collision indicator to the bitset
+        if pixel.0[3] != 0 {
+            collision.set(i, true);
+        }
+    }
+
+    load_context.set_default_asset(LoadedAsset::new(Image { image, collision }));
 
     Ok(())
 }

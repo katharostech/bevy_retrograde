@@ -19,7 +19,7 @@ use glutin::platform::windows::{RawContextExt, WindowExtWindows};
 use glow::HasContext;
 use image::RgbaImage;
 
-use crate::{Camera, CameraSize, Color, Position, SpriteImage, Visible};
+use crate::{Camera, CameraSize, Color, Image, Visible, WorldPosition};
 
 #[derive(Clone, Debug)]
 pub struct RetroRenderOptions {
@@ -44,9 +44,9 @@ pub(crate) struct RenderFrame {
 /// This system is the system that takes all of the sprites in the scene and produces the final RGBA
 /// image that is rendered.
 pub(crate) fn pre_render_system(
-    sprites: Query<(&Handle<SpriteImage>, &Visible, &Position)>,
-    cameras: Query<(&Camera, &Position)>,
-    sprite_image_assets: Res<Assets<SpriteImage>>,
+    sprites: Query<(&Handle<Image>, &Visible, &WorldPosition)>,
+    cameras: Query<(&Camera, &WorldPosition)>,
+    sprite_image_assets: Res<Assets<Image>>,
     windows: Res<Windows>,
     winit_windows: Res<WinitWindows>,
     mut render_frame: ResMut<RenderFrame>,

@@ -12,8 +12,12 @@ pub use assets::*;
 mod components;
 pub use components::*;
 
+mod position_propagation;
+use position_propagation::*;
+
 #[derive(Debug, Clone, Copy, StageLabel, Hash, PartialEq, Eq)]
 pub enum RetroStage {
+    WorldPositionPropagation,
     PreRender,
     Render,
 }
@@ -29,6 +33,12 @@ impl Plugin for RetroPlugin {
 
         app.init_resource::<RetroRenderOptions>()
             .init_resource::<RenderFrame>()
+            .init_resource::<SceneGraph>()
+            .add_stage_after(
+                AssetStage::AssetEvents,
+                RetroStage::WorldPositionPropagation,
+                SystemStage::parallel(),
+            )
             .add_stage_after(
                 AssetStage::AssetEvents,
                 RetroStage::PreRender,
@@ -39,6 +49,7 @@ impl Plugin for RetroPlugin {
                 RetroStage::Render,
                 SystemStage::parallel(),
             )
+            .add_system_to_stage(RetroStage::PreRender, propagate_world_positions_system.system())
             .add_system_to_stage(RetroStage::PreRender, pre_render_system.system())
             .add_system_to_stage(RetroStage::Render, render_system.exclusive_system());
     }
