@@ -49,7 +49,7 @@ pub(crate) fn pre_render_system(
     sprite_image_assets: Res<Assets<SpriteImage>>,
     windows: Res<Windows>,
     winit_windows: Res<WinitWindows>,
-    mut render_image_out: ResMut<RenderFrame>,
+    mut render_frame: ResMut<RenderFrame>,
 ) {
     use image::*;
 
@@ -88,10 +88,37 @@ pub(crate) fn pre_render_system(
     let camera_center_offset_y = (camera_height as f32 / 2.0).floor() as i32;
 
     // Create the render image
-    let mut render_image = RgbaImage::new(camera_width, camera_height);
+    let render_image =
+
+    // If the camera is the same size as the current render image
+    if render_frame.image.width() == camera_width && render_frame.image.height() == camera_height {
+        // Use the image
+        &mut render_frame.image
+
+    // Otherwise
+    } else {
+        // Create a new image
+        render_frame.image = RgbaImage::new(camera_width, camera_height);
+        // Use the image
+        &mut render_frame.image
+    };
+
+    // Clear the image
+    for pixel in render_image.pixels_mut() {
+        *pixel = Rgba([
+            (255.0 * camera.background_color.r as f32).round() as u8,
+            (255.0 * camera.background_color.g as f32).round() as u8,
+            (255.0 * camera.background_color.b as f32).round() as u8,
+            (255.0 * camera.background_color.a as f32).round() as u8,
+        ])
+    }
+
+    // Sort sprites by their Z index
+    let mut sprites = sprites.iter().collect::<Vec<_>>();
+    sprites.sort_by(|(_, _, pos1), (_, _, pos2)| pos1.z.cmp(&pos2.z));
 
     // Add sprites to the render image
-    for (sprite_handle, visible, sprite_pos) in sprites.iter() {
+    for (sprite_handle, visible, sprite_pos) in sprites {
         // Skip invisible sprites
         if !**visible {
             return;
@@ -112,6 +139,11 @@ pub(crate) fn pre_render_system(
             let sprite_image_space_x = camera_center_offset_x + sprite_camera_space_x;
             let sprite_image_space_y = camera_center_offset_y + sprite_camera_space_y;
 
+            // If the width or height were an odd number, then the `floor()`-ing of the center
+            // offset will have chopped off a pixel, so we add that to the height or width here
+            let extra_pixel_x = if width % 2 != 0 { 1 } else { 0 };
+            let extra_pixel_y = if height % 2 != 0 { 1 } else { 0 };
+
             // Get the min and max x and y screen position of the sprite in image space
             let sprite_image_space_min_x = clamp(
                 sprite_image_space_x - sprite_center_offset_x,
@@ -119,7 +151,7 @@ pub(crate) fn pre_render_system(
                 camera_width as i32,
             ) as u32;
             let sprite_image_space_max_x = clamp(
-                sprite_image_space_x + sprite_center_offset_x,
+                sprite_image_space_x + sprite_center_offset_x + extra_pixel_x,
                 0,
                 camera_width as i32,
             ) as u32;
@@ -129,7 +161,7 @@ pub(crate) fn pre_render_system(
                 camera_height as i32,
             ) as u32;
             let sprite_image_space_max_y = clamp(
-                sprite_image_space_y + sprite_center_offset_y,
+                sprite_image_space_y + sprite_center_offset_y + extra_pixel_y,
                 0,
                 camera_height as i32,
             ) as u32;
@@ -175,14 +207,9 @@ pub(crate) fn pre_render_system(
             );
 
             // Copy the sprite image onto our render image
-            render_sub_image.copy_from(sprite_image_view, 0, 0).unwrap();
+            imageops::overlay(&mut render_sub_image, sprite_image_view, 0, 0)
         }
     }
-
-    *render_image_out = RenderFrame {
-        image: render_image,
-        background_color: camera.background_color,
-    };
 }
 
 pub(crate) fn get_render_system() -> impl FnMut(&mut World) {

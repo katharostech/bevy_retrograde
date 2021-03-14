@@ -12,37 +12,47 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(RetroPlugin)
         .add_startup_system(setup.system())
-        .add_system(camera_movement.system())
+        .add_system(move_sensei.system())
         .run();
 }
 
+struct Sensei;
+
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Load our sprite image
-    let image = asset_server.load("guy.gitignore.png");
+    let sensei = asset_server.load("sensei2.gitignore.png");
+    let guy = asset_server.load("guy.gitignore.png");
 
     // Setup the scene
     commands
         // Spawn the camera
         .spawn(CameraBundle {
             camera: Camera {
-                size: CameraSize::FixedHeight(200),
+                size: CameraSize::FixedHeight(100),
                 ..Default::default()
             },
             ..Default::default()
         })
         // and the sprite
         .spawn(SpriteBundle {
-            image,
+            image: guy,
             position: Position(IVec3::new(0, 0, 0)),
             ..Default::default()
-        });
+        })
+        // and another
+        .spawn(SpriteBundle {
+            image: sensei,
+            position: Position(IVec3::new(5, 5, 1)),
+            ..Default::default()
+        })
+        .with(Sensei);
 }
 
-fn camera_movement(
+fn move_sensei(
     time: Res<Time>,
     mut timer: Local<Timer>,
     keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<(&Handle<SpriteImage>, &mut Position)>,
+    mut query: Query<(&Handle<SpriteImage>, &mut Position), With<Sensei>>,
 ) {
     timer.set_duration(Duration::from_millis(40));
     timer.set_repeating(true);
