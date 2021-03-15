@@ -1,0 +1,36 @@
+[package]
+name = "bevy_retro_ldtk"
+version = "0.4.2"
+authors = ["Zicklag <zicklag@katharostech.com>"]
+edition = "2018"
+license-file = "LICENSE.md"
+description = "A Bevy Retro plugin for reading the LDtk 2D tile map format."
+repository = "https://github.com/katharostech/bevy_retro"
+documentation = "https://docs.rs/bevy_retro_ldtk"
+readme = "README.md"
+keywords = ["gamedev", "map-editor", "tile", "bevy-retro", "2D"]
+categories = [
+    "games",
+    "game-development",
+    "parser-implementations"
+]
+
+[features]
+default = []
+
+[dependencies]
+bevy_retro = { version = "0.1", path = "../../" }
+ldtk = "0.3"
+anyhow = "1.0.37"
+serde_json = "1.0.61"
+thiserror = "1.0.23"
+hex = "0.4.3"
+
+[dependencies.bevy]
+git = "https://github.com/bevyengine/bevy"
+rev = "b17f8a4bce5551b418654fffb1fe97ff0f9852f0"
+default-features = false
+
+# Uncomment the below patch and enable the `bevy-unstable` feature to run on the latest unreleased Bevy
+# [patch.crates-io]
+# bevy = { git = "https://github.com/bevyengine/bevy.git" }

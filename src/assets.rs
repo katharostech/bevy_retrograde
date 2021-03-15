@@ -15,6 +15,21 @@ pub struct Image {
     pub collision: FixedBitSet,
 }
 
+impl From<RgbaImage> for Image {
+    fn from(image: RgbaImage) -> Self {
+        // Calculate collision bitset
+        let mut collision = FixedBitSet::with_capacity(image.pixels().len());
+        for (i, pixel) in image.pixels().enumerate() {
+            // For every non-fully transparent pixel add a collision indicator to the bitset
+            if pixel.0[3] != 0 {
+                collision.set(i, true);
+            }
+        }
+
+        Image { image, collision }
+    }
+}
+
 /// Add asset types and asset loader to the app builder
 pub(crate) fn add_assets(app: &mut AppBuilder) {
     app.add_asset::<Image>().init_asset_loader::<SpriteLoader>();
@@ -79,16 +94,7 @@ async fn load_sprite<'a, 'b>(
         .decode()?
         .to_rgba8();
 
-    // Calculate collision bitset
-    let mut collision = FixedBitSet::with_capacity(image.pixels().len());
-    for (i, pixel) in image.pixels().enumerate() {
-        // For every non-fully transparent pixel add a collision indicator to the bitset
-        if pixel.0[3] != 0 {
-            collision.set(i, true);
-        }
-    }
-
-    load_context.set_default_asset(LoadedAsset::new(Image { image, collision }));
+    load_context.set_default_asset(LoadedAsset::new(Image::from(image)));
 
     Ok(())
 }

@@ -24,15 +24,6 @@ fn setup(
     asset_server: Res<AssetServer>,
     mut scene_graph: ResMut<SceneGraph>,
 ) {
-    // Spawn the camera
-    commands.spawn(CameraBundle {
-        camera: Camera {
-            size: CameraSize::FixedHeight(100),
-            ..Default::default()
-        },
-        ..Default::default()
-    });
-
     // Load our sprite images
     let sensei_image = asset_server.load("sensei2.gitignore.png");
     let guy_image = asset_server.load("guy.gitignore.png");
@@ -43,15 +34,14 @@ fn setup(
     // Add the sensei entity to the scene graph
     let sensei_node = scene_graph.add_node(sensei);
     // And add the sprite components
-    commands
-        .with_bundle(SpriteBundle {
-            image: sensei_image,
-            scene_node: sensei_node,
-            position: Position::new(0, 0, 2),
-            ..Default::default()
-        })
-        // Add our sensei marker component
-        .with(Sensei);
+    commands.with_bundle(SpriteBundle {
+        image: sensei_image,
+        scene_node: sensei_node,
+        position: Position::new(0, 0, 2),
+        ..Default::default()
+    });
+    // Add our sensei marker component
+    // .with(Sensei);
 
     // Create the guy ( student ) entity
     let guy = commands.spawn(()).current_entity().unwrap();
@@ -80,12 +70,28 @@ fn setup(
     scene_graph.add_child(barrel_node, sensei_node);
 
     // And add the sprite components
+    commands.with_bundle(SpriteBundle {
+        image: barrel_image,
+        scene_node: barrel_node,
+        ..Default::default()
+    });
+
+    // Spawn the camera
+    let camera = commands.spawn(()).current_entity().unwrap();
+    let camera_node = scene_graph.add_node(camera);
+
+    // Camera follows guy
+    // scene_graph.add_child(guy_node, camera_node);
+
     commands
-        .with_bundle(SpriteBundle {
-            image: barrel_image,
-            scene_node: barrel_node,
+        .with_bundle(CameraBundle {
+            camera: Camera {
+                size: CameraSize::FixedHeight(100),
+                ..Default::default()
+            },
             ..Default::default()
-        });
+        })
+        .with(Sensei);
 }
 
 fn move_sensei(

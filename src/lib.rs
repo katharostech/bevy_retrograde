@@ -3,6 +3,8 @@
 
 use bevy::{asset::AssetStage, prelude::*};
 
+pub use image;
+
 mod renderer;
 pub use renderer::*;
 
