@@ -1,6 +1,5 @@
 use bevy::{
     app::{Events, ManualEventReader},
-    math::clamp,
     prelude::*,
     utils::HashMap,
     window::{WindowCreated, WindowResized},
@@ -145,26 +144,16 @@ pub(crate) fn pre_render_system(
             let extra_pixel_y = if height % 2 != 0 { 1 } else { 0 };
 
             // Get the min and max x and y screen position of the sprite in image space
-            let sprite_image_space_min_x = clamp(
-                sprite_image_space_x - sprite_center_offset_x,
-                0,
-                camera_width as i32,
-            ) as u32;
-            let sprite_image_space_max_x = clamp(
-                sprite_image_space_x + sprite_center_offset_x + extra_pixel_x,
-                0,
-                camera_width as i32,
-            ) as u32;
-            let sprite_image_space_min_y = clamp(
-                sprite_image_space_y - sprite_center_offset_y,
-                0,
-                camera_height as i32,
-            ) as u32;
-            let sprite_image_space_max_y = clamp(
-                sprite_image_space_y + sprite_center_offset_y + extra_pixel_y,
-                0,
-                camera_height as i32,
-            ) as u32;
+            let sprite_image_space_min_x = (sprite_image_space_x - sprite_center_offset_x)
+                .clamp(0, camera_width as i32) as u32;
+            let sprite_image_space_max_x =
+                (sprite_image_space_x + sprite_center_offset_x + extra_pixel_x)
+                    .clamp(0, camera_width as i32) as u32;
+            let sprite_image_space_min_y = (sprite_image_space_y - sprite_center_offset_y)
+                .clamp(0, camera_height as i32) as u32;
+            let sprite_image_space_max_y =
+                (sprite_image_space_y + sprite_center_offset_y + extra_pixel_y)
+                    .clamp(0, camera_height as i32) as u32;
 
             // Calculate height and width of the visible portion of the sprite
             let sprite_visible_width = sprite_image_space_max_x - sprite_image_space_min_x;

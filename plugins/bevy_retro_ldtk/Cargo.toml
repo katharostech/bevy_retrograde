@@ -28,7 +28,6 @@ hex = "0.4.3"
 
 [dependencies.bevy]
 git = "https://github.com/bevyengine/bevy"
-rev = "b17f8a4bce5551b418654fffb1fe97ff0f9852f0"
 default-features = false
 
 # Uncomment the below patch and enable the `bevy-unstable` feature to run on the latest unreleased Bevy
