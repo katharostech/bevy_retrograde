@@ -24,6 +24,21 @@ pub enum RetroStage {
     Render,
 }
 
+pub struct RetroPlugins;
+
+impl PluginGroup for RetroPlugins {
+    fn build(&mut self, group: &mut bevy::app::PluginGroupBuilder) {
+        group.add(bevy::log::LogPlugin::default());
+        group.add(bevy::core::CorePlugin::default());
+        group.add(bevy::diagnostic::DiagnosticsPlugin::default());
+        group.add(bevy::input::InputPlugin::default());
+        group.add(bevy::window::WindowPlugin::default());
+        group.add(bevy::asset::AssetPlugin::default());
+        group.add(bevy::winit::WinitPlugin::default());
+        group.add(RetroPlugin);
+    }
+}
+
 #[derive(Default)]
 pub struct RetroPlugin;
 
@@ -51,7 +66,10 @@ impl Plugin for RetroPlugin {
                 RetroStage::Render,
                 SystemStage::parallel(),
             )
-            .add_system_to_stage(RetroStage::PreRender, propagate_world_positions_system.system())
+            .add_system_to_stage(
+                RetroStage::PreRender,
+                propagate_world_positions_system.system(),
+            )
             .add_system_to_stage(RetroStage::PreRender, pre_render_system.system())
             .add_system_to_stage(RetroStage::Render, render_system.exclusive_system());
     }

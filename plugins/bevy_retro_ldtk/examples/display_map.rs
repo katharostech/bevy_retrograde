@@ -6,9 +6,8 @@ use bevy_retro_ldtk::*;
 
 fn main() {
     App::build()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(RetroPlugins)
         .add_plugin(LdtkPlugin)
-        .add_plugin(RetroPlugin)
         .add_startup_system(setup.system())
         .add_system(move_camera.system())
         .run();

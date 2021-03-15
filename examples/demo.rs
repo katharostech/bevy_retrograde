@@ -9,8 +9,7 @@ fn main() {
             title: "Bevy Retro Demo".into(),
             ..Default::default()
         })
-        .add_plugins(DefaultPlugins)
-        .add_plugin(RetroPlugin)
+        .add_plugins(RetroPlugins)
         .add_startup_system(setup.system())
         .add_system(move_sensei.system())
         .run();
