@@ -175,25 +175,27 @@ pub(crate) fn pre_render_system(
                 continue;
             }
 
+            // If the sprite has clipped at the top-left edge of the screen, set the offset of the
+            // sprite view according to how much has been cut off
+            let sprite_image_view_offset_x = if sprite_image_space_min_x == 0 {
+                ((sprite_image_space_x as i32 - sprite_center_offset_x)
+                    - sprite_image_space_min_x as i32)
+                    .abs() as u32
+            } else {
+                0
+            };
+            let sprite_image_view_offset_y = if sprite_image_space_min_y == 0 {
+                ((sprite_image_space_y as i32 - sprite_center_offset_y)
+                    - sprite_image_space_min_y as i32)
+                    .abs() as u32
+            } else {
+                0
+            };
+
             // Get a view into the visible portion ov the sprite image
             let sprite_image_view = &sprite.image.view(
-                // If the sprite is cut off at the left, then the x should be equal to how much it
-                // is cut off.
-                if sprite_image_space_min_x == 0 {
-                    width - sprite_image_space_max_x
-
-                // Otherwise it is zero
-                } else {
-                    0
-                },
-                // And the same for the y
-                if sprite_image_space_min_y == 0 {
-                    height - sprite_image_space_max_y
-
-                // Otherwise it is zero
-                } else {
-                    0
-                },
+                sprite_image_view_offset_x,
+                sprite_image_view_offset_y,
                 sprite_visible_width,
                 sprite_visible_height,
             );

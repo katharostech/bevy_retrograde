@@ -81,7 +81,7 @@ fn setup(
     let camera_node = scene_graph.add_node(camera);
 
     // Camera follows guy
-    // scene_graph.add_child(guy_node, camera_node);
+    scene_graph.add_child(guy_node, camera_node);
 
     commands
         .with_bundle(CameraBundle {

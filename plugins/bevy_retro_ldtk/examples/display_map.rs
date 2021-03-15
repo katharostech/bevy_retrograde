@@ -25,7 +25,7 @@ fn setup(
     // Spawn the camera
     commands.spawn(CameraBundle {
         camera: Camera {
-            size: CameraSize::FixedHeight(400),
+            size: CameraSize::FixedHeight(180),
             ..Default::default()
         },
         ..Default::default()
@@ -59,7 +59,7 @@ fn move_camera(
     keyboard_input: Res<Input<KeyCode>>,
     mut query: Query<&mut Position, With<Camera>>,
 ) {
-    timer.set_duration(Duration::from_millis(40));
+    timer.set_duration(Duration::from_millis(10));
     timer.set_repeating(true);
 
     timer.tick(time.delta());
