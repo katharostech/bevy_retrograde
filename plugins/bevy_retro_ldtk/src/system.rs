@@ -116,10 +116,9 @@ fn process_ldtk_maps(
                 };
 
                 // Create the layer image
-                let mut layer_image = image::RgbaImage::new(
-                    (layer.__c_wid * layer.__grid_size) as u32,
-                    (layer.__c_hei * layer.__grid_size) as u32,
-                );
+                let width = (layer.__c_wid * layer.__grid_size) as u32;
+                let height = (layer.__c_hei * layer.__grid_size) as u32;
+                let mut layer_image = image::RgbaImage::new(width, height);
 
                 // For every tile in the layer
                 for tile in tiles {
@@ -164,7 +163,11 @@ fn process_ldtk_maps(
                     image: image_assets.add(Image::from(layer_image)),
                     scene_node: layer_node,
                     // Each layer is 2 units higher than the one before it
-                    position: Position::new(0, 0, z as i32 * 2),
+                    position: Position::new(
+                        (width as f32 / 2.0) as i32,
+                        (height as f32 / 2.0) as i32,
+                        z as i32 * 2,
+                    ),
                     ..Default::default()
                 });
             }
