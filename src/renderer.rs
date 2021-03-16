@@ -18,7 +18,7 @@ use glutin::platform::windows::{RawContextExt, WindowExtWindows};
 use glow::HasContext;
 use image::RgbaImage;
 
-use crate::{Camera, CameraSize, Color, Image, Visible, WorldPosition};
+use crate::{Camera, CameraSize, Color, Image, SpriteSheet, Visible, WorldPosition};
 
 #[derive(Clone, Debug)]
 pub struct RetroRenderOptions {
@@ -43,7 +43,12 @@ pub(crate) struct RenderFrame {
 /// This system is the system that takes all of the sprites in the scene and produces the final RGBA
 /// image that is rendered.
 pub(crate) fn pre_render_system(
-    sprites: Query<(&Handle<Image>, &Visible, &WorldPosition)>,
+    sprites: Query<(
+        &Handle<Image>,
+        Option<&SpriteSheet>,
+        &Visible,
+        &WorldPosition,
+    )>,
     cameras: Query<(&Camera, &WorldPosition)>,
     sprite_image_assets: Res<Assets<Image>>,
     windows: Res<Windows>,
@@ -114,17 +119,33 @@ pub(crate) fn pre_render_system(
 
     // Sort sprites by their Z index
     let mut sprites = sprites.iter().collect::<Vec<_>>();
-    sprites.sort_by(|(_, _, pos1), (_, _, pos2)| pos1.z.cmp(&pos2.z));
+    sprites.sort_by(|(_, _, _, pos1), (_, _, _, pos2)| pos1.z.cmp(&pos2.z));
 
     // Add sprites to the render image
-    for (sprite_handle, visible, sprite_pos) in sprites {
+    for (sprite_handle, sprite_sheet, visible, sprite_pos) in sprites {
         // Skip invisible sprites
         if !**visible {
             return;
         }
 
         if let Some(sprite) = sprite_image_assets.get(sprite_handle) {
-            let (width, height) = sprite.image.dimensions();
+            let (sheet_width, sheet_height) = sprite.image.dimensions();
+            let sprite_image = if let Some(sprite_sheet) = sprite_sheet {
+                let grid_size = sprite_sheet.grid_size;
+                let tile_index = sprite_sheet.tile_index;
+                let width_tiles = sheet_width / grid_size;
+
+                let tile_y = (tile_index as f32 / width_tiles as f32).floor() as u32;
+                let tile_x = tile_index - tile_y * width_tiles;
+
+                sprite
+                    .image
+                    .view(tile_x * grid_size, tile_y * grid_size, grid_size, grid_size)
+            } else {
+                sprite.image.view(0, 0, sheet_width, sheet_height)
+            };
+
+            let (width, height) = sprite_image.dimensions();
 
             // Get the offset to the center of the sprite
             let sprite_center_offset_x = (width as f32 / 2.0).floor() as i32;
@@ -182,7 +203,7 @@ pub(crate) fn pre_render_system(
             };
 
             // Get a view into the visible portion ov the sprite image
-            let sprite_image_view = &sprite.image.view(
+            let sprite_image_view = &sprite_image.view(
                 sprite_image_view_offset_x,
                 sprite_image_view_offset_y,
                 sprite_visible_width,

@@ -188,6 +188,12 @@ pub struct SpriteBundle {
     pub world_position: WorldPosition,
 }
 
+#[derive(Debug, Clone)]
+pub struct SpriteSheet {
+    pub grid_size: u32,
+    pub tile_index: u32,
+}
+
 /// The graph containing the hierarchy structure of the scene
 #[derive(Debug, Clone)]
 pub struct SceneGraph(pub(crate) StableGraph<Entity, (), Directed>);
