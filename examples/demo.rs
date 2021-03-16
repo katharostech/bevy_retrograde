@@ -37,6 +37,10 @@ fn setup(
         image: sensei_image,
         scene_node: sensei_node,
         position: Position::new(0, 0, 2),
+        sprite_flip: SpriteFlip {
+            x: true,
+            y: false,
+        },
         ..Default::default()
     });
     // Add our sensei marker component

@@ -186,6 +186,14 @@ pub struct SpriteBundle {
     pub position: Position,
     /// The global world position of the sprite
     pub world_position: WorldPosition,
+    // Whether or not the sprite is flipped along x or y
+    pub sprite_flip: SpriteFlip,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct SpriteFlip {
+    pub x: bool,
+    pub y: bool,
 }
 
 #[derive(Debug, Clone, TypeUuid)]
