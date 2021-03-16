@@ -45,12 +45,13 @@ pub(crate) struct RenderFrame {
 pub(crate) fn pre_render_system(
     sprites: Query<(
         &Handle<Image>,
-        Option<&SpriteSheet>,
+        Option<&Handle<SpriteSheet>>,
         &Visible,
         &WorldPosition,
     )>,
     cameras: Query<(&Camera, &WorldPosition)>,
     sprite_image_assets: Res<Assets<Image>>,
+    sprite_sheet_assets: Res<Assets<SpriteSheet>>,
     windows: Res<Windows>,
     winit_windows: Res<WinitWindows>,
     mut render_frame: ResMut<RenderFrame>,
@@ -130,17 +131,21 @@ pub(crate) fn pre_render_system(
 
         if let Some(sprite) = sprite_image_assets.get(sprite_handle) {
             let (sheet_width, sheet_height) = sprite.image.dimensions();
-            let sprite_image = if let Some(sprite_sheet) = sprite_sheet {
-                let grid_size = sprite_sheet.grid_size;
-                let tile_index = sprite_sheet.tile_index;
-                let width_tiles = sheet_width / grid_size;
+            let sprite_image = if let Some(sprite_sheet_handle) = sprite_sheet {
+                if let Some(sprite_sheet) = sprite_sheet_assets.get(sprite_sheet_handle) {
+                    let grid_size = sprite_sheet.grid_size;
+                    let tile_index = sprite_sheet.tile_index;
+                    let width_tiles = sheet_width / grid_size;
 
-                let tile_y = (tile_index as f32 / width_tiles as f32).floor() as u32;
-                let tile_x = tile_index - tile_y * width_tiles;
+                    let tile_y = (tile_index as f32 / width_tiles as f32).floor() as u32;
+                    let tile_x = tile_index - tile_y * width_tiles;
 
-                sprite
-                    .image
-                    .view(tile_x * grid_size, tile_y * grid_size, grid_size, grid_size)
+                    sprite
+                        .image
+                        .view(tile_x * grid_size, tile_y * grid_size, grid_size, grid_size)
+                } else {
+                    continue;
+                }
             } else {
                 sprite.image.view(0, 0, sheet_width, sheet_height)
             };

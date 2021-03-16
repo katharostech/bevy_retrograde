@@ -16,7 +16,11 @@ fn main() {
 /// Just helps us keep track of which frame we're on for our sprite
 struct SpriteAnimFrame(usize);
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut sprite_sheets: ResMut<Assets<SpriteSheet>>,
+) {
     // Load our sprite images
     let doggo_image = asset_server.load("doggo.gitignore.png");
 
@@ -26,10 +30,10 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             image: doggo_image,
             ..Default::default()
         })
-        .with(SpriteSheet {
+        .with(sprite_sheets.add(SpriteSheet {
             grid_size: 16,
             tile_index: 0,
-        })
+        }))
         .with(Timer::from_seconds(0.12, true))
         .with(SpriteAnimFrame(0))
         // Spawn camera
@@ -45,16 +49,19 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 fn animate_sprite(
     time: Res<Time>,
-    mut query: Query<(&mut Timer, &mut SpriteSheet, &mut SpriteAnimFrame), With<Handle<Image>>>,
+    mut query: Query<(&mut Timer, &Handle<SpriteSheet>, &mut SpriteAnimFrame), With<Handle<Image>>>,
+    mut sprite_sheet_assets: ResMut<Assets<SpriteSheet>>,
 ) {
     let frames = [136u32, 137, 138, 139];
 
-    for (mut timer, mut spritesheet, mut frame) in query.iter_mut() {
+    for (mut timer, sprite_sheet_handle, mut frame) in query.iter_mut() {
         timer.tick(time.delta());
 
         if timer.finished() {
-            frame.0 = frame.0.wrapping_add(1);
-            spritesheet.tile_index = *frames.iter().cycle().nth(frame.0).unwrap();
+            if let Some(sprite_sheet) = sprite_sheet_assets.get_mut(sprite_sheet_handle) {
+                frame.0 = frame.0.wrapping_add(1);
+                sprite_sheet.tile_index = *frames.iter().cycle().nth(frame.0).unwrap();
+            }
         }
     }
 }

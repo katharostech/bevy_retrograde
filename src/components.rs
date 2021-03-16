@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, reflect::TypeUuid};
 
 use petgraph::{graph::NodeIndex, stable_graph::StableGraph, Directed};
 
@@ -188,7 +188,8 @@ pub struct SpriteBundle {
     pub world_position: WorldPosition,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, TypeUuid)]
+#[uuid = "64746631-1afe-4ca6-8398-7c0df62f7813"]
 pub struct SpriteSheet {
     pub grid_size: u32,
     pub tile_index: u32,

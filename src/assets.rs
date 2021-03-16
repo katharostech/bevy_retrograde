@@ -7,6 +7,8 @@ use bevy::{
 use fixedbitset::FixedBitSet;
 use image::{io::Reader as ImageReader, RgbaImage};
 
+use crate::SpriteSheet;
+
 /// An LDtk map asset
 #[derive(TypeUuid)]
 #[uuid = "48d2e3c8-2f48-4330-b7fe-fac3e81c60f3"]
@@ -32,7 +34,9 @@ impl From<RgbaImage> for Image {
 
 /// Add asset types and asset loader to the app builder
 pub(crate) fn add_assets(app: &mut AppBuilder) {
-    app.add_asset::<Image>().init_asset_loader::<SpriteLoader>();
+    app.add_asset::<Image>()
+        .add_asset::<SpriteSheet>()
+        .init_asset_loader::<SpriteLoader>();
 }
 
 /// An error that occurs when loading a GLTF file
