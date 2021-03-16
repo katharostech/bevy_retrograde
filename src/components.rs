@@ -194,6 +194,15 @@ pub struct SpriteSheet {
     pub tile_index: u32,
 }
 
+impl Default for SpriteSheet {
+    fn default() -> Self {
+        Self {
+            grid_size: 16,
+            tile_index: 0,
+        }
+    }
+}
+
 /// The graph containing the hierarchy structure of the scene
 #[derive(Debug, Clone)]
 pub struct SceneGraph(pub(crate) StableGraph<Entity, (), Directed>);
