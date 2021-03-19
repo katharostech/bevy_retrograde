@@ -24,7 +24,11 @@ webp = ["image/webp"]
 bmp = ["image/bmp"]
 
 [dependencies]
-glow = "0.8.1"
+luminance-front = "0.3.1"
+luminance-windowing = "0.9.3"
+luminance = "0.43.2"
+luminance-derive = "0.6.3"
+
 image = { version = "0.23.14", default-features = false }
 thiserror = "1.0.24"
 anyhow = "1.0.38"
@@ -39,9 +43,11 @@ default-features = false
 features = ["bevy_winit", "x11"]
 
 [target.'cfg(not(any(target_arch = "wasm32")))'.dependencies]
-glutin = { version = "0.26" }
+luminance-surfman = { git = "https://github.com/katharostech/luminance-surfman.git" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+luminance-web-sys = "0.2.2"
+parking_lot = { version = "0.11.1" }
 winit = { version = "0.24", features = ["web-sys"] }
 web-sys = { version = "0.3", features=["HtmlCanvasElement", "WebGl2RenderingContext", "Window", "console"] }
 wasm-bindgen = { version = "0.2" }
@@ -55,3 +61,7 @@ debug = 1
 
 [profile.release]
 lto = true
+
+# Waiting on PR: https://github.com/phaazon/luminance-rs/pull/489
+[patch.crates-io]
+luminance-web-sys = { git = "https://github.com/katharostech/luminance-rs", branch = "webgl-from-canvas" }
