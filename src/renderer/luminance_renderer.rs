@@ -1,11 +1,10 @@
 use luminance::{
     blending::{Blending, Equation, Factor},
     context::GraphicsContext,
-    pipeline::{PipelineState, TextureBinding},
-    pixel::{NormRGB8UI, NormRGBA8UI, NormUnsigned, RGBA32F},
+    pipeline::PipelineState,
+    pixel::{NormRGBA8UI, RGBA32F},
     render_state::RenderState,
-    shader::Uniform,
-    texture::{Dim2, Dim2Array, GenMipmaps, MagFilter, MinFilter, Sampler, Wrap},
+    texture::{Dim2, GenMipmaps, MagFilter, MinFilter, Sampler, Wrap},
 };
 use luminance_derive::*;
 use luminance_front::{framebuffer::Framebuffer, shader::Program, tess::Tess};
@@ -48,6 +47,8 @@ pub(crate) struct LuminanceRenderer {
     sprite_program: Program<(), (), ()>,
     sprite_instance: Tess<()>,
     scene_framebuffer: Framebuffer<Dim2, RGBA32F, ()>,
+
+    screen_program: Program<(), (), ()>,
 }
 
 impl LuminanceRenderer {
@@ -71,6 +72,17 @@ impl LuminanceRenderer {
             )
             .unwrap();
 
+        // Create the shader program for the sprite instances
+        let built_screen_program = surface
+            .new_shader_program::<(), (), ()>()
+            .from_strings(
+                include_str!("shaders/screen.vert"),
+                None,
+                None,
+                include_str!("shaders/screen.frag"),
+            )
+            .unwrap();
+
         // Log any shader compilation warnings
         for warning in built_sprite_program.warnings {
             warn!("Shader compile arning: {}", warning);
@@ -88,6 +100,7 @@ impl LuminanceRenderer {
             surface,
             sprite_instance,
             sprite_program: built_sprite_program.program,
+            screen_program: built_screen_program.program,
             scene_framebuffer,
         }
     }
@@ -95,6 +108,7 @@ impl LuminanceRenderer {
     pub fn update(&mut self, world: &mut World) {
         let Self {
             sprite_program,
+            screen_program,
             sprite_instance,
             scene_framebuffer,
             surface,
@@ -166,9 +180,10 @@ impl LuminanceRenderer {
             },
         );
 
-        // Keep track of whether or not this is the first pass ( because we need to clear the screen )
-        let mut first_pass = true;
-        for (image_handle, sprite_sheet_handle, visible, world_position) in sprites.iter(world) {
+        let sprite_iter = sprites.iter(world);
+        let mut sprite_data = Vec::new();
+
+        for (image_handle, sprite_sheet_handle, visible, world_position) in sprite_iter {
             // Skip invisible sprites
             if !**visible {
                 continue;
@@ -193,31 +208,40 @@ impl LuminanceRenderer {
             let pixels = image.image.as_raw();
 
             // Upload the sprite to the GPU
-            // FIXME: [perf] Don't re-create textures every time
             let mut texture = surface
                 .new_texture::<Dim2, NormRGBA8UI>(sprite_size, 0, PIXELATED_SAMPLER)
                 .unwrap();
             texture.upload_raw(GenMipmaps::No, pixels).unwrap();
 
-            // Create our pipeline state
-            let pipeline_state = PipelineState::default()
-                // Set the clear color to the camera background
-                .set_clear_color(color_to_array(camera.background_color))
-                // Only clear the screen if this is the last render pass
-                .enable_clear_color(first_pass);
+            sprite_data.push((texture, world_position));
+        }
 
-            // Do the render
-            surface
-                .new_pipeline_gate()
-                .pipeline(
-                    // Render to the scene framebuffer
-                    &back_buffer,
-                    &pipeline_state,
-                    |pipeline, mut shading_gate| {
-                        // Bind our texture
-                        let bound_texture = pipeline.bind_texture(&mut texture).unwrap();
+        // Sort by depth
+        sprite_data.sort_by(|(_, pos1), (_, pos2)| pos1.z.cmp(&pos2.z));
 
-                        shading_gate.shade(sprite_program, |mut interface, _, mut render_gate| {
+        // Do the render
+        surface
+            .new_pipeline_gate()
+            .pipeline(
+                // Render to the scene framebuffer
+                &scene_framebuffer,
+                &PipelineState::default().set_clear_color(color_to_array(camera.background_color)),
+                |pipeline, mut shading_gate| {
+                    shading_gate.shade(sprite_program, |mut interface, _, mut render_gate| {
+                        // Set the camera position uniform
+                        if let Ok(ref u) = interface.query().unwrap().ask("camera_position") {
+                            interface.set(u, [camera_pos.x, camera_pos.y]);
+                        }
+
+                        // Set the camera size uniform
+                        if let Ok(ref u) = interface.query().unwrap().ask("camera_size") {
+                            interface.set(u, target_size);
+                        }
+
+                        for (texture, world_position) in &mut sprite_data {
+                            // Bind our texture
+                            let bound_texture = pipeline.bind_texture(texture).unwrap();
+
                             // Set the texture uniform
                             if let Ok(ref u) = interface.query().unwrap().ask("sprite_texture") {
                                 interface.set(u, bound_texture.binding());
@@ -225,48 +249,47 @@ impl LuminanceRenderer {
 
                             // Set the sprite position uniform
                             if let Ok(ref u) = interface.query().unwrap().ask("sprite_position") {
-                                interface
-                                    .set(u, [world_position.x, world_position.y, world_position.z]);
-                            }
-
-                            // Set the camera position uniform
-                            if let Ok(ref u) = interface.query().unwrap().ask("camera_position") {
-                                interface.set(u, [camera_pos.x, camera_pos.y]);
-                            }
-
-                            // Set the camera size uniform
-                            if let Ok(ref u) = interface.query().unwrap().ask("camera_size") {
-                                interface.set(u, target_size);
+                                let pos = [world_position.x, world_position.y, world_position.z];
+                                interface.set(u, pos);
                             }
 
                             // Render the sprite
                             render_gate.render(&render_state, |mut tess_gate| {
                                 tess_gate.render(&*sprite_instance)
-                            })
+                            })?;
+                        }
+
+                        Ok(())
+                    })
+                },
+            )
+            .assume()
+            .into_result()
+            .expect("Could not render");
+
+        // Render the scene framebuffer to the back buffer on a quad
+        surface
+            .new_pipeline_gate()
+            .pipeline(
+                &back_buffer,
+                &PipelineState::default(),
+                |pipeline, mut shd_gate| {
+                    // we must bind the offscreen framebuffer color content so that we can pass it to a shader
+                    let bound_texture = pipeline.bind_texture(scene_framebuffer.color_slot())?;
+
+                    shd_gate.shade(screen_program, |mut interface, _, mut rdr_gate| {
+                        // Set the texture uniform
+                        if let Ok(ref u) = interface.query().unwrap().ask("screen_texture") {
+                            interface.set(u, bound_texture.binding());
+                        }
+
+                        rdr_gate.render(&RenderState::default(), |mut tess_gate| {
+                            tess_gate.render(&*sprite_instance)
                         })
-                    },
-                )
-                .assume()
-                .into_result()
-                .expect("Could not render");
-
-            first_pass = false;
-        }
-
-        // If no sprites were rendered, just clear the screen
-        if first_pass {
-            surface
-                .new_pipeline_gate()
-                .pipeline(
-                    &back_buffer,
-                    &PipelineState::default()
-                        .set_clear_color(color_to_array(camera.background_color)),
-                    |_, _| Ok(()),
-                )
-                .assume()
-                .into_result()
-                .expect("Could not render");
-        }
+                    })
+                },
+            )
+            .assume();
 
         #[cfg(not(wasm))]
         self.surface.swap_buffers().unwrap();

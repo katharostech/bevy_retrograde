@@ -39,6 +39,7 @@ void main() {
   // Get the vertex position in the quad
   ivec2 vertex_base_pos = quad_vert_positions[gl_VertexID];
 
+  // Get the number of pixels offset this vertice should be along x
   int vertex_x_offset = 0;
   if (sprite_size.x % 2 == 0) {
     if (vertex_base_pos.x == -1) {
@@ -50,6 +51,7 @@ void main() {
       vertex_x_offset = (sprite_size.x - 1) / 2;
   }
 
+  // Get the number of pixels offset this vertice should be along y
   int vertex_y_offset = 0;
   if (sprite_size.y % 2 == 0) {
     if (vertex_base_pos.y == -1) {
@@ -66,5 +68,11 @@ void main() {
   // Calculate the normalized coordinate of this vertice
   vec2 norm_pos = vec2((vertex_offset * vertex_base_pos) + screen_pos) / vec2(camera_size) * 2.0;
 
-  gl_Position = vec4(norm_pos * vec2(1.0, -1.0), 0., 1.);
+  // Normalize the sprite Z component, allocating 2048 layers -1023 to 1024
+  float norm_z = float(-sprite_position.z + 1024) / float(2048.0);
+
+  // Invert the y component
+  vec2 pos = norm_pos * vec2(1.0, -1.0);
+
+  gl_Position = vec4(pos, norm_z, 1.);
 }

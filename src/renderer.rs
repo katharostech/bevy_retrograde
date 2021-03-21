@@ -29,13 +29,6 @@ mod js;
 use self::luminance_renderer::LuminanceRenderer;
 use crate::{Camera, CameraSize, Color, Image, WorldPosition};
 
-/// The maximum amount of textures that can fit into one array texture
-///
-/// This value may technically be higher ( likely 2048 ) on newer hardware, but we don't currently
-/// have an easy way to check, so just assume it's 256 for now:
-/// https://github.com/phaazon/luminance-rs/issues/492
-const MAX_ARRAY_TEXTURE_LAYERS: u16 = 256;
-
 #[derive(Clone, Debug)]
 pub struct RetroRenderOptions {
     pub pixel_aspect_raio: f32,

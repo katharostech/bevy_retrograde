@@ -47,7 +47,9 @@ features = ["bevy_winit", "x11"]
 luminance-surfman = { git = "https://github.com/katharostech/luminance-surfman.git" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-luminance-web-sys = "0.2.2"
+luminance-web-sys = { git = "https://github.com/katharostech/luminance-rs", branch = "webgl-from-canvas" }
+# Waiting on PR: https://github.com/phaazon/luminance-rs/pull/489
+# luminance-web-sys = "0.2.2"
 parking_lot = { version = "0.11.1" }
 web-sys = { version = "0.3", features=["HtmlCanvasElement", "WebGl2RenderingContext", "Window", "console"] }
 wasm-bindgen = { version = "0.2" }
@@ -61,7 +63,3 @@ debug = 1
 
 [profile.release]
 lto = true
-
-# Waiting on PR: https://github.com/phaazon/luminance-rs/pull/489
-[patch.crates-io]
-luminance-web-sys = { git = "https://github.com/katharostech/luminance-rs", branch = "webgl-from-canvas" }
