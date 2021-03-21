@@ -29,6 +29,7 @@ luminance-windowing = "0.9.3"
 luminance = "0.43.2"
 luminance-derive = "0.6.3"
 
+winit = { version = "0.24", features = ["web-sys"] }
 image = { version = "0.23.14", default-features = false }
 thiserror = "1.0.24"
 anyhow = "1.0.38"
@@ -48,7 +49,6 @@ luminance-surfman = { git = "https://github.com/katharostech/luminance-surfman.g
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 luminance-web-sys = "0.2.2"
 parking_lot = { version = "0.11.1" }
-winit = { version = "0.24", features = ["web-sys"] }
 web-sys = { version = "0.3", features=["HtmlCanvasElement", "WebGl2RenderingContext", "Window", "console"] }
 wasm-bindgen = { version = "0.2" }
 

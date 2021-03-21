@@ -49,7 +49,6 @@ impl Plugin for RetroPlugin {
         add_assets(app);
 
         app.init_resource::<RetroRenderOptions>()
-            .init_resource::<RenderFrame>()
             .init_resource::<SceneGraph>()
             .add_stage_after(
                 AssetStage::AssetEvents,
@@ -70,7 +69,6 @@ impl Plugin for RetroPlugin {
                 RetroStage::PreRender,
                 propagate_world_positions_system.system(),
             )
-            .add_system_to_stage(RetroStage::PreRender, pre_render_system.system())
             .add_system_to_stage(RetroStage::Render, render_system.exclusive_system());
     }
 }

@@ -12,6 +12,7 @@ use crate::SpriteSheet;
 /// An LDtk map asset
 #[derive(TypeUuid)]
 #[uuid = "48d2e3c8-2f48-4330-b7fe-fac3e81c60f3"]
+#[derive(Clone, Debug)]
 pub struct Image {
     pub image: RgbaImage,
     pub collision: FixedBitSet,
