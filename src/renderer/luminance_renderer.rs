@@ -6,30 +6,15 @@ use luminance::{
     render_state::RenderState,
     texture::{Dim2, GenMipmaps, MagFilter, MinFilter, Sampler, Wrap},
 };
-use luminance_derive::*;
-use luminance_front::{framebuffer::Framebuffer, shader::Program, tess::Tess};
+use luminance_front::{framebuffer::Framebuffer, shader::Program, tess::Tess, texture::Texture};
+use parking_lot::Mutex;
 
-use crate::components::{SpriteSheet, Visible};
+use crate::{
+    components::{SpriteSheet, Visible},
+    starc::Starc,
+};
 
 use super::*;
-
-#[derive(Copy, Clone, Debug, Semantics)]
-pub enum SpriteVertexData {
-    #[sem(name = "position", repr = "[i32; 2]", wrapper = "SpritePosition")]
-    Position,
-    #[sem(name = "size", repr = "[u32; 2]", wrapper = "SpriteSize")]
-    Size,
-    #[sem(name = "texture_index", repr = "u32", wrapper = "SpriteTextureIndex")]
-    TextureIndex,
-    #[sem(
-        name = "atlas_offset",
-        repr = "[u32; 2]",
-        wrapper = "SpriteAtlasOffset"
-    )]
-    AtlasOffset,
-    #[sem(name = "sprite_flip", repr = "u32", wrapper = "SpriteFlip")]
-    SpriteFlip,
-}
 
 /// The scene framebuffer sampler
 const PIXELATED_SAMPLER: Sampler = Sampler {
@@ -47,8 +32,12 @@ pub(crate) struct LuminanceRenderer {
     sprite_program: Program<(), (), ()>,
     sprite_instance: Tess<()>,
     scene_framebuffer: Framebuffer<Dim2, RGBA32F, ()>,
-
     screen_program: Program<(), (), ()>,
+
+    texture_cache: HashMap<Handle<Image>, Starc<Mutex<Texture<Dim2, NormRGBA8UI>>>>,
+
+    image_asset_event_reader: ManualEventReader<AssetEvent<Image>>,
+    pending_textures: Vec<Handle<Image>>,
 }
 
 impl LuminanceRenderer {
@@ -102,10 +91,16 @@ impl LuminanceRenderer {
             sprite_program: built_sprite_program.program,
             screen_program: built_screen_program.program,
             scene_framebuffer,
+            texture_cache: Default::default(),
+            image_asset_event_reader: Default::default(),
+            pending_textures: Default::default(),
         }
     }
 
     pub fn update(&mut self, world: &mut World) {
+        // Handle image asset events
+        self.handle_image_asset_event(world);
+
         let Self {
             sprite_program,
             screen_program,
@@ -113,6 +108,8 @@ impl LuminanceRenderer {
             scene_framebuffer,
             surface,
             window_id,
+            texture_cache,
+            ..
         } = self;
 
         // Get the back buffer
@@ -127,7 +124,6 @@ impl LuminanceRenderer {
             &WorldPosition,
         )>();
 
-        let image_assets = world.get_resource::<Assets<Image>>().unwrap();
         let sprite_sheet_assets = world.get_resource::<Assets<Image>>().unwrap();
 
         // Get the window this renderer is supposed to render to
@@ -189,31 +185,13 @@ impl LuminanceRenderer {
                 continue;
             }
 
-            // Get the loaded image, or else skip the sprite
-            let image = if let Some(image) = image_assets.get(image_handle) {
-                image
-            } else {
-                continue;
-            };
-
             // Load the sprite sheet if any
             // TODO: Use this
             let _sprite_sheet = sprite_sheet_handle
                 .map(|x| sprite_sheet_assets.get(x))
                 .flatten();
 
-            // Get the sprite image info
-            let (sprite_width, sprite_height) = image.image.dimensions();
-            let sprite_size = [sprite_width, sprite_height];
-            let pixels = image.image.as_raw();
-
-            // Upload the sprite to the GPU
-            let mut texture = surface
-                .new_texture::<Dim2, NormRGBA8UI>(sprite_size, 0, PIXELATED_SAMPLER)
-                .unwrap();
-            texture.upload_raw(GenMipmaps::No, pixels).unwrap();
-
-            sprite_data.push((texture, world_position));
+            sprite_data.push((image_handle, world_position));
         }
 
         // Sort by depth
@@ -238,9 +216,19 @@ impl LuminanceRenderer {
                             interface.set(u, target_size);
                         }
 
-                        for (texture, world_position) in &mut sprite_data {
+                        for (image_handle, world_position) in &mut sprite_data {
+                            // Get the texture using the image handle
+                            let texture = if let Some(texture) = texture_cache.get_mut(image_handle)
+                            {
+                                texture
+                            } else {
+                                // Skip it if the texture has not loaded
+                                continue;
+                            };
+
                             // Bind our texture
-                            let bound_texture = pipeline.bind_texture(texture).unwrap();
+                            let mut texture = texture.lock();
+                            let bound_texture = pipeline.bind_texture(&mut *texture).unwrap();
 
                             // Set the texture uniform
                             if let Ok(ref u) = interface.query().unwrap().ask("sprite_texture") {
@@ -293,6 +281,74 @@ impl LuminanceRenderer {
 
         #[cfg(not(wasm))]
         self.surface.swap_buffers().unwrap();
+    }
+
+    pub(crate) fn handle_image_asset_event(&mut self, world: &mut World) {
+        let Self {
+            surface,
+            pending_textures,
+            texture_cache,
+            image_asset_event_reader,
+            ..
+        } = self;
+
+        let image_asset_events = world.get_resource::<Events<AssetEvent<Image>>>().unwrap();
+        let image_assets = world.get_resource::<Assets<Image>>().unwrap();
+
+        let mut upload_texture = |image: &Image| {
+            // Get the sprite image info
+            let (sprite_width, sprite_height) = image.image.dimensions();
+            let sprite_size = [sprite_width, sprite_height];
+            let pixels = image.image.as_raw();
+
+            // Upload the sprite to the GPU
+            let mut texture = surface
+                .new_texture::<Dim2, NormRGBA8UI>(sprite_size, 0, PIXELATED_SAMPLER)
+                .unwrap();
+            texture.upload_raw(GenMipmaps::No, pixels).unwrap();
+
+            texture
+        };
+
+        // Attempt to load pending textures
+        let mut new_pending_textures = Vec::new();
+        for handle in &*pending_textures {
+            if let Some(image) = image_assets.get(handle) {
+                upload_texture(image);
+            } else {
+                new_pending_textures.push(handle.clone());
+            }
+        }
+        *pending_textures = new_pending_textures;
+
+        // for every window resize event
+        for event in image_asset_event_reader.iter(&image_asset_events) {
+            match event {
+                AssetEvent::Created { handle } => {
+                    if let Some(image) = image_assets.get(handle) {
+                        texture_cache.insert(
+                            handle.clone(),
+                            Starc::new(Mutex::new(upload_texture(image))),
+                        );
+                    } else {
+                        pending_textures.push(handle.clone());
+                    }
+                }
+                AssetEvent::Modified { handle } => {
+                    if let Some(image) = image_assets.get(handle) {
+                        texture_cache.insert(
+                            handle.clone(),
+                            Starc::new(Mutex::new(upload_texture(image))),
+                        );
+                    } else {
+                        pending_textures.push(handle.clone());
+                    }
+                }
+                AssetEvent::Removed { handle } => {
+                    texture_cache.remove(handle);
+                }
+            }
+        }
     }
 }
 

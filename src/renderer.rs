@@ -2,7 +2,7 @@ use bevy::{
     app::{Events, ManualEventReader},
     prelude::*,
     utils::HashMap,
-    window::{WindowCreated, WindowResized},
+    window::WindowCreated,
     winit::WinitWindows,
 };
 
@@ -22,6 +22,7 @@ type Surface = SurfmanSurface;
 type Surface = WebSysWebGL2Surface;
 
 pub(crate) mod luminance_renderer;
+pub(crate) mod starc;
 
 #[cfg(wasm)]
 mod js;
@@ -66,12 +67,13 @@ impl BrowserResizeHandle {
 
 #[derive(Default)]
 struct RetroRenderer {
-    pub renderers: HashMap<bevy::window::WindowId, LuminanceRenderer>,
-    pub window_created_event_reader: ManualEventReader<WindowCreated>,
+    renderers: HashMap<bevy::window::WindowId, LuminanceRenderer>,
+    window_created_event_reader: ManualEventReader<WindowCreated>,
+
     #[cfg(wasm)]
     pub browser_resize_handles: HashMap<bevy::window::WindowId, BrowserResizeHandle>,
     #[cfg(not(wasm))]
-    pub window_resized_event_reader: ManualEventReader<WindowResized>,
+    pub window_resized_event_reader: ManualEventReader<bevy::window::WindowResized>,
 }
 
 /// # Safety
@@ -108,9 +110,6 @@ impl RetroRenderer {
             let surface = {
                 use winit::platform::web::WindowExtWebSys;
 
-                let winit_windows = world.get_resource::<bevy::winit::WinitWindows>().unwrap();
-                let winit_window = winit_windows.get_window(window.id()).unwrap();
-
                 // Get the browser window size
                 let browser_window = web_sys::window().unwrap();
                 let window_width = browser_window.inner_width().unwrap().as_f64().unwrap();
@@ -140,7 +139,9 @@ impl RetroRenderer {
 
     #[cfg(not(wasm))]
     fn handle_native_window_resize(&mut self, world: &mut World) {
-        let window_resized_events = world.get_resource::<Events<WindowResized>>().unwrap();
+        let window_resized_events = world
+            .get_resource::<Events<bevy::window::WindowResized>>()
+            .unwrap();
 
         // for every window resize event
         for event in self

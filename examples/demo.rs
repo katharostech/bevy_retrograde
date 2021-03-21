@@ -1,6 +1,9 @@
 use std::time::Duration;
 
-use bevy::prelude::*;
+use bevy::{
+    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+    prelude::*,
+};
 use bevy_retro::*;
 
 fn main() {
@@ -10,6 +13,9 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(RetroPlugins)
+        // Optional diagnostics
+        .add_plugin(FrameTimeDiagnosticsPlugin::default())
+        .add_plugin(LogDiagnosticsPlugin::default())
         .add_startup_system(setup.system())
         .add_system(move_sensei.system())
         .run();
@@ -33,7 +39,7 @@ fn setup(
         .with_bundle(SpriteBundle {
             image: sensei_image,
             scene_node: sensei_node,
-            position: Position::new(0, 0, 0),
+            position: Position::new(0, 0, 1),
             sprite_flip: SpriteFlip { x: true, y: false },
             ..Default::default()
         })
@@ -49,7 +55,7 @@ fn setup(
             image: guy_image,
             scene_node: guy_node,
             // The guy follows a little behind the sensei
-            position: Position::new(-20, 4, 1),
+            position: Position::new(-20, 4, 0),
             ..Default::default()
         })
         .with(Student);

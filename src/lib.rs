@@ -20,7 +20,6 @@ use position_propagation::*;
 #[derive(Debug, Clone, Copy, StageLabel, Hash, PartialEq, Eq)]
 pub enum RetroStage {
     WorldPositionPropagation,
-    PreRender,
     Render,
 }
 
@@ -44,8 +43,6 @@ pub struct RetroPlugin;
 
 impl Plugin for RetroPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        let render_system = renderer::get_render_system();
-
         add_assets(app);
 
         app.init_resource::<RetroRenderOptions>()
@@ -56,19 +53,34 @@ impl Plugin for RetroPlugin {
                 SystemStage::parallel(),
             )
             .add_stage_after(
-                AssetStage::AssetEvents,
-                RetroStage::PreRender,
-                SystemStage::parallel(),
-            )
-            .add_stage_after(
-                RetroStage::PreRender,
+                RetroStage::WorldPositionPropagation,
                 RetroStage::Render,
                 SystemStage::parallel(),
             )
             .add_system_to_stage(
-                RetroStage::PreRender,
+                RetroStage::WorldPositionPropagation,
                 propagate_world_positions_system.system(),
             )
-            .add_system_to_stage(RetroStage::Render, render_system.exclusive_system());
+            .add_system_to_stage(RetroStage::Render, get_render_system().exclusive_system());
     }
+}
+
+/// Utility to implement deref for single-element tuple structs
+#[macro_export(crate)]
+macro_rules! impl_deref {
+    ($struct:ident, $target:path) => {
+        impl std::ops::Deref for $struct {
+            type Target = $target;
+
+            fn deref(&self) -> &Self::Target {
+                &self.0
+            }
+        }
+
+        impl std::ops::DerefMut for $struct {
+            fn deref_mut(&mut self) -> &mut Self::Target {
+                &mut self.0
+            }
+        }
+    };
 }

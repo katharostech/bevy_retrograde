@@ -27,7 +27,6 @@ bmp = ["image/bmp"]
 luminance-front = "0.3.1"
 luminance-windowing = "0.9.3"
 luminance = "0.43.2"
-luminance-derive = "0.6.3"
 
 winit = { version = "0.24", features = ["web-sys"] }
 image = { version = "0.23.14", default-features = false }
@@ -37,6 +36,7 @@ fixedbitset = "0.3.2"
 petgraph = "0.5.1"
 rand = "0.8.3"
 getrandom = { version = "0.2.2", features = ["js"] }
+parking_lot = { version = "0.11.1" }
 
 [dependencies.bevy]
 git = "https://github.com/bevyengine/bevy"
@@ -50,7 +50,6 @@ luminance-surfman = { git = "https://github.com/katharostech/luminance-surfman.g
 luminance-web-sys = { git = "https://github.com/katharostech/luminance-rs", branch = "webgl-from-canvas" }
 # Waiting on PR: https://github.com/phaazon/luminance-rs/pull/489
 # luminance-web-sys = "0.2.2"
-parking_lot = { version = "0.11.1" }
 web-sys = { version = "0.3", features=["HtmlCanvasElement", "WebGl2RenderingContext", "Window", "console"] }
 wasm-bindgen = { version = "0.2" }
 

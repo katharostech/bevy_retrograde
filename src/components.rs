@@ -2,25 +2,7 @@ use bevy::{prelude::*, reflect::TypeUuid};
 
 use petgraph::{graph::NodeIndex, stable_graph::StableGraph, Directed};
 
-use crate::Image;
-
-macro_rules! impl_deref {
-    ($struct:ident, $target:path) => {
-        impl std::ops::Deref for $struct {
-            type Target = $target;
-
-            fn deref(&self) -> &Self::Target {
-                &self.0
-            }
-        }
-
-        impl std::ops::DerefMut for $struct {
-            fn deref_mut(&mut self) -> &mut Self::Target {
-                &mut self.0
-            }
-        }
-    };
-}
+use crate::{impl_deref, Image};
 
 /// The retro camera bundle
 #[derive(Bundle, Default, Debug, Clone)]

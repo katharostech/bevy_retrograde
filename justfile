@@ -1,8 +1,10 @@
+bevy_features:="bevy/trace,bevy/trace_chrome"
+
 build:
-    cargo build --features bevy/dynamic
+    cargo build --features {{bevy_features}}
 
 run-example example='demo':
-    cargo run --example {{example}} --features bevy/dynamic
+    cargo run --example {{example}} --features {{bevy_features}}
 
 run-example-web example='demo':
     cargo build --example {{example}} --target wasm32-unknown-unknown
