@@ -160,8 +160,8 @@ impl RetroRenderer {
         use winit::dpi::{PhysicalSize, Size};
         let winit_windows = world.get_resource::<bevy::winit::WinitWindows>().unwrap();
 
-        for (window_id, resize_handle) in &self.browser_resize_handles {
-            if let Some((width, height)) = *resize_handle.0.lock() {
+        for (window_id, resize_handle) in &mut self.browser_resize_handles {
+            if let Some((width, height)) = resize_handle.0.lock().take() {
                 let winit_window = winit_windows.get_window(*window_id).unwrap();
                 winit_window.set_inner_size(Size::Physical(PhysicalSize { width, height }));
             }
