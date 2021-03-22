@@ -181,9 +181,6 @@ impl RetroRenderer {
 
         for renderer in self.renderers.values_mut() {
             renderer.update(world);
-
-            #[cfg(not(wasm))]
-            renderer.surface.swap_buffers();
         }
     }
 }

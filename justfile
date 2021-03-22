@@ -1,4 +1,4 @@
-bevy_features:="bevy/trace,bevy/trace_chrome"
+bevy_features:="bevy/dynamic"
 
 build:
     cargo build --features {{bevy_features}}
