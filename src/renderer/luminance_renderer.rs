@@ -41,6 +41,7 @@ pub(crate) struct LuminanceRenderer {
 }
 
 impl LuminanceRenderer {
+    #[tracing::instrument(skip(surface))]
     pub fn init(window_id: bevy::window::WindowId, mut surface: Surface) -> Self {
         // Create the tesselator for the sprite instances
         let sprite_instance = surface
@@ -97,6 +98,7 @@ impl LuminanceRenderer {
         }
     }
 
+    #[tracing::instrument(skip(self, world))]
     pub fn update(&mut self, world: &mut World) {
         // Handle image asset events
         self.handle_image_asset_event(world);
@@ -112,8 +114,11 @@ impl LuminanceRenderer {
             ..
         } = self;
 
+        let span_setup = info_span!("setup");
+        let span_setup_guard = span_setup.enter();
+
         // Get the back buffer
-        let back_buffer = surface.back_buffer().unwrap();
+        let back_buffer = surface.back_buffer();
 
         // Build the queries and get the resources that we will need
         let mut cameras = world.query::<(&Camera, &WorldPosition)>();
@@ -197,6 +202,11 @@ impl LuminanceRenderer {
         // Sort by depth
         sprite_data.sort_by(|(_, pos1), (_, pos2)| pos1.z.cmp(&pos2.z));
 
+        drop(span_setup_guard);
+
+        let span_render = info_span!("render");
+        let span_render_guard = span_render.enter();
+
         // Do the render
         surface
             .new_pipeline_gate()
@@ -279,10 +289,18 @@ impl LuminanceRenderer {
             )
             .assume();
 
+        drop(span_render_guard);
+
+        let span_swap_buffers = info_span!("swap_buffers");
+        let span_swap_buffers_guard = span_swap_buffers.enter();
+
         #[cfg(not(wasm))]
-        self.surface.swap_buffers().unwrap();
+        self.surface.swap_buffers();
+
+        drop(span_swap_buffers_guard);
     }
 
+    #[tracing::instrument(skip(self, world))]
     pub(crate) fn handle_image_asset_event(&mut self, world: &mut World) {
         let Self {
             surface,

@@ -6,9 +6,6 @@ use bevy::{
     winit::WinitWindows,
 };
 
-#[cfg(not(wasm))]
-use luminance_surfman::SurfmanSurface;
-
 #[cfg(wasm)]
 use luminance_web_sys::WebSysWebGL2Surface;
 #[cfg(wasm)]
@@ -17,10 +14,12 @@ use std::sync::Arc;
 use wasm_bindgen::prelude::*;
 
 #[cfg(not(wasm))]
-type Surface = SurfmanSurface;
+type Surface = luminance_glutin::GlutinSurface;
 #[cfg(wasm)]
 type Surface = WebSysWebGL2Surface;
 
+#[cfg(not(wasm))]
+pub(crate) mod luminance_glutin;
 pub(crate) mod luminance_renderer;
 pub(crate) mod starc;
 
@@ -85,6 +84,7 @@ unsafe impl Send for RetroRenderer {}
 
 impl RetroRenderer {
     /// Handle window creation
+    #[tracing::instrument(skip(self, world))]
     fn handle_window_create_events(&mut self, world: &mut World) {
         // Get all the windows in the world
         let windows = world.get_resource::<Windows>().unwrap();
@@ -104,7 +104,7 @@ impl RetroRenderer {
             let winit_window = winit_windows.get_window(window.id()).unwrap();
 
             #[cfg(not(wasm))]
-            let surface = SurfmanSurface::from_winit_window(winit_window).unwrap();
+            let surface = luminance_glutin::GlutinSurface::from_winit_window(winit_window);
 
             #[cfg(wasm)]
             let surface = {
@@ -138,6 +138,7 @@ impl RetroRenderer {
     }
 
     #[cfg(not(wasm))]
+    #[tracing::instrument(skip(self, world))]
     fn handle_native_window_resize(&mut self, world: &mut World) {
         let window_resized_events = world
             .get_resource::<Events<bevy::window::WindowResized>>()
@@ -151,12 +152,12 @@ impl RetroRenderer {
             let renderer = self.renderers.get_mut(&event.id).unwrap();
             renderer
                 .surface
-                .set_size([event.width as u32, event.height as u32])
-                .unwrap();
+                .set_size([event.width as u32, event.height as u32]);
         }
     }
 
     #[cfg(wasm)]
+    #[tracing::instrument(skip(self, world))]
     fn handle_browser_resize(&mut self, world: &mut World) {
         use winit::dpi::{PhysicalSize, Size};
         let winit_windows = world.get_resource::<bevy::winit::WinitWindows>().unwrap();
@@ -169,6 +170,7 @@ impl RetroRenderer {
         }
     }
 
+    #[tracing::instrument(skip(self, world))]
     fn update(&mut self, world: &mut World) {
         self.handle_window_create_events(world);
 
@@ -181,7 +183,7 @@ impl RetroRenderer {
             renderer.update(world);
 
             #[cfg(not(wasm))]
-            renderer.surface.swap_buffers().unwrap();
+            renderer.surface.swap_buffers();
         }
     }
 }
