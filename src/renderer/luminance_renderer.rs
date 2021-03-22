@@ -10,7 +10,7 @@ use luminance_front::{framebuffer::Framebuffer, shader::Program, tess::Tess, tex
 use parking_lot::Mutex;
 
 use crate::{
-    components::{SpriteSheet, Visible},
+    components::{SpriteFlip, SpriteSheet, Visible},
     starc::Starc,
 };
 
@@ -118,12 +118,16 @@ impl LuminanceRenderer {
         let span_setup_guard = span_setup.enter();
 
         // Get the back buffer
+        #[cfg(wasm)]
+        let back_buffer = surface.back_buffer().unwrap();
+        #[cfg(not(wasm))]
         let back_buffer = surface.back_buffer();
 
         // Build the queries and get the resources that we will need
         let mut cameras = world.query::<(&Camera, &WorldPosition)>();
         let mut sprites = world.query::<(
             &Handle<Image>,
+            &SpriteFlip,
             Option<&Handle<SpriteSheet>>,
             &Visible,
             &WorldPosition,
@@ -184,7 +188,8 @@ impl LuminanceRenderer {
         let sprite_iter = sprites.iter(world);
         let mut sprite_data = Vec::new();
 
-        for (image_handle, sprite_sheet_handle, visible, world_position) in sprite_iter {
+        for (image_handle, sprite_flip, sprite_sheet_handle, visible, world_position) in sprite_iter
+        {
             // Skip invisible sprites
             if !**visible {
                 continue;
@@ -196,11 +201,11 @@ impl LuminanceRenderer {
                 .map(|x| sprite_sheet_assets.get(x))
                 .flatten();
 
-            sprite_data.push((image_handle, world_position));
+            sprite_data.push((image_handle, sprite_flip, world_position));
         }
 
         // Sort by depth
-        sprite_data.sort_by(|(_, pos1), (_, pos2)| pos1.z.cmp(&pos2.z));
+        sprite_data.sort_by(|(_, _, pos1), (_, _, pos2)| pos1.z.cmp(&pos2.z));
 
         drop(span_setup_guard);
 
@@ -226,7 +231,7 @@ impl LuminanceRenderer {
                             interface.set(u, target_size);
                         }
 
-                        for (image_handle, world_position) in &mut sprite_data {
+                        for (image_handle, sprite_flip, world_position) in &mut sprite_data {
                             // Get the texture using the image handle
                             let texture = if let Some(texture) = texture_cache.get_mut(image_handle)
                             {
@@ -243,6 +248,15 @@ impl LuminanceRenderer {
                             // Set the texture uniform
                             if let Ok(ref u) = interface.query().unwrap().ask("sprite_texture") {
                                 interface.set(u, bound_texture.binding());
+                            }
+
+                            // Set the sprite flip uniform
+                            if let Ok(ref u) = interface.query().unwrap().ask("sprite_flip") {
+                                interface.set(
+                                    u,
+                                    if sprite_flip.x { 0b01 } else { 0 } as u32
+                                        | if sprite_flip.y { 0b10 } else { 0 } as u32,
+                                );
                             }
 
                             // Set the sprite position uniform

@@ -23,12 +23,22 @@ vec2[4] quad_vert_uvs = vec2[](
 out vec2 uv;
 
 uniform ivec3 sprite_position;
+uniform uint sprite_flip;
 uniform ivec2 camera_position;
 uniform uvec2 camera_size;
 uniform sampler2D sprite_texture;
 
 void main() {
+  // Calculate sprite UVs
   uv = quad_vert_uvs[gl_VertexID];
+  uint x_flip_bit = uint(1);
+  uint y_flip_bit = uint(2);
+  if ((sprite_flip & x_flip_bit) == x_flip_bit) {
+    uv = vec2(1.0 - uv.x, uv.y);
+  }
+  if ((sprite_flip & y_flip_bit) == y_flip_bit) {
+    uv = vec2(uv.x, 1.0 - uv.y);
+  }
 
   // Get the size of the sprite
   ivec2 sprite_size = textureSize(sprite_texture, 0);
