@@ -117,6 +117,9 @@ impl RetroRenderer {
                     self.browser_resize_handles.entry(window.id()).or_default();
                 js::setup_canvas_resize_callback(browser_resize_handle.clone());
 
+                // Set the browser title
+                browser_window.document().unwrap().set_title(window.title());
+
                 // Get the Luminance surface
                 WebSysWebGL2Surface::from_canvas(canvas).expect("Could not create graphics surface")
             };
