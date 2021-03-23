@@ -28,7 +28,6 @@ fn setup(
         // Spawn sprite
         .spawn(SpriteBundle {
             image: doggo_image,
-            position: Position::new(-8, -8, 1),
             ..Default::default()
         })
         .with(sprite_sheets.add(SpriteSheet {
