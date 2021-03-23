@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_retro::{Position, SceneNode, WorldPosition};
+use bevy_retro::{Position, WorldPosition};
 
 use crate::asset::LdtkMap;
 

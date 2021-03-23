@@ -1,6 +1,9 @@
 use std::{path::PathBuf, time::Duration};
 
-use bevy::prelude::*;
+use bevy::{
+    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+    prelude::*,
+};
 use bevy_retro::*;
 use bevy_retro_ldtk::*;
 
@@ -8,16 +11,14 @@ fn main() {
     App::build()
         .add_plugins(RetroPlugins)
         .add_plugin(LdtkPlugin)
+        .add_plugin(FrameTimeDiagnosticsPlugin::default())
+        .add_plugin(LogDiagnosticsPlugin::default())
         .add_startup_system(setup.system())
         .add_system(move_camera.system())
         .run();
 }
 
-fn setup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut scene_graph: ResMut<SceneGraph>,
-) {
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Enable hot reload
     asset_server.watch_for_changes().unwrap();
 
@@ -30,11 +31,7 @@ fn setup(
         ..Default::default()
     });
 
-    // Spawn the map
-    let map_ent = commands.spawn().id();
-    let map_node = scene_graph.add_node(map_ent);
-
-    commands.entity(map_ent).insert_bundle(LdtkMapBundle {
+    commands.spawn().insert_bundle(LdtkMapBundle {
         map: asset_server.load(PathBuf::from(
             &std::env::args().nth(1).unwrap_or("map1.ldtk".into()),
         )),

@@ -6,7 +6,7 @@ use bevy_retro::{
         imageops::{self, flip_horizontal_in_place, flip_vertical_in_place},
         GenericImage, GenericImageView,
     },
-    Camera, Color, Image, Position, SceneGraph, SceneNode, SpriteBundle,
+    Camera, Color, Image, Position, SceneGraph, Sprite, SpriteBundle,
 };
 
 use crate::*;
@@ -27,16 +27,13 @@ struct LayerMapHandle(Handle<LdtkMap>);
 fn process_ldtk_maps(
     mut commands: Commands,
     mut cameras: Query<&mut Camera>,
-    mut new_maps: Query<
-        (Entity, &Handle<LdtkMap>, &SceneNode, &LdtkMapConfig),
-        Without<LdtkMapHasLoaded>,
-    >,
+    mut new_maps: Query<(Entity, &Handle<LdtkMap>, &LdtkMapConfig), Without<LdtkMapHasLoaded>>,
     map_assets: Res<Assets<LdtkMap>>,
     mut image_assets: ResMut<Assets<Image>>,
     mut scene_graph: ResMut<SceneGraph>,
 ) {
     // Loop through all of the maps
-    for (ent, map_handle, map_node, config) in new_maps.iter_mut() {
+    for (map_ent, map_handle, config) in new_maps.iter_mut() {
         // Get the map asset, if available
         if let Some(map) = map_assets.get(map_handle) {
             let project = &map.project;
@@ -156,23 +153,25 @@ fn process_ldtk_maps(
                 }
 
                 // Spawn the layer
-                let layer_ent = commands.spawn().id();
-                let layer_node = scene_graph.add_node(layer_ent);
-                scene_graph.add_child(*map_node, layer_node);
-                commands.entity(layer_ent).insert_bundle(SpriteBundle {
-                    image: image_assets.add(Image::from(layer_image)),
-                    // Each layer is 2 units higher than the one before it
-                    position: Position::new(
-                        (width as f32 / 2.0) as i32,
-                        (height as f32 / 2.0) as i32,
-                        z as i32 * 2,
-                    ),
-                    ..Default::default()
-                });
+                let layer_ent = commands
+                    .spawn()
+                    .insert_bundle(SpriteBundle {
+                        image: image_assets.add(Image::from(layer_image)),
+                        // Each layer is 2 units higher than the one before it
+                        sprite: Sprite {
+                            centered: config.center_map,
+                            ..Default::default()
+                        },
+                        position: Position::new(0, 0, z as i32 * 2),
+                        ..Default::default()
+                    })
+                    .id();
+
+                scene_graph.add_child(map_ent, layer_ent).unwrap();
             }
 
             // Mark the map as having been loaded so that we don't process it again
-            commands.entity(ent).insert(LdtkMapHasLoaded);
+            commands.entity(map_ent).insert(LdtkMapHasLoaded);
         }
     }
 }
