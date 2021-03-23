@@ -22,7 +22,7 @@ fn setup(
     asset_server.watch_for_changes().unwrap();
 
     // Spawn the camera
-    commands.spawn(CameraBundle {
+    commands.spawn().insert_bundle(CameraBundle {
         camera: Camera {
             size: CameraSize::FixedHeight(180),
             ..Default::default()
@@ -31,10 +31,10 @@ fn setup(
     });
 
     // Spawn the map
-    let map_ent = commands.spawn(()).current_entity().unwrap();
+    let map_ent = commands.spawn().id();
     let map_node = scene_graph.add_node(map_ent);
 
-    commands.with_bundle(LdtkMapBundle {
+    commands.entity(map_ent).insert_bundle(LdtkMapBundle {
         map: asset_server.load(PathBuf::from(
             &std::env::args().nth(1).unwrap_or("map1.ldtk".into()),
         )),

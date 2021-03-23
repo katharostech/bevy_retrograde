@@ -26,25 +26,27 @@ fn setup(
 
     commands
         // Spawn sprite
-        .spawn(SpriteBundle {
+        .spawn()
+        .insert_bundle(SpriteBundle {
             image: doggo_image,
             ..Default::default()
         })
-        .with(sprite_sheets.add(SpriteSheet {
+        .insert(sprite_sheets.add(SpriteSheet {
             grid_size: UVec2::splat(16),
             tile_index: 0,
         }))
-        .with(Timer::from_seconds(0.12, true))
-        .with(SpriteAnimFrame(0))
-        // Spawn camera
-        .spawn(CameraBundle {
-            camera: Camera {
-                size: CameraSize::FixedHeight(40),
-                background_color: Color::new(0.2, 0.2, 0.2, 1.0),
-                ..Default::default()
-            },
+        .insert(Timer::from_seconds(0.12, true))
+        .insert(SpriteAnimFrame(0));
+
+    // Spawn camera
+    commands.spawn().insert_bundle(CameraBundle {
+        camera: Camera {
+            size: CameraSize::FixedHeight(40),
+            background_color: Color::new(0.2, 0.2, 0.2, 1.0),
             ..Default::default()
-        });
+        },
+        ..Default::default()
+    });
 }
 
 fn animate_sprite(

@@ -156,10 +156,10 @@ fn process_ldtk_maps(
                 }
 
                 // Spawn the layer
-                let layer_ent = commands.spawn(()).current_entity().unwrap();
+                let layer_ent = commands.spawn().id();
                 let layer_node = scene_graph.add_node(layer_ent);
                 scene_graph.add_child(*map_node, layer_node);
-                commands.with_bundle(SpriteBundle {
+                commands.entity(layer_ent).insert_bundle(SpriteBundle {
                     image: image_assets.add(Image::from(layer_image)),
                     scene_node: layer_node,
                     // Each layer is 2 units higher than the one before it
@@ -173,7 +173,7 @@ fn process_ldtk_maps(
             }
 
             // Mark the map as having been loaded so that we don't process it again
-            commands.insert(ent, LdtkMapHasLoaded);
+            commands.entity(ent).insert(LdtkMapHasLoaded);
         }
     }
 }
@@ -195,7 +195,7 @@ fn hot_reload_maps(
                 // Loop through all the layers in the world, find the ones that are for this map and remove them
                 for (layer_ent, LayerMapHandle(map_handle)) in layers.iter() {
                     if map_handle == handle {
-                        commands.despawn(layer_ent);
+                        commands.entity(layer_ent).despawn();
                     }
                 }
 
@@ -203,7 +203,7 @@ fn hot_reload_maps(
                 // reloaded by the `process_ldtk_maps` system.
                 for (map_ent, map_handle) in maps.iter() {
                     if map_handle == handle {
-                        commands.remove::<LdtkMapHasLoaded>(map_ent);
+                        commands.entity(map_ent).remove::<LdtkMapHasLoaded>();
                     }
                 }
             }

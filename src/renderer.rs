@@ -7,6 +7,8 @@ use bevy::{
 };
 
 #[cfg(wasm)]
+mod luminance_web_sys;
+#[cfg(wasm)]
 use luminance_web_sys::WebSysWebGL2Surface;
 #[cfg(wasm)]
 use std::sync::Arc;
