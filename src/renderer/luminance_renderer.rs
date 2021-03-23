@@ -300,6 +300,12 @@ impl LuminanceRenderer {
                                 );
 
                                 // Set sprite position and offset
+                                debug_assert!(
+                                    -1024 < world_position.z && world_position.z <= 1024,
+                                    "Sprite world Z position must be between -1024 and 1024. Please \
+                                    open an issue if this is a problem for you: \
+                                    https://github.com/katharostech/bevy_retro/issues"
+                                );
                                 interface.set(
                                     &uniforms.sprite_position,
                                     [world_position.x, world_position.y, world_position.z],
