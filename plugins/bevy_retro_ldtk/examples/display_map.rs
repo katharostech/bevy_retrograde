@@ -38,7 +38,6 @@ fn setup(
         map: asset_server.load(PathBuf::from(
             &std::env::args().nth(1).unwrap_or("map1.ldtk".into()),
         )),
-        scene_node: map_node,
         config: LdtkMapConfig {
             set_clear_color: true,
             scale: 3.0,

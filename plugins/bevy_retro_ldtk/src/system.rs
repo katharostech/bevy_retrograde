@@ -161,7 +161,6 @@ fn process_ldtk_maps(
                 scene_graph.add_child(*map_node, layer_node);
                 commands.entity(layer_ent).insert_bundle(SpriteBundle {
                     image: image_assets.add(Image::from(layer_image)),
-                    scene_node: layer_node,
                     // Each layer is 2 units higher than the one before it
                     position: Position::new(
                         (width as f32 / 2.0) as i32,

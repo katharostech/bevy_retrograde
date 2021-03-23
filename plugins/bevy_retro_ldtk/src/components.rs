@@ -10,8 +10,6 @@ pub struct LdtkMapBundle {
     pub map: Handle<LdtkMap>,
     /// The transform of the map
     pub position: Position,
-    /// The scene node
-    pub scene_node: SceneNode,
     /// The map configuration settings
     pub config: LdtkMapConfig,
     /// The world position

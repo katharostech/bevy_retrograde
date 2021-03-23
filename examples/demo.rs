@@ -32,14 +32,12 @@ fn setup(
 ) {
     let sensei_image = asset_server.load("sensei2.gitignore.png");
     let guy_image = asset_server.load("guy.gitignore.png");
+    let barrel_image = asset_server.load("barrel.gitignore.png");
 
-    let sensei = commands.spawn().id();
-    let sensei_node = scene_graph.add_node(sensei);
-    commands
-        .entity(sensei)
+    let sensei = commands
+        .spawn()
         .insert_bundle(SpriteBundle {
             image: sensei_image,
-            scene_node: sensei_node,
             position: Position::new(0, 0, 1),
             sprite: Sprite {
                 flip_x: true,
@@ -49,31 +47,43 @@ fn setup(
             ..Default::default()
         })
         // Add our sensei marker component
-        .insert(Sensei);
-
-    let guy = commands.spawn().id();
-    let guy_node = scene_graph.add_node(guy);
+        .insert(Sensei)
+        .id();
 
     // And add the sprite components to the guy
-    commands
-        .entity(guy)
+    let guy = commands
+        .spawn()
         .insert_bundle(SpriteBundle {
             image: guy_image,
-            scene_node: guy_node,
             // The guy follows a little behind the sensei
-            position: Position::new(0, 0, 0),
+            position: Position::new(-40, 0, 0),
             ..Default::default()
         })
-        .insert(Student);
+        .insert(Student)
+        .id();
+
+    // Add guy as a faithful student ( child ) of the sensei
+    scene_graph.add_child(sensei, guy).unwrap();
+
+    // And add the sprite components to the guy
+    let barrel = commands
+        .spawn()
+        .insert_bundle(SpriteBundle {
+            image: barrel_image,
+            // The guy follows a little behind the sensei
+            position: Position::new(-20, 0, 0),
+            ..Default::default()
+        })
+        .insert(Student)
+        .id();
+
+    // Add the barrel as a child of guy
+    scene_graph.add_child(guy, barrel).unwrap();
 
     // Spawn the camera
-    let camera = commands.spawn().id();
-    let camera_node = scene_graph.add_node(camera);
-
-    commands.entity(camera).insert_bundle(CameraBundle {
-        scene_node: camera_node,
+    commands.spawn().insert_bundle(CameraBundle {
         camera: Camera {
-            size: CameraSize::FixedHeight(50),
+            size: CameraSize::FixedHeight(100),
             background_color: Color::new(0.1, 0.1, 0.2, 1.0),
             pixel_aspect_ratio: 4.0 / 3.0,
             ..Default::default()
@@ -87,7 +97,7 @@ fn move_sensei(
     time: Res<Time>,
     mut timer: Local<Timer>,
     keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<&mut Position, With<Student>>,
+    mut query: Query<&mut Position, With<Sensei>>,
 ) {
     timer.set_duration(Duration::from_millis(40));
     timer.set_repeating(true);
@@ -116,7 +126,9 @@ fn move_sensei(
                 direction += IVec3::new(0, SPEED, 0);
             }
 
-            **pos += direction;
+            if direction != IVec3::new(0, 0, 0) {
+                **pos += direction;
+            }
         }
     }
 }

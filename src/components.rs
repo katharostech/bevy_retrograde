@@ -1,6 +1,12 @@
-use bevy::{prelude::*, reflect::TypeUuid};
+use bevy::{prelude::*, reflect::TypeUuid, utils::HashMap};
 
-use petgraph::{graph::NodeIndex, stable_graph::StableGraph, Directed};
+use petgraph::{
+    algo::{has_path_connecting, DfsSpace},
+    graph::NodeIndex,
+    stable_graph::StableGraph,
+    visit::{GraphBase, Visitable},
+    Directed,
+};
 
 use crate::{impl_deref, Image};
 
@@ -15,9 +21,6 @@ pub struct CameraBundle {
     /// If the width or height of the camera is an even number, the center pixel will be the pixel
     /// to the top-left of the true center.
     pub position: Position,
-
-    /// The corresponding scene node for the camera
-    pub scene_node: SceneNode,
 
     /// The global world position of the sprite
     pub world_position: WorldPosition,
@@ -168,8 +171,6 @@ pub struct SpriteBundle {
     pub sprite: Sprite,
     /// The image data of the sprite
     pub image: Handle<Image>,
-    /// The corresponding scene node for the sprite
-    pub scene_node: SceneNode,
     /// The visibility of the sprite
     pub visible: Visible,
     /// The position of the center of the sprite in world space
@@ -219,41 +220,80 @@ impl Default for SpriteSheet {
     }
 }
 
+type GraphType = StableGraph<Entity, (), Directed>;
+
 /// The graph containing the hierarchy structure of the scene
 #[derive(Debug, Clone)]
-pub struct SceneGraph(pub(crate) StableGraph<Entity, (), Directed>);
+pub struct SceneGraph {
+    /// A mapping of [`Entities`] to their scene [`NodeIndex`]s
+    pub(crate) entity_map: HashMap<Entity, NodeIndex>,
+    /// The scene graph
+    pub(crate) graph: GraphType,
+    /// Used internally to cache graph traversals
+    dfs_space: DfsSpace<<GraphType as GraphBase>::NodeId, <GraphType as Visitable>::Map>,
+}
 
 impl Default for SceneGraph {
     fn default() -> Self {
-        Self(StableGraph::new())
-    }
-}
-
-impl SceneGraph {
-    pub fn add_node(&mut self, entity: Entity) -> SceneNode {
-        SceneNode(self.0.add_node(entity))
-    }
-
-    pub fn add_child(&mut self, parent: SceneNode, child: SceneNode) {
-        self.0.update_edge(parent.0, child.0, ());
-    }
-
-    pub fn remove_child(&mut self, parent: SceneNode, child: SceneNode) {
-        if let Some(edge) = self.0.find_edge(parent.0, child.0) {
-            self.0.remove_edge(edge);
+        Self {
+            entity_map: Default::default(),
+            graph: Default::default(),
+            dfs_space: Default::default(),
         }
     }
 }
 
-/// An element in the scene
-#[derive(Debug, Clone, Copy)]
-pub struct SceneNode(pub(crate) NodeIndex);
+#[derive(thiserror::Error, Debug)]
+pub enum GraphError {
+    #[error("Operation would result in a cycle")]
+    WouldCauseCycle,
+}
 
-impl Default for SceneNode {
-    fn default() -> Self {
-        use rand::prelude::*;
-        let mut rng = thread_rng();
-        Self(NodeIndex::new(rng.gen()))
+impl SceneGraph {
+    /// # Errors
+    /// This function will return an error when `child` is an ancestor of `parent`
+    pub fn add_child(&mut self, parent: Entity, child: Entity) -> Result<(), GraphError> {
+        let graph = &mut self.graph;
+        let parent_node = self
+            .entity_map
+            .entry(parent)
+            .or_insert_with(|| graph.add_node(parent))
+            .clone();
+
+        let child_node = self
+            .entity_map
+            .entry(child)
+            .or_insert_with(|| graph.add_node(child))
+            .clone();
+
+        // Check for cycles
+        if has_path_connecting(&*graph, child_node, parent_node, Some(&mut self.dfs_space)) {
+            return Err(GraphError::WouldCauseCycle);
+        }
+
+        graph.update_edge(parent_node, child_node, ());
+
+        Ok(())
+    }
+
+    pub fn remove_child(&mut self, parent: Entity, child: Entity) {
+        let graph = &mut self.graph;
+
+        let parent_node = self
+            .entity_map
+            .entry(parent)
+            .or_insert_with(|| graph.add_node(parent))
+            .clone();
+
+        let child_node = self
+            .entity_map
+            .entry(child)
+            .or_insert_with(|| graph.add_node(child))
+            .clone();
+
+        if let Some(edge) = graph.find_edge(parent_node, child_node) {
+            self.graph.remove_edge(edge);
+        }
     }
 }
 
