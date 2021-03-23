@@ -28,10 +28,11 @@ fn setup(
         // Spawn sprite
         .spawn(SpriteBundle {
             image: doggo_image,
+            position: Position::new(-8, -8, 1),
             ..Default::default()
         })
         .with(sprite_sheets.add(SpriteSheet {
-            grid_size: 16,
+            grid_size: UVec2::splat(16),
             tile_index: 0,
         }))
         .with(Timer::from_seconds(0.12, true))

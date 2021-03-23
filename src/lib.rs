@@ -6,7 +6,7 @@ use bevy::{asset::AssetStage, prelude::*};
 pub use image;
 
 mod renderer;
-pub use renderer::*;
+use renderer::*;
 
 mod assets;
 pub use assets::*;
@@ -45,8 +45,7 @@ impl Plugin for RetroPlugin {
     fn build(&self, app: &mut AppBuilder) {
         add_assets(app);
 
-        app.init_resource::<RetroRenderOptions>()
-            .init_resource::<SceneGraph>()
+        app.init_resource::<SceneGraph>()
             .add_stage_after(
                 AssetStage::AssetEvents,
                 RetroStage::WorldPositionPropagation,

@@ -63,24 +63,25 @@ impl Default for Color {
 pub struct Camera {
     /// The size of the camera along the fixed axis, which is by default the vertical axis
     pub size: CameraSize,
-    /// Whether or not the camera is active
-    ///
-    /// If multiple cameras are active at the same time a blank screen will be displayed until only
-    /// one camera is active.
-    pub active: bool,
+    /// Whether the camera should be centered about it's position. Defaults to `true`. If `false`
+    /// the top-left corner of the camrera will be at its [`Position`].
+    pub centered: bool,
     /// The background color of the camera
     ///
     /// This is only visible if the camera size is `Fixed`, in which case it is the color of the
     /// letter-box.
     pub background_color: Color,
+    /// The aspect ratio of the pxiels when rendered through this camera
+    pub pixel_aspect_ratio: f32,
 }
 
 impl Default for Camera {
     fn default() -> Self {
         Self {
             size: Default::default(),
-            active: true,
+            centered: true,
             background_color: Color::default(),
+            pixel_aspect_ratio: 1.0,
         }
     }
 }
@@ -158,6 +159,8 @@ impl std::ops::DerefMut for Position {
 /// A bundle containing all the components necessary to render a sprite
 #[derive(Bundle, Default)]
 pub struct SpriteBundle {
+    // Sprite options
+    pub sprite: Sprite,
     /// The image data of the sprite
     pub image: Handle<Image>,
     /// The corresponding scene node for the sprite
@@ -168,27 +171,44 @@ pub struct SpriteBundle {
     pub position: Position,
     /// The global world position of the sprite
     pub world_position: WorldPosition,
-    // Whether or not the sprite is flipped along x or y
-    pub sprite_flip: SpriteFlip,
 }
 
-#[derive(Debug, Clone, Default)]
-pub struct SpriteFlip {
-    pub x: bool,
-    pub y: bool,
+/// Sprite options
+#[derive(Debug, Clone)]
+pub struct Sprite {
+    /// Whether or not the sprite is centered about its position
+    pub centered: bool,
+    /// Flip the sprite on x
+    pub flip_x: bool,
+    /// Flip the sprite on y
+    pub flip_y: bool,
+    /// A visual offset for the sprite
+    pub offset: IVec2,
 }
 
+impl Default for Sprite {
+    fn default() -> Self {
+        Self {
+            centered: true,
+            flip_x: false,
+            flip_y: false,
+            offset: IVec2::default(),
+        }
+    }
+}
+
+/// Settings for a sprite sheet
 #[derive(Debug, Clone, TypeUuid)]
 #[uuid = "64746631-1afe-4ca6-8398-7c0df62f7813"]
 pub struct SpriteSheet {
-    pub grid_size: u32,
+    pub grid_size: UVec2,
     pub tile_index: u32,
 }
 
 impl Default for SpriteSheet {
     fn default() -> Self {
         Self {
-            grid_size: 16,
+            grid_size: UVec2::splat(16),
             tile_index: 0,
         }
     }
@@ -233,9 +253,6 @@ impl Default for SceneNode {
 }
 
 /// The global position in the world
-///
-/// Can only be considered up-to-date with the actual sprite world position if `dirty == false`
-/// for this sprite and all of it's parents
 #[derive(Debug, Clone, Default, Copy)]
 pub struct WorldPosition(pub IVec3);
 impl_deref!(WorldPosition, IVec3);

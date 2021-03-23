@@ -26,7 +26,7 @@ bmp = ["image/bmp"]
 [dependencies]
 luminance-front = "0.3.1"
 luminance-windowing = "0.9.3"
-luminance = "0.43.2"
+luminance = { version = "0.43.2", features = ["derive"] }
 
 winit = { version = "0.24", features = ["web-sys"] }
 image = { version = "0.23.14", default-features = false }

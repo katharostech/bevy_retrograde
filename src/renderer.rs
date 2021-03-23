@@ -29,19 +29,6 @@ mod js;
 use self::luminance_renderer::LuminanceRenderer;
 use crate::{Camera, CameraSize, Color, Image, WorldPosition};
 
-#[derive(Clone, Debug)]
-pub struct RetroRenderOptions {
-    pub pixel_aspect_raio: f32,
-}
-
-impl Default for RetroRenderOptions {
-    fn default() -> Self {
-        Self {
-            pixel_aspect_raio: 1.0,
-        }
-    }
-}
-
 pub(crate) fn get_render_system() -> impl FnMut(&mut World) {
     let mut renderer = RetroRenderer::default();
 

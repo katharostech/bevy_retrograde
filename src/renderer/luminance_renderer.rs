@@ -1,16 +1,18 @@
 use luminance::{
     blending::{Blending, Equation, Factor},
     context::GraphicsContext,
-    pipeline::PipelineState,
-    pixel::{NormRGBA8UI, RGBA32F},
+    pipeline::{PipelineState, TextureBinding},
+    pixel::{Floating, NormRGBA8UI, NormUnsigned, RGBA32F},
     render_state::RenderState,
+    shader::Uniform,
     texture::{Dim2, GenMipmaps, MagFilter, MinFilter, Sampler, Wrap},
+    UniformInterface,
 };
 use luminance_front::{framebuffer::Framebuffer, shader::Program, tess::Tess, texture::Texture};
 use parking_lot::Mutex;
 
 use crate::{
-    components::{SpriteFlip, SpriteSheet, Visible},
+    components::{Sprite, SpriteSheet, Visible},
     starc::Starc,
 };
 
@@ -26,13 +28,37 @@ const PIXELATED_SAMPLER: Sampler = Sampler {
     depth_comparison: None,
 };
 
+#[derive(UniformInterface)]
+struct SpriteUniformInterface {
+    camera_position: Uniform<[i32; 2]>,
+    camera_size: Uniform<[u32; 2]>,
+    camera_centered: Uniform<bool>,
+
+    sprite_texture: Uniform<TextureBinding<Dim2, NormUnsigned>>,
+    sprite_flip: Uniform<u32>,
+    sprite_centered: Uniform<bool>,
+    sprite_tileset_grid_size: Uniform<[u32; 2]>,
+    sprite_tileset_index: Uniform<u32>,
+    sprite_position: Uniform<[i32; 3]>,
+}
+
+#[derive(UniformInterface)]
+struct ScreenUniformInterface {
+    #[uniform(unbound)]
+    camera_size: Uniform<[u32; 2]>,
+    #[uniform(unbound)]
+    pixel_aspect_ratio: Uniform<f32>,
+    window_size: Uniform<[u32; 2]>,
+    screen_texture: Uniform<TextureBinding<Dim2, Floating>>,
+}
+
 pub(crate) struct LuminanceRenderer {
     pub(crate) surface: Surface,
     window_id: bevy::window::WindowId,
-    sprite_program: Program<(), (), ()>,
+    sprite_program: Program<(), (), SpriteUniformInterface>,
     sprite_instance: Tess<()>,
     scene_framebuffer: Framebuffer<Dim2, RGBA32F, ()>,
-    screen_program: Program<(), (), ()>,
+    screen_program: Program<(), (), ScreenUniformInterface>,
 
     texture_cache: HashMap<Handle<Image>, Starc<Mutex<Texture<Dim2, NormRGBA8UI>>>>,
 
@@ -53,7 +79,7 @@ impl LuminanceRenderer {
 
         // Create the shader program for the sprite instances
         let built_sprite_program = surface
-            .new_shader_program::<(), (), ()>()
+            .new_shader_program::<(), (), SpriteUniformInterface>()
             .from_strings(
                 include_str!("shaders/sprite_quad.vert"),
                 None,
@@ -64,7 +90,7 @@ impl LuminanceRenderer {
 
         // Create the shader program for the sprite instances
         let built_screen_program = surface
-            .new_shader_program::<(), (), ()>()
+            .new_shader_program::<(), (), ScreenUniformInterface>()
             .from_strings(
                 include_str!("shaders/screen.vert"),
                 None,
@@ -127,13 +153,13 @@ impl LuminanceRenderer {
         let mut cameras = world.query::<(&Camera, &WorldPosition)>();
         let mut sprites = world.query::<(
             &Handle<Image>,
-            &SpriteFlip,
+            &Sprite,
             Option<&Handle<SpriteSheet>>,
             &Visible,
             &WorldPosition,
         )>();
 
-        let sprite_sheet_assets = world.get_resource::<Assets<Image>>().unwrap();
+        let sprite_sheet_assets = world.get_resource::<Assets<SpriteSheet>>().unwrap();
 
         // Get the window this renderer is supposed to render to
         let winit_windows = world.get_resource::<WinitWindows>().unwrap();
@@ -151,12 +177,13 @@ impl LuminanceRenderer {
         }
 
         // Calculate the target size of our scene framebuffer
-        let size = window.inner_size();
-        let aspect_ratio = size.width as f32 / size.height as f32;
+        let window_size = window.inner_size();
+        let aspect_ratio = window_size.width as f32 / window_size.height as f32;
         let target_size = match camera.size {
-            CameraSize::FixedHeight(height) => {
-                [(aspect_ratio * height as f32).floor() as u32, height]
-            }
+            CameraSize::FixedHeight(height) => [
+                (aspect_ratio * height as f32 / camera.pixel_aspect_ratio).floor() as u32,
+                height,
+            ],
             _ => todo!(
                 "Camera modes other than `FixedHeight` are not implemented yet. Open an issue to \
                  help prioritize it."
@@ -196,16 +223,15 @@ impl LuminanceRenderer {
             }
 
             // Load the sprite sheet if any
-            // TODO: Use this
-            let _sprite_sheet = sprite_sheet_handle
+            let sprite_sheet = sprite_sheet_handle
                 .map(|x| sprite_sheet_assets.get(x))
                 .flatten();
 
-            sprite_data.push((image_handle, sprite_flip, world_position));
+            sprite_data.push((image_handle, sprite_flip, sprite_sheet, world_position));
         }
 
         // Sort by depth
-        sprite_data.sort_by(|(_, _, pos1), (_, _, pos2)| pos1.z.cmp(&pos2.z));
+        sprite_data.sort_by(|(_, _, _, pos1), (_, _, _, pos2)| pos1.z.cmp(&pos2.z));
 
         drop(span_setup_guard);
 
@@ -220,59 +246,68 @@ impl LuminanceRenderer {
                 &scene_framebuffer,
                 &PipelineState::default().set_clear_color(color_to_array(camera.background_color)),
                 |pipeline, mut shading_gate| {
-                    shading_gate.shade(sprite_program, |mut interface, _, mut render_gate| {
-                        // Set the camera position uniform
-                        if let Ok(ref u) = interface.query().unwrap().ask("camera_position") {
-                            interface.set(u, [camera_pos.x, camera_pos.y]);
-                        }
+                    shading_gate.shade(
+                        sprite_program,
+                        |mut interface, uniforms, mut render_gate| {
+                            // Set the camera uniforms
+                            interface.set(&uniforms.camera_position, [camera_pos.x, camera_pos.y]);
+                            interface.set(&uniforms.camera_size, target_size);
+                            interface.set(&uniforms.camera_centered, camera.centered);
 
-                        // Set the camera size uniform
-                        if let Ok(ref u) = interface.query().unwrap().ask("camera_size") {
-                            interface.set(u, target_size);
-                        }
-
-                        for (image_handle, sprite_flip, world_position) in &mut sprite_data {
-                            // Get the texture using the image handle
-                            let texture = if let Some(texture) = texture_cache.get_mut(image_handle)
+                            for (image_handle, sprite, sprite_sheet, world_position) in
+                                &mut sprite_data
                             {
-                                texture
-                            } else {
-                                // Skip it if the texture has not loaded
-                                continue;
-                            };
+                                // Get the texture using the image handle
+                                let texture =
+                                    if let Some(texture) = texture_cache.get_mut(image_handle) {
+                                        texture
+                                    } else {
+                                        // Skip it if the texture has not loaded
+                                        continue;
+                                    };
 
-                            // Bind our texture
-                            let mut texture = texture.lock();
-                            let bound_texture = pipeline.bind_texture(&mut *texture).unwrap();
+                                // Bind our texture
+                                let mut texture = texture.lock();
+                                let bound_texture = pipeline.bind_texture(&mut *texture).unwrap();
 
-                            // Set the texture uniform
-                            if let Ok(ref u) = interface.query().unwrap().ask("sprite_texture") {
-                                interface.set(u, bound_texture.binding());
-                            }
+                                // Set the texture uniform
+                                interface.set(&uniforms.sprite_texture, bound_texture.binding());
 
-                            // Set the sprite flip uniform
-                            if let Ok(ref u) = interface.query().unwrap().ask("sprite_flip") {
+                                // Set the sprite uniforms
                                 interface.set(
-                                    u,
-                                    if sprite_flip.x { 0b01 } else { 0 } as u32
-                                        | if sprite_flip.y { 0b10 } else { 0 } as u32,
+                                    &uniforms.sprite_flip,
+                                    if sprite.flip_x { 0b01 } else { 0 } as u32
+                                        | if sprite.flip_y { 0b10 } else { 0 } as u32,
                                 );
+                                interface.set(&uniforms.sprite_centered, sprite.centered);
+
+                                // Set the sprite tileset uniforms
+                                interface.set(
+                                    &uniforms.sprite_tileset_grid_size,
+                                    sprite_sheet
+                                        .map(|x| [x.grid_size.x, x.grid_size.y])
+                                        .unwrap_or([0; 2]),
+                                );
+                                interface.set(
+                                    &uniforms.sprite_tileset_index,
+                                    sprite_sheet.map(|x| x.tile_index).unwrap_or(0),
+                                );
+
+                                // Set sprite position
+                                interface.set(
+                                    &uniforms.sprite_position,
+                                    [world_position.x, world_position.y, world_position.z],
+                                );
+
+                                // Render the sprite
+                                render_gate.render(&render_state, |mut tess_gate| {
+                                    tess_gate.render(&*sprite_instance)
+                                })?;
                             }
 
-                            // Set the sprite position uniform
-                            if let Ok(ref u) = interface.query().unwrap().ask("sprite_position") {
-                                let pos = [world_position.x, world_position.y, world_position.z];
-                                interface.set(u, pos);
-                            }
-
-                            // Render the sprite
-                            render_gate.render(&render_state, |mut tess_gate| {
-                                tess_gate.render(&*sprite_instance)
-                            })?;
-                        }
-
-                        Ok(())
-                    })
+                            Ok(())
+                        },
+                    )
                 },
             )
             .assume()
@@ -289,11 +324,14 @@ impl LuminanceRenderer {
                     // we must bind the offscreen framebuffer color content so that we can pass it to a shader
                     let bound_texture = pipeline.bind_texture(scene_framebuffer.color_slot())?;
 
-                    shd_gate.shade(screen_program, |mut interface, _, mut rdr_gate| {
-                        // Set the texture uniform
-                        if let Ok(ref u) = interface.query().unwrap().ask("screen_texture") {
-                            interface.set(u, bound_texture.binding());
-                        }
+                    shd_gate.shade(screen_program, |mut interface, uniforms, mut rdr_gate| {
+                        interface.set(&uniforms.camera_size, target_size);
+                        interface.set(
+                            &uniforms.window_size,
+                            [window_size.width, window_size.height],
+                        );
+                        interface.set(&uniforms.screen_texture, bound_texture.binding());
+                        interface.set(&uniforms.pixel_aspect_ratio, camera.pixel_aspect_ratio);
 
                         rdr_gate.render(&RenderState::default(), |mut tess_gate| {
                             tess_gate.render(&*sprite_instance)

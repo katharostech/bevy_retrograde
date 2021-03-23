@@ -40,7 +40,11 @@ fn setup(
             image: sensei_image,
             scene_node: sensei_node,
             position: Position::new(0, 0, 1),
-            sprite_flip: SpriteFlip { x: true, y: false },
+            sprite: Sprite {
+                flip_x: true,
+                flip_y: false,
+                ..Default::default()
+            },
             ..Default::default()
         })
         // Add our sensei marker component
@@ -55,7 +59,7 @@ fn setup(
             image: guy_image,
             scene_node: guy_node,
             // The guy follows a little behind the sensei
-            position: Position::new(-20, 4, 0),
+            position: Position::new(-16, 22, 0),
             ..Default::default()
         })
         .with(Student);
@@ -67,10 +71,12 @@ fn setup(
     commands.with_bundle(CameraBundle {
         scene_node: camera_node,
         camera: Camera {
-            size: CameraSize::FixedHeight(100),
+            size: CameraSize::FixedHeight(50),
             background_color: Color::new(0.1, 0.1, 0.2, 1.0),
+            pixel_aspect_ratio: 4.0 / 3.0,
             ..Default::default()
         },
+        position: Position::new(0, 0, 0),
         ..Default::default()
     });
 }
@@ -79,7 +85,7 @@ fn move_sensei(
     time: Res<Time>,
     mut timer: Local<Timer>,
     keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<&mut Position, With<Sensei>>,
+    mut query: Query<&mut Position, With<Student>>,
 ) {
     timer.set_duration(Duration::from_millis(40));
     timer.set_repeating(true);
