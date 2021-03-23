@@ -32,6 +32,7 @@ uniform uint sprite_flip;
 uniform uvec2 sprite_tileset_grid_size;
 uniform uint sprite_tileset_index;
 uniform ivec3 sprite_position;
+uniform ivec2 sprite_offset;
 
 struct SpriteUvAndSize {
   vec2 uv;
@@ -91,7 +92,7 @@ void main() {
   }
 
   // Get the pixel screen position of the center of the sprite
-  ivec2 screen_pos = sprite_position.xy - adjusted_camera_pos;
+  ivec2 screen_pos = sprite_position.xy - adjusted_camera_pos + sprite_offset;
 
   // Get the vertex position in the quad
   ivec2 vertex_base_pos = quad_vert_positions[gl_VertexID];
@@ -99,6 +100,7 @@ void main() {
   // Get the local position of the vertex in pixels
   ivec2 vertex_pos = vertex_base_pos * sprite_size;
 
+  // Center the sprite if necessary
   if (sprite_centered) {
     vertex_pos -= sprite_size / 2;
   }

@@ -61,7 +61,7 @@ fn setup(
             image: guy_image,
             scene_node: guy_node,
             // The guy follows a little behind the sensei
-            position: Position::new(-16, 22, 0),
+            position: Position::new(0, 0, 0),
             ..Default::default()
         })
         .insert(Student);

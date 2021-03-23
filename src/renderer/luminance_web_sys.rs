@@ -50,7 +50,6 @@ use web_sys::{Document, HtmlCanvasElement, Window};
 pub enum WebSysWebGL2SurfaceError {
   CannotGrabWindow,
   CannotGrabDocument,
-  NotSuchCanvasElement(String),
   CannotGrabWebGL2Context,
   NoAvailableWebGL2Context,
   StateQueryError(StateQueryError),
@@ -63,10 +62,6 @@ impl WebSysWebGL2SurfaceError {
 
   fn cannot_grab_document() -> Self {
     WebSysWebGL2SurfaceError::CannotGrabDocument
-  }
-
-  fn not_such_canvas_element(name: impl Into<String>) -> Self {
-    WebSysWebGL2SurfaceError::NotSuchCanvasElement(name.into())
   }
 
   fn cannot_grab_webgl2_context() -> Self {
@@ -83,9 +78,6 @@ impl fmt::Display for WebSysWebGL2SurfaceError {
     match *self {
       WebSysWebGL2SurfaceError::CannotGrabWindow => f.write_str("cannot grab the window node"),
       WebSysWebGL2SurfaceError::CannotGrabDocument => f.write_str("cannot grab the document node"),
-      WebSysWebGL2SurfaceError::NotSuchCanvasElement(ref name) => {
-        write!(f, "cannot grab canvas named {}", name)
-      }
       WebSysWebGL2SurfaceError::CannotGrabWebGL2Context => {
         f.write_str("cannot grab WebGL2 context")
       }
@@ -116,26 +108,6 @@ pub struct WebSysWebGL2Surface {
 }
 
 impl WebSysWebGL2Surface {
-  /// Create a new [`WebSysWebGL2Surface`] based on the name of the DOM canvas element named by
-  /// `canvas_name`.
-  pub fn new(canvas_name: impl AsRef<str>) -> Result<Self, WebSysWebGL2SurfaceError> {
-    let window = web_sys::window().ok_or_else(|| WebSysWebGL2SurfaceError::cannot_grab_window())?;
-
-    let document = window
-      .document()
-      .ok_or_else(|| WebSysWebGL2SurfaceError::cannot_grab_document())?;
-
-    let canvas_name = canvas_name.as_ref();
-    let canvas = document
-      .get_element_by_id(canvas_name)
-      .ok_or_else(|| WebSysWebGL2SurfaceError::not_such_canvas_element(canvas_name))?;
-    let canvas = canvas
-      .dyn_into::<HtmlCanvasElement>()
-      .map_err(|_| WebSysWebGL2SurfaceError::not_such_canvas_element(canvas_name))?;
-
-    Self::from_canvas(canvas)
-  }
-
   pub fn from_canvas(canvas: HtmlCanvasElement) -> Result<Self, WebSysWebGL2SurfaceError> {
     let window = web_sys::window().ok_or_else(|| WebSysWebGL2SurfaceError::cannot_grab_window())?;
     let document = window

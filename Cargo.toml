@@ -52,6 +52,7 @@ gl = "0.14.0"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 # Waiting on PR: https://github.com/phaazon/luminance-rs/pull/489. For now we have a copy locally.
 # luminance-web-sys = "0.2.2"
+luminance-webgl = "0.3.2"
 web-sys = { version = "0.3", features=["HtmlCanvasElement", "WebGl2RenderingContext", "Window", "console"] }
 wasm-bindgen = { version = "0.2" }
 

@@ -40,6 +40,7 @@ struct SpriteUniformInterface {
     sprite_tileset_grid_size: Uniform<[u32; 2]>,
     sprite_tileset_index: Uniform<u32>,
     sprite_position: Uniform<[i32; 3]>,
+    sprite_offset: Uniform<[i32; 2]>,
 }
 
 #[derive(UniformInterface)]
@@ -298,10 +299,14 @@ impl LuminanceRenderer {
                                     sprite_sheet.map(|x| x.tile_index).unwrap_or(0),
                                 );
 
-                                // Set sprite position
+                                // Set sprite position and offset
                                 interface.set(
                                     &uniforms.sprite_position,
                                     [world_position.x, world_position.y, world_position.z],
+                                );
+                                interface.set(
+                                    &uniforms.sprite_offset,
+                                    [sprite.offset.x, sprite.offset.y],
                                 );
 
                                 // Render the sprite
