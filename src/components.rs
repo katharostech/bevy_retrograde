@@ -68,9 +68,13 @@ pub struct Camera {
     pub centered: bool,
     /// The background color of the camera
     ///
-    /// This is only visible if the camera size is `Fixed`, in which case it is the color of the
-    /// letter-box.
+    /// This is the color that will be scene in the viewport when there are no sprites in the game
+    /// area.
     pub background_color: Color,
+    /// The color of the letter box
+    ///
+    /// The letter box is only visible when the camera size is set to [`Fixed`][CameraSize::Fixed].
+    pub letterbox_color: Color,
     /// The aspect ratio of the pxiels when rendered through this camera
     pub pixel_aspect_ratio: f32,
 }
@@ -81,6 +85,7 @@ impl Default for Camera {
             size: Default::default(),
             centered: true,
             background_color: Color::default(),
+            letterbox_color: Color::default(),
             pixel_aspect_ratio: 1.0,
         }
     }

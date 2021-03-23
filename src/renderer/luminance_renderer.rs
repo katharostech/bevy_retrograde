@@ -44,9 +44,13 @@ struct SpriteUniformInterface {
 
 #[derive(UniformInterface)]
 struct ScreenUniformInterface {
-    #[uniform(unbound)]
     camera_size: Uniform<[u32; 2]>,
-    #[uniform(unbound)]
+    /// Indicates whether or not the width or height of the camera is supposed to be fixed:
+    ///
+    /// - `camera_size_fixed == 0` means both the width and the height are fixed
+    /// - `camera_size_fixed == 1` means the width is fixed
+    /// - `camera_size_fixed == 2` means the height is fixed
+    camera_size_fixed: Uniform<i32>,
     pixel_aspect_ratio: Uniform<f32>,
     window_size: Uniform<[u32; 2]>,
     screen_texture: Uniform<TextureBinding<Dim2, Floating>>,
@@ -184,10 +188,11 @@ impl LuminanceRenderer {
                 (aspect_ratio * height as f32 / camera.pixel_aspect_ratio).floor() as u32,
                 height,
             ],
-            _ => todo!(
-                "Camera modes other than `FixedHeight` are not implemented yet. Open an issue to \
-                 help prioritize it."
-            ),
+            CameraSize::FixedWidth(width) => [
+                width,
+                (width as f32 / aspect_ratio * camera.pixel_aspect_ratio).floor() as u32,
+            ],
+            CameraSize::Fixed { width, height } => [width, height],
         };
 
         // Recreate the scene framebuffer if its size does not match our target size
@@ -319,7 +324,7 @@ impl LuminanceRenderer {
             .new_pipeline_gate()
             .pipeline(
                 &back_buffer,
-                &PipelineState::default(),
+                &PipelineState::default().set_clear_color(color_to_array(camera.letterbox_color)),
                 |pipeline, mut shd_gate| {
                     // we must bind the offscreen framebuffer color content so that we can pass it to a shader
                     let bound_texture = pipeline.bind_texture(scene_framebuffer.color_slot())?;
@@ -332,6 +337,14 @@ impl LuminanceRenderer {
                         );
                         interface.set(&uniforms.screen_texture, bound_texture.binding());
                         interface.set(&uniforms.pixel_aspect_ratio, camera.pixel_aspect_ratio);
+                        interface.set(
+                            &uniforms.camera_size_fixed,
+                            match camera.size {
+                                CameraSize::Fixed { .. } => 0,
+                                CameraSize::FixedWidth(_) => 1,
+                                CameraSize::FixedHeight(_) => 2,
+                            },
+                        );
 
                         rdr_gate.render(&RenderState::default(), |mut tess_gate| {
                             tess_gate.render(&*sprite_instance)
