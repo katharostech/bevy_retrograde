@@ -37,28 +37,28 @@ impl From<RgbaImage> for Image {
 pub(crate) fn add_assets(app: &mut AppBuilder) {
     app.add_asset::<Image>()
         .add_asset::<SpriteSheet>()
-        .init_asset_loader::<SpriteLoader>();
+        .init_asset_loader::<ImageLoader>();
 }
 
 /// An error that occurs when loading a GLTF file
 #[derive(thiserror::Error, Debug)]
-pub enum SpriteLoaderError {
+pub enum ImageLoaderError {
     #[error("Error parsing image: {0}")]
     ImageError(#[from] image::ImageError),
 }
 
 /// An LDTK map asset loader
 #[derive(Default)]
-struct SpriteLoader;
+struct ImageLoader;
 
-impl AssetLoader for SpriteLoader {
+impl AssetLoader for ImageLoader {
     fn load<'a>(
         &'a self,
         bytes: &'a [u8],
         load_context: &'a mut LoadContext,
     ) -> BoxedFuture<'a, Result<(), anyhow::Error>> {
         // Create a future for the load function
-        Box::pin(async move { Ok(load_sprite(bytes, load_context).await?) })
+        Box::pin(async move { Ok(load_image(bytes, load_context).await?) })
     }
 
     fn extensions(&self) -> &[&str] {
@@ -85,10 +85,10 @@ impl AssetLoader for SpriteLoader {
     }
 }
 
-async fn load_sprite<'a, 'b>(
+async fn load_image<'a, 'b>(
     bytes: &'a [u8],
     load_context: &'a mut LoadContext<'b>,
-) -> Result<(), SpriteLoaderError> {
+) -> Result<(), ImageLoaderError> {
     // Create a cursor over our bytes to let the image reader `Seek` insdie of them
     let reader = std::io::Cursor::new(bytes);
 
