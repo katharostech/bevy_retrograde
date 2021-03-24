@@ -45,9 +45,8 @@ default-features = false
 features = ["bevy_winit", "x11"]
 
 [target.'cfg(not(any(target_arch = "wasm32")))'.dependencies]
-glutin = "0.26.0"
+luminance-surfman = { path = "../luminance-surfman" }
 luminance-gl = "0.16.1"
-gl = "0.14.0"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 # Waiting on PR: https://github.com/phaazon/luminance-rs/pull/489. For now we have a copy locally.

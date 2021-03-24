@@ -152,7 +152,7 @@ impl LuminanceRenderer {
         #[cfg(wasm)]
         let back_buffer = surface.back_buffer().unwrap();
         #[cfg(not(wasm))]
-        let back_buffer = surface.back_buffer();
+        let back_buffer = surface.back_buffer().unwrap();
 
         // Build the queries and get the resources that we will need
         let mut cameras = world.query::<(&Camera, &WorldPosition)>();
@@ -371,7 +371,7 @@ impl LuminanceRenderer {
         let span_swap_buffers_guard = span_swap_buffers.enter();
 
         #[cfg(not(wasm))]
-        self.surface.swap_buffers();
+        self.surface.swap_buffers().unwrap();
 
         drop(span_swap_buffers_guard);
     }

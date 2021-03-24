@@ -16,12 +16,10 @@ use std::sync::Arc;
 use wasm_bindgen::prelude::*;
 
 #[cfg(not(wasm))]
-type Surface = luminance_glutin::GlutinSurface;
+type Surface = luminance_surfman::SurfmanSurface;
 #[cfg(wasm)]
 type Surface = WebSysWebGL2Surface;
 
-#[cfg(not(wasm))]
-pub(crate) mod luminance_glutin;
 pub(crate) mod luminance_renderer;
 pub(crate) mod starc;
 
@@ -93,7 +91,7 @@ impl RetroRenderer {
             let winit_window = winit_windows.get_window(window.id()).unwrap();
 
             #[cfg(not(wasm))]
-            let surface = luminance_glutin::GlutinSurface::from_winit_window(winit_window);
+            let surface = Surface::from_winit_window(winit_window).unwrap();
 
             #[cfg(wasm)]
             let surface = {
@@ -144,7 +142,8 @@ impl RetroRenderer {
             let renderer = self.renderers.get_mut(&event.id).unwrap();
             renderer
                 .surface
-                .set_size([event.width as u32, event.height as u32]);
+                .set_size([event.width as u32, event.height as u32])
+                .unwrap();
         }
     }
 
