@@ -1,8 +1,4 @@
-use bevy::{
-    core::FixedTimestep,
-    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-    prelude::*,
-};
+use bevy::{core::FixedTimestep, prelude::*};
 use bevy_retro::*;
 
 // Create a stage label that will be used for our game logic stage
@@ -16,8 +12,6 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(RetroPlugins)
-        .add_plugin(FrameTimeDiagnosticsPlugin)
-        .add_plugin(LogDiagnosticsPlugin::default())
         .add_startup_system(setup.system())
         .add_stage(
             GameStage,
@@ -37,7 +31,7 @@ fn setup(
 ) {
     // Load our sprites
     let red_radish_image = asset_server.load("redRadish.png");
-    let yellow_radish_image = asset_server.load("yelloRadish.png");
+    let yellow_radish_image = asset_server.load("yellowRadish.png");
     let blue_radish_image = asset_server.load("blueRadish.png");
 
     // Spawn the camera

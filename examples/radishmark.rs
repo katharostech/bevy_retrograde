@@ -32,7 +32,7 @@ const GAME_HEIGHT: i32 = 300;
 fn main() {
     App::build()
         .insert_resource(WindowDescriptor {
-            title: "BevyMark".to_string(),
+            title: "Bevy Retro RadishMark".to_string(),
             width: 600.,
             height: 600.,
             vsync: true,
