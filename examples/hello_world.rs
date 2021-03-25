@@ -5,6 +5,7 @@ use bevy::{
 };
 use bevy_retro::*;
 
+// Create a stage label that will be used for our game logic stage
 #[derive(StageLabel, Debug, Eq, Hash, PartialEq, Clone)]
 struct GameStage;
 

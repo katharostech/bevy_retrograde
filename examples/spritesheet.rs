@@ -1,5 +1,8 @@
-use bevy::prelude::*;
+use bevy::{core::FixedTimestep, prelude::*};
 use bevy_retro::*;
+
+#[derive(StageLabel, Debug, Eq, Hash, PartialEq, Clone)]
+struct GameStage;
 
 fn main() {
     App::build()
@@ -9,32 +12,25 @@ fn main() {
         })
         .add_plugins(RetroPlugins)
         .add_startup_system(setup.system())
-        .add_system(animate_sprite.system())
+        .add_stage(
+            GameStage,
+            SystemStage::parallel()
+                .with_run_criteria(FixedTimestep::step(0.015))
+                .with_system(animate_sprite.system()),
+        )
         .run();
 }
 
-/// Just helps us keep track of which frame we're on for our sprite
+/// This component helps us keep track of which frame we're on for our sprite
 struct SpriteAnimFrame(usize);
 
-fn setup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut sprite_sheets: ResMut<Assets<SpriteSheet>>,
-) {
-    // Load our sprite images
-    let doggo_image = asset_server.load("doggo.gitignore.png");
-
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+    // Spawn sprite
     commands
-        // Spawn sprite
         .spawn()
-        .insert_bundle(SpriteBundle {
-            image: doggo_image,
-            ..Default::default()
-        })
-        .insert(sprite_sheets.add(SpriteSheet {
-            grid_size: UVec2::splat(16),
-            tile_index: 0,
-        }))
+        .insert_bundle(
+            asset_server.load_bundle::<SpriteSheetBundle>("redRadish.bundle.yml"),
+        )
         .insert(Timer::from_seconds(0.12, true))
         .insert(SpriteAnimFrame(0));
 
@@ -62,7 +58,7 @@ fn animate_sprite(
         if timer.finished() {
             if let Some(sprite_sheet) = sprite_sheet_assets.get_mut(sprite_sheet_handle) {
                 frame.0 = frame.0.wrapping_add(1);
-                sprite_sheet.tile_index = *frames.iter().cycle().nth(frame.0).unwrap();
+                sprite_sheet.tile_index = frames[frame.0 % frames.len()];
             }
         }
     }

@@ -82,14 +82,14 @@ fn mouse_handler(
                 .insert_bundle(SpriteBundle {
                     image: radish.0[rng.gen_range(0..3)].clone(),
                     position: Position::new(
-                        rng.gen_range(-20..=20),
-                        rng.gen_range(-20..=20),
+                        rng.gen_range(0..=10),
+                        rng.gen_range(0..=10),
                         bird_z as i32,
                     ),
                     ..Default::default()
                 })
                 .insert(Radish {
-                    velocity: IVec2::new(rng.gen_range(1..=4), rng.gen_range(1..=4)),
+                    velocity: IVec2::new(rng.gen_range(1..=2), rng.gen_range(1..=2)),
                 });
         }
     }

@@ -1,5 +1,7 @@
-//! Bevy Retro is an experimental 2D, pixel-perfect renderer for Bevy that can target both web and
-//! desktop using OpenGL.
+//! Bevy Retro is a 2D, pixel-perfect renderer for [Bevy] that can target both web and desktop using
+//! OpenGL/WebGL.`
+//!
+//! [Bevy]: https://bevyengine.org
 
 use bevy::{asset::AssetStage, prelude::*};
 
@@ -14,8 +16,8 @@ pub use assets::*;
 mod components;
 pub use components::*;
 
-mod position_propagation;
-use position_propagation::*;
+mod bundles;
+pub use bundles::*;
 
 #[derive(Debug, Clone, Copy, StageLabel, Hash, PartialEq, Eq)]
 pub enum RetroStage {

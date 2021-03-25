@@ -11,12 +11,8 @@ use luminance::{
 use luminance_front::{framebuffer::Framebuffer, shader::Program, tess::Tess, texture::Texture};
 use parking_lot::Mutex;
 
-use crate::{
-    components::{Sprite, SpriteSheet, Visible},
-    starc::Starc,
-};
-
 use super::*;
+use crate::{starc::Starc, *};
 
 /// The scene framebuffer sampler
 const PIXELATED_SAMPLER: Sampler = Sampler {

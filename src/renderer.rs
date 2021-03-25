@@ -27,7 +27,6 @@ pub(crate) mod starc;
 mod js;
 
 use self::luminance_renderer::LuminanceRenderer;
-use crate::{Camera, CameraSize, Color, Image, WorldPosition};
 
 pub(crate) fn get_render_system() -> impl FnMut(&mut World) {
     let mut renderer = RetroRenderer::default();
