@@ -31,7 +31,6 @@
 //! - A super-simple hierarchy system
 //! - Scaled pixel-perfect rendering with three camera modes: fixed width, fixed height, and
 //!   letter-boxed
-//! - An [LDtk](https://ldtk.io) map loading plugin
 //! - An [LDtk](https://ldtk.io) map loading [plugin](./plugins/bevy_retro_ldtk)
 //!
 //! And features that we will work on adding later:
