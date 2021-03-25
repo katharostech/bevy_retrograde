@@ -4,8 +4,8 @@ use bevy::{asset::AssetPath, prelude::*};
 
 mod image;
 pub use self::image::*;
-mod spritesheet;
-pub use self::spritesheet::*;
+
+use crate::*;
 
 pub trait AssetServerLoadBundle {
     fn load_bundle<B: BundleFromAsset>(&self, path: &str) -> B;
@@ -25,6 +25,5 @@ impl AssetServerLoadBundle for AssetServer {
 pub(crate) fn add_assets(app: &mut AppBuilder) {
     app.add_asset::<Image>()
         .init_asset_loader::<ImageLoader>()
-        .add_asset::<SpriteSheet>()
-        .init_asset_loader::<SpriteSheetLoader>();
+        .add_asset::<SpriteSheet>();
 }

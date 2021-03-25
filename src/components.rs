@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, reflect::TypeUuid};
 
 use crate::*;
 
@@ -130,6 +130,14 @@ impl Default for Sprite {
             offset: IVec2::default(),
         }
     }
+}
+
+/// Settings for a sprite sheet
+#[derive(Debug, Clone, TypeUuid)]
+#[uuid = "64746631-1afe-4ca6-8398-7c0df62f7813"]
+pub struct SpriteSheet {
+    pub grid_size: UVec2,
+    pub tile_index: u32,
 }
 
 /// The global position in the world
