@@ -34,9 +34,9 @@ impl BundleFromAsset for SpriteBundle {
 pub struct SpriteSheetBundle {
     #[bundle]
     /// The sprite bundle
-    sprite_bundle: SpriteBundle,
+    pub sprite_bundle: SpriteBundle,
     /// The sprite sheet handle
-    sprite_sheet: Handle<SpriteSheet>,
+    pub sprite_sheet: Handle<SpriteSheet>,
 }
 
 impl BundleFromAsset for SpriteSheetBundle {
