@@ -20,7 +20,7 @@
 //! Potentially drastic breaking changes are a large possibility, though. Bevy Retro's design will
 //! mature as we use it to work on an actual game and we find out what works and what doesn't.
 //!
-//! Bevy retro will most likely follow Bevy master as it changes, but we might be able to make
+//! Bevy retro will most likely track Bevy master as it changes, but we might be able to make
 //! releases to crates IO for fixed Bevy resources.
 //!
 //! # Features
@@ -30,8 +30,13 @@
 //! - Supports sprites and sprite sheets
 //! - A super-simple hierarchy system
 //! - Scaled pixel-perfect rendering with three camera modes: fixed width, fixed height, and
-//!   letter-boxed 
+//!   letter-boxed
 //! - An [LDtk](https://ldtk.io) map loading plugin
+//! - An [LDtk](https://ldtk.io) map loading [plugin](./plugins/bevy_retro_ldtk)
+//!
+//! And features that we will work on adding later:
+//!
+//! - Pixel-perfect collision detection
 //!
 //! # Examples
 //!
@@ -127,7 +132,6 @@
 //!     });
 //! }
 //! ```
-
 
 use bevy::{asset::AssetStage, prelude::*};
 

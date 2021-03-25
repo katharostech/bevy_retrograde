@@ -1,8 +1,16 @@
 [package]
 name = "bevy_retro"
-version = "0.1.0"
+version = "0.0.0"
 authors = ["Zicklag <zicklag@katharostech.com>"]
 edition = "2018"
+
+documentation = "https://docs.rs/bevy_retro"
+repository = "https://github.com/katharostech/bevy_retro"
+readme = "README.md"
+license-file = "LICENSE.md"
+
+keywords = ["bevy", "2D", "pixel-perfect", "retro", "renderer", "web"]
+categories = ["game-development", "multimedia", "rendering::engine"]
 
 [workspace]
 members = [
