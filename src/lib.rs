@@ -2,22 +2,56 @@
 //! OpenGL/WebGL.
 //!
 //! [Bevy]: https://bevyengine.org
-//! 
-//! # Example
-//! 
+//!
+//! Bevy Retro is focused on providing an easy and ergonomic way to write 2D, pixel-perfect games.
+//! Compared to the out-of-the-box Bevy setup, it has no concept of 3D, and sprites don't even have
+//! rotations, scales, or floating point positions. All coordinates are based on real pixel
+//! positions.
+//!
+//! Bevy Retro replaces almost all of the out-of-the-box Bevy components and Bundles that you would
+//! normally use ( `Transform`, `Camera2DBundle`, etc. ) and comes with its own `Position`,
+//! `Camera`, `Image`, `Sprite`, etc. components and bundles. Bevy Retro tries to provide a focused
+//! 2D-centric experience on top of Bevy that helps take out some of the pitfalls and makes it
+//! easier to think about your game when all you need is 2D.
+//!
+//! # Development Status
+//!
+//! Bevy Retro is in very early stages of development, but should still be somewhat usable.
+//! Potentially drastic breaking changes are a large possibility, though. Bevy Retro's design will
+//! mature as we use it to work on an actual game and we find out what works and what doesn't.
+//!
+//! Bevy retro will most likely follow Bevy master as it changes, but we might be able to make
+//! releases to crates IO for fixed Bevy resources.
+//!
+//! # Features
+//!
+//! - Supports web and desktop out-of-the-box
+//! - Integer pixel coordinates
+//! - Supports sprites and sprite sheets
+//! - A super-simple hierarchy system
+//! - Scaled pixel-perfect rendering with three camera modes: fixed width, fixed height, and
+//!   letter-boxed 
+//!
+//! # Examples
+//!
+//! Check out the [examples] folder for more examples, but here's a quick example of what using Bevy
+//! Retro looks like.
+//!
+//! [examples]: https://github.com/katharostech/bevy_retro/tree/master/examples
+//!
 //! ```no_run
 //! use bevy::prelude::*;
 //! use bevy_retro::*;
-//! 
+//!
 //! fn main() {
 //!     App::build()
 //!         .add_plugins(RetroPlugins)
 //!         .add_startup_system(setup.system())
 //!         .run();
 //! }
-//! 
+//!
 //! struct Player;
-//! 
+//!
 //! fn setup(
 //!     mut commands: Commands,
 //!     asset_server: Res<AssetServer>,
@@ -27,7 +61,7 @@
 //!     let red_radish_image = asset_server.load("redRadish.png");
 //!     let yellow_radish_image = asset_server.load("yellowRadish.png");
 //!     let blue_radish_image = asset_server.load("blueRadish.png");
-//! 
+//!
 //!     // Spawn the camera
 //!     commands.spawn().insert_bundle(CameraBundle {
 //!         camera: Camera {
@@ -39,7 +73,7 @@
 //!         position: Position::new(0, 0, 0),
 //!         ..Default::default()
 //!     });
-//! 
+//!
 //!     // Spawn a red radish
 //!     let red_radish = commands
 //!         .spawn()
@@ -56,7 +90,7 @@
 //!         // Add our player marker component so we can move it
 //!         .insert(Player)
 //!         .id();
-//! 
+//!
 //!     // Spawn a yellow radish
 //!     let yellow_radish = commands
 //!         .spawn()
@@ -71,13 +105,13 @@
 //!             ..Default::default()
 //!         })
 //!         .id();
-//! 
-//!     // Make the yello radish a child of the red radish
+//!
+//!     // Make the yellow radish a child of the red radish
 //!     scene_graph
 //!         .add_child(red_radish, yellow_radish)
 //!         // This could fail if the child is an ancestor of the parent
 //!         .unwrap();
-//! 
+//!
 //!     // Spawn a blue radish
 //!     commands.spawn().insert_bundle(SpriteBundle {
 //!         image: blue_radish_image,

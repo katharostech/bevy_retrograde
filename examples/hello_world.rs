@@ -78,7 +78,7 @@ fn setup(
         })
         .id();
 
-    // Make the yello radish a child of the red radish
+    // Make the yellow radish a child of the red radish
     scene_graph
         .add_child(red_radish, yellow_radish)
         // This could fail if the child is an ancestor of the parent
