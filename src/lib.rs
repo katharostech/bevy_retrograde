@@ -20,8 +20,8 @@
 //! Potentially drastic breaking changes are a large possibility, though. Bevy Retro's design will
 //! mature as we use it to work on an actual game and we find out what works and what doesn't.
 //!
-//! Bevy retro will most likely track Bevy master as it changes, but we might be able to make
-//! releases to crates IO for fixed Bevy resources.
+//! Bevy Retro will most likely track Bevy master as it changes, but we may also be able to make
+//! Bevy Retro releases for each Bevy release.
 //!
 //! # Features
 //!
