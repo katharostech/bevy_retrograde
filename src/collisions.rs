@@ -144,14 +144,14 @@ impl<'a> ImageData<'a> {
         };
         let max = if self.sprite.centered {
             IVec2::new(
-                self.pos.x + image_width as i32 / 2 + if image_width % 2 == 0 { -1 } else { 0 },
-                self.pos.y + image_height as i32 / 2 + if image_height % 2 == 0 { -1 } else { 0 },
+                self.pos.x + image_width as i32 / 2 + image_height % 2,
+                self.pos.y + image_height as i32 / 2 + image_height % 2,
             )
         } else {
             IVec2::new(self.pos.x + image_width, self.pos.y + image_height)
         };
 
-        ImageBounds::new(min, max)
+        ImageBounds::new(min + self.sprite.offset, max + self.sprite.offset)
     }
 }
 
@@ -168,8 +168,8 @@ impl ImageBounds {
         Self {
             min,
             max,
-            width: max.x - min.x + 1,  // Add 1 to include last pixel
-            height: max.y - min.y + 1, // Add 1 to include last pixel
+            width: max.x - min.x,
+            height: max.y - min.y,
         }
     }
 
