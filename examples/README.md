@@ -16,6 +16,14 @@ An example of how to use animated sprite sheets.
 
 [spritesheet]: ./spritesheet.rs
 
+## [collisions]
+
+An example demonstrating how to detect pixel-perfect collisions between sprites
+
+![collisions](./screenshots/collisions.gif)
+
+[collisions]: ./collisions.rs
+
 ## [radishmark]
 
 A bunnymark style demo that logs frame time diagnostics to the console.

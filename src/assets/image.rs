@@ -14,7 +14,7 @@ use crate::*;
 #[uuid = "48d2e3c8-2f48-4330-b7fe-fac3e81c60f3"]
 #[derive(Clone, Debug)]
 pub struct Image {
-    pub image: RgbaImage,
+    pub rgba_image: RgbaImage,
     pub collision: FixedBitSet,
 }
 
@@ -29,7 +29,7 @@ impl From<RgbaImage> for Image {
             }
         }
 
-        Image { image, collision }
+        Image { rgba_image: image, collision }
     }
 }
 

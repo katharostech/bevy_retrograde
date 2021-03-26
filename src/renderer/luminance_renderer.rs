@@ -387,9 +387,9 @@ impl LuminanceRenderer {
 
         let mut upload_texture = |image: &Image| {
             // Get the sprite image info
-            let (sprite_width, sprite_height) = image.image.dimensions();
+            let (sprite_width, sprite_height) = image.rgba_image.dimensions();
             let sprite_size = [sprite_width, sprite_height];
-            let pixels = image.image.as_raw();
+            let pixels = image.rgba_image.as_raw();
 
             // Upload the sprite to the GPU
             let mut texture = surface

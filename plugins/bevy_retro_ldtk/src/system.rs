@@ -124,7 +124,7 @@ fn process_ldtk_maps(
                     // TODO: [perf] we only technically need to copy this image if it is flipped,
                     // but right now we are doing it no matter what for ease
                     let mut tile_src = tileset_image
-                        .image
+                        .rgba_image
                         .view(
                             tile.src[0] as u32,
                             tile.src[1] as u32,

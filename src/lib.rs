@@ -32,10 +32,11 @@
 //! - Scaled pixel-perfect rendering with three camera modes: fixed width, fixed height, and
 //!   letter-boxed
 //! - An [LDtk](https://ldtk.io) map loading [plugin](./plugins/bevy_retro_ldtk)
-//!
-//! And features that we will work on adding later:
-//!
 //! - Pixel-perfect collision detection
+//! 
+//! And features that we will work on later:
+//! 
+//! - Custom shaders for post-processing, including a built-in CRT shader
 //!
 //! # Examples
 //!
@@ -147,6 +148,9 @@ pub use components::*;
 
 mod bundles;
 pub use bundles::*;
+
+mod collisions;
+pub use collisions::*;
 
 #[derive(Debug, Clone, Copy, StageLabel, Hash, PartialEq, Eq)]
 pub enum RetroStage {

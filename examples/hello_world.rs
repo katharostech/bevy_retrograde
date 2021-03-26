@@ -52,11 +52,6 @@ fn setup(
         .insert_bundle(SpriteBundle {
             image: red_radish_image,
             position: Position::new(0, 0, 0),
-            sprite: Sprite {
-                flip_x: true,
-                flip_y: false,
-                ..Default::default()
-            },
             ..Default::default()
         })
         // Add our player marker component so we can move it
@@ -70,8 +65,8 @@ fn setup(
             image: yellow_radish_image,
             position: Position::new(-20, 0, 0),
             sprite: Sprite {
-                flip_x: true,
-                flip_y: false,
+                // Make him upside down 🙃
+                flip_y: true,
                 ..Default::default()
             },
             ..Default::default()
