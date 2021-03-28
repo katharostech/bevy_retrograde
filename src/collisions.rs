@@ -51,7 +51,7 @@ pub fn pixels_collide_with(a: PixelColliderInfo, b: PixelColliderInfo) -> bool {
         IVec2::ZERO
     };
     let b_offset = if let Some(sheet) = b.sprite_sheet {
-        let (w, h) = a.image.dimensions();
+        let (w, _) = a.image.dimensions();
         let y = sheet.tile_index / w;
         let x = sheet.tile_index % w;
 
