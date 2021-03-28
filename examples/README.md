@@ -31,3 +31,11 @@ A bunnymark style demo that logs frame time diagnostics to the console.
 ![radishmark](./screenshots/radishmark.gif)
 
 [radishmark]: ./radishmark.rs
+
+## TODO
+
+Examples that we haven't made that we might make later:
+
+- LDtk map example ( move the one from the LDtk plugin here )
+- Collisions with a sprite sheet
+- Character controller
