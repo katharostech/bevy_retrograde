@@ -9,6 +9,21 @@ use petgraph::{
 
 use crate::*;
 
+/// A query that can be used to synchronize the [`WorldPosition`] components of all the entities in
+/// the world.
+pub type WorldPositions<'a> =
+    Query<'a, (Entity, &'static mut Position, &'static mut WorldPosition)>;
+
+pub trait WorldPositionSyncQueryTrait<'a> {
+    fn sync_world_positions(self, scene_graph: &mut SceneGraph);
+}
+
+impl<'a> WorldPositionSyncQueryTrait<'a> for &mut WorldPositions<'a> {
+    fn sync_world_positions(self, scene_graph: &mut SceneGraph) {
+        propagate_world_positions(scene_graph, self);
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 /// The position of a 2D object in the world
 pub struct Position {

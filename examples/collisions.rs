@@ -1,5 +1,6 @@
 use bevy::{core::FixedTimestep, prelude::*, utils::HashSet};
 use bevy_retro::*;
+use bevy_retro_ldtk::*;
 
 // Create a stage label that will be used for our game logic stage
 #[derive(StageLabel, Debug, Eq, Hash, PartialEq, Clone)]
@@ -27,6 +28,7 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(RetroPlugins)
+        .add_plugin(LdtkPlugin)
         .init_resource::<RadishImages>()
         .add_startup_system(setup.system())
         .add_stage(
@@ -58,22 +60,18 @@ fn setup(mut commands: Commands, radish_images: Res<RadishImages>) {
         .spawn()
         .insert_bundle(SpriteBundle {
             image: radish_images.uncollided.clone(),
-            position: Position::new(0, 0, -1),
+            position: Position::new(0, 0, 3),
             ..Default::default()
         })
-        .insert(Player)
-        .id();
+        .insert(Player);
 
     // Spawn some radishes that just sit there
     for (x, y) in &[(-20, 0), (-20, -20), (20, 20), (20, 0)] {
-        commands
-            .spawn()
-            .insert_bundle(SpriteBundle {
-                image: radish_images.uncollided.clone(),
-                position: Position::new(*x, *y, 0),
-                ..Default::default()
-            })
-            .id();
+        commands.spawn().insert_bundle(SpriteBundle {
+            image: radish_images.uncollided.clone(),
+            position: Position::new(*x, *y, 0),
+            ..Default::default()
+        });
     }
 }
 
@@ -109,16 +107,17 @@ fn collision_detection(
     // We will need to read and write to the radish entities at different stages of the collision
     // detection so we create a query set to enforce that don't borrow the reading and writing
     // queries at the same time.
-    mut radishes: QuerySet<(
-        Query<(Entity, &Handle<Image>)>,
+    mut queries: QuerySet<(
+        WorldPositions,
+        Query<(Entity, &Handle<Image>, &Sprite, &WorldPosition)>,
         Query<(Entity, &mut Handle<Image>)>,
     )>,
-    mut collisions: PixelCollisions,
+    mut scene_graph: ResMut<SceneGraph>,
     image_assets: Res<Assets<Image>>,
     radish_images: Res<RadishImages>,
 ) {
     // Make sure collision positions are synchronized
-    collisions.sync_positions();
+    queries.q0_mut().sync_world_positions(&mut scene_graph);
 
     // Create list of colliding radishes
     let mut colliding_radishes = HashSet::default();
@@ -126,15 +125,15 @@ fn collision_detection(
     // Create list of radish pairs we've already checked
     let mut checked_radishes = HashSet::default();
 
-    for (radish1, radish1_col) in radishes.q0().iter() {
+    for (radish1, radish1_image, radish1_sprite, radish1_pos) in queries.q1().iter() {
         // Get the collision image for radish 1
-        let radish1_col = if let Some(col) = image_assets.get(radish1_col) {
+        let radish1_image = if let Some(col) = image_assets.get(radish1_image) {
             col
         } else {
             continue;
         };
 
-        for (radish2, radish2_col) in radishes.q0().iter() {
+        for (radish2, radish2_image, radish2_sprite, radish2_pos) in queries.q1().iter() {
             // Skip if radish two is the same radish as radish 1 or if we've already checked this
             // pair
             if radish1 == radish2
@@ -145,14 +144,27 @@ fn collision_detection(
             }
 
             // Get collision image for radish 2
-            let radish2_col = if let Some(col) = image_assets.get(radish2_col) {
+            let radish2_image = if let Some(col) = image_assets.get(radish2_image) {
                 col
             } else {
                 continue;
             };
 
             // If they are colliding
-            if collisions.collides_with(radish1, radish1_col, radish2, radish2_col) {
+            if pixels_collide_with(
+                PixelColliderInfo {
+                    image: radish1_image,
+                    sprite: radish1_sprite,
+                    position: radish1_pos,
+                    sprite_sheet: None,
+                },
+                PixelColliderInfo {
+                    image: radish2_image,
+                    sprite: radish2_sprite,
+                    position: radish2_pos,
+                    sprite_sheet: None,
+                },
+            ) {
                 // Add them to the colliding radish list
                 colliding_radishes.insert(radish1);
                 colliding_radishes.insert(radish2);
@@ -164,7 +176,7 @@ fn collision_detection(
     }
 
     // Make all colliding radishes red and non-colliding radishes blue
-    for (radish, mut image) in radishes.q1_mut().iter_mut() {
+    for (radish, mut image) in queries.q2_mut().iter_mut() {
         if colliding_radishes.contains(&radish) {
             *image = radish_images.collided.clone();
         } else {

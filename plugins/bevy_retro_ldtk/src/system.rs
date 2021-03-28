@@ -6,7 +6,7 @@ use bevy_retro::{
         imageops::{self, flip_horizontal_in_place, flip_vertical_in_place},
         GenericImage, GenericImageView,
     },
-    Camera, Color, Image, Position, SceneGraph, Sprite, SpriteBundle,
+    Camera, Color, Image, Position, SceneGraph, Sprite, SpriteBundle, Visible,
 };
 
 use crate::*;
@@ -18,10 +18,6 @@ pub(crate) fn add_systems(app: &mut AppBuilder) {
 }
 
 struct LdtkMapHasLoaded;
-
-/// Holds a `Handle<LdtkMap>` in a newtype for the tilemap layers so that iterating over map handles
-/// will only iterate over maps and not layers.
-struct LayerMapHandle(Handle<LdtkMap>);
 
 /// This system spawns the map layers for every unloaded entity with an LDtk map
 fn process_ldtk_maps(
@@ -124,7 +120,6 @@ fn process_ldtk_maps(
                     // TODO: [perf] we only technically need to copy this image if it is flipped,
                     // but right now we are doing it no matter what for ease
                     let mut tile_src = tileset_image
-                        .rgba_image
                         .view(
                             tile.src[0] as u32,
                             tile.src[1] as u32,
@@ -162,8 +157,13 @@ fn process_ldtk_maps(
                             centered: config.center_map,
                             ..Default::default()
                         },
+                        visible: Visible(layer.visible),
                         position: Position::new(0, 0, z as i32 * 2),
                         ..Default::default()
+                    })
+                    .insert(LdtkMapLayer {
+                        map: map_handle.clone(),
+                        layer_instance: layer.clone(),
                     })
                     .id();
 
@@ -183,7 +183,7 @@ type MapEvent = AssetEvent<LdtkMap>;
 fn hot_reload_maps(
     mut commands: Commands,
     mut events: EventReader<MapEvent>,
-    layers: Query<(Entity, &LayerMapHandle)>,
+    layers: Query<(Entity, &LdtkMapLayer)>,
     maps: Query<(Entity, &Handle<LdtkMap>), With<LdtkMapConfig>>,
 ) {
     for event in events.iter() {
@@ -191,8 +191,8 @@ fn hot_reload_maps(
             // When the map asset has been modified
             AssetEvent::Modified { handle } => {
                 // Loop through all the layers in the world, find the ones that are for this map and remove them
-                for (layer_ent, LayerMapHandle(map_handle)) in layers.iter() {
-                    if map_handle == handle {
+                for (layer_ent, LdtkMapLayer { map, .. }) in layers.iter() {
+                    if map == handle {
                         commands.entity(layer_ent).despawn();
                     }
                 }

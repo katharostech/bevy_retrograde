@@ -4,7 +4,6 @@ use bevy::{
     reflect::TypeUuid,
     utils::BoxedFuture,
 };
-use fixedbitset::FixedBitSet;
 use image::{io::Reader as ImageReader, RgbaImage};
 
 use crate::*;
@@ -13,23 +12,12 @@ use crate::*;
 #[derive(TypeUuid)]
 #[uuid = "48d2e3c8-2f48-4330-b7fe-fac3e81c60f3"]
 #[derive(Clone, Debug)]
-pub struct Image {
-    pub rgba_image: RgbaImage,
-    pub collision: FixedBitSet,
-}
+pub struct Image(RgbaImage);
+impl_deref!(Image, RgbaImage);
 
 impl From<RgbaImage> for Image {
     fn from(image: RgbaImage) -> Self {
-        // Calculate collision bitset
-        let mut collision = FixedBitSet::with_capacity(image.pixels().len());
-        for (i, pixel) in image.pixels().enumerate() {
-            // For every non-fully transparent pixel add a collision indicator to the bitset
-            if pixel.0[3] != 0 {
-                collision.set(i, true);
-            }
-        }
-
-        Image { rgba_image: image, collision }
+        Image(image)
     }
 }
 

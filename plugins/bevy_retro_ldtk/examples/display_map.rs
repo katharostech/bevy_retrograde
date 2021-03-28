@@ -37,7 +37,6 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         )),
         config: LdtkMapConfig {
             set_clear_color: true,
-            scale: 3.0,
             level: std::env::args()
                 .nth(2)
                 .map(|x| x.parse().unwrap())

@@ -33,9 +33,9 @@
 //!   letter-boxed
 //! - An [LDtk](https://ldtk.io) map loading [plugin](./plugins/bevy_retro_ldtk)
 //! - Pixel-perfect collision detection
-//! 
+//!
 //! And features that we will work on later:
-//! 
+//!
 //! - Custom shaders for post-processing, including a built-in CRT shader
 //!
 //! # Examples
