@@ -42,7 +42,6 @@ fn setup(
             background_color: Color::new(0.2, 0.2, 0.2, 1.0),
             ..Default::default()
         },
-        position: Position::new(0, 0, 0),
         ..Default::default()
     });
 

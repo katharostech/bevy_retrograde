@@ -42,18 +42,20 @@ pub fn pixels_collide_with(a: PixelColliderInfo, b: PixelColliderInfo) -> bool {
     let a_bounds = a.get_bounds();
     let b_bounds = b.get_bounds();
     let a_offset = if let Some(sheet) = a.sprite_sheet {
-        let (w, _) = a.image.dimensions();
-        let y = sheet.tile_index / w;
-        let x = sheet.tile_index % w;
+        let (width, _) = a.image.dimensions();
+        let width_tiles = width / sheet.grid_size.x;
+        let y = sheet.tile_index / width_tiles * sheet.grid_size.y;
+        let x = (sheet.tile_index % width_tiles) * sheet.grid_size.x;
 
         IVec2::new(x as i32, y as i32)
     } else {
         IVec2::ZERO
     };
+
     let b_offset = if let Some(sheet) = b.sprite_sheet {
         let (w, _) = a.image.dimensions();
-        let y = sheet.tile_index / w;
-        let x = sheet.tile_index % w;
+        let y = sheet.tile_index / w * sheet.grid_size.y;
+        let x = sheet.tile_index % w * sheet.grid_size.x;
 
         IVec2::new(x as i32, y as i32)
     } else {
