@@ -147,6 +147,13 @@ fn process_ldtk_maps(
                     imageops::overlay(&mut tile_target, &tile_src, 0, 0);
                 }
 
+                // If the layer opacity is not 100%, adjust the transparency accordingly
+                if layer.__opacity != 1.0 {
+                    for pixel in layer_image.pixels_mut() {
+                        pixel[3] = (layer.__opacity * 255.0 * (pixel[3] as f32 / 255.0)) as u8;
+                    }
+                }
+
                 // Spawn the layer
                 let layer_ent = commands
                     .spawn()
@@ -183,17 +190,21 @@ type MapEvent = AssetEvent<LdtkMap>;
 fn hot_reload_maps(
     mut commands: Commands,
     mut events: EventReader<MapEvent>,
-    layers: Query<(Entity, &LdtkMapLayer)>,
+    layers: Query<(Entity, &LdtkMapLayer, &Handle<Image>)>,
     maps: Query<(Entity, &Handle<LdtkMap>), With<LdtkMapConfig>>,
+    mut image_assets: ResMut<Assets<Image>>,
 ) {
     for event in events.iter() {
         match event {
             // When the map asset has been modified
             AssetEvent::Modified { handle } => {
                 // Loop through all the layers in the world, find the ones that are for this map and remove them
-                for (layer_ent, LdtkMapLayer { map, .. }) in layers.iter() {
+                for (layer_ent, LdtkMapLayer { map, .. }, image_handle) in layers.iter() {
                     if map == handle {
+                        // Despawn the layer
                         commands.entity(layer_ent).despawn();
+                        // Remove the layer image
+                        image_assets.remove(image_handle);
                     }
                 }
 
