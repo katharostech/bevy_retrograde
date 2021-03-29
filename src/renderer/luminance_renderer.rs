@@ -51,7 +51,25 @@ struct ScreenUniformInterface {
     pixel_aspect_ratio: Uniform<f32>,
     window_size: Uniform<[u32; 2]>,
     screen_texture: Uniform<TextureBinding<Dim2, Floating>>,
+    /// The number of seconds since startup
+    #[uniform(unbound)]
+    time: Uniform<f32>,
 }
+
+/// The default custom camera shader string
+const DEFAULT_CUSTOM_SHADER: &str = r#"
+    uniform sampler2D screen_texture;
+    uniform float time;
+    uniform uvec2 window_size;
+
+    in vec2 uv;
+
+    out vec4 frag_color;
+
+    void main() {
+        frag_color = vec4(texture(screen_texture, uv).rgb, 1.);
+    }
+"#;
 
 pub(crate) struct LuminanceRenderer {
     pub(crate) surface: Surface,
@@ -65,6 +83,9 @@ pub(crate) struct LuminanceRenderer {
 
     image_asset_event_reader: ManualEventReader<AssetEvent<Image>>,
     pending_textures: Vec<Handle<Image>>,
+
+    /// The user's custom camera shader
+    custom_shader: Option<String>,
 }
 
 impl LuminanceRenderer {
@@ -89,21 +110,7 @@ impl LuminanceRenderer {
             )
             .unwrap();
 
-        // Create the shader program for the sprite instances
-        let built_screen_program = surface
-            .new_shader_program::<(), (), ScreenUniformInterface>()
-            .from_strings(
-                include_str!("shaders/screen.vert"),
-                None,
-                None,
-                include_str!("shaders/screen.frag"),
-            )
-            .unwrap();
-
-        // Log any shader compilation warnings
-        for warning in built_sprite_program.warnings {
-            warn!("Shader compile arning: {}", warning);
-        }
+        let screen_program = build_screen_program(&mut surface, None);
 
         // Create the scene framebuffer that we will render the scene to
         let scene_framebuffer = surface
@@ -117,11 +124,12 @@ impl LuminanceRenderer {
             surface,
             sprite_instance,
             sprite_program: built_sprite_program.program,
-            screen_program: built_screen_program.program,
+            screen_program,
             scene_framebuffer,
             texture_cache: Default::default(),
             image_asset_event_reader: Default::default(),
             pending_textures: Default::default(),
+            custom_shader: None,
         }
     }
 
@@ -175,6 +183,14 @@ impl LuminanceRenderer {
         };
         if camera_iter.next().is_some() {
             panic!("Only one Retro camera is supported");
+        }
+
+        // If the camera has a different custom shader, rebuild our screen shader program
+        if camera.custom_shader != self.custom_shader {
+            self.custom_shader = camera.custom_shader.clone();
+
+            *screen_program =
+                build_screen_program(surface, camera.custom_shader.as_ref().map(String::as_str));
         }
 
         // Calculate the target size of our scene framebuffer
@@ -326,6 +342,8 @@ impl LuminanceRenderer {
             .into_result()
             .expect("Could not render");
 
+        let bevy_time = world.get_resource::<Time>().unwrap();
+
         // Render the scene framebuffer to the back buffer on a quad
         surface
             .new_pipeline_gate()
@@ -352,6 +370,7 @@ impl LuminanceRenderer {
                                 CameraSize::FixedHeight(_) => 2,
                             },
                         );
+                        interface.set(&uniforms.time, bevy_time.seconds_since_startup() as f32);
 
                         rdr_gate.render(&RenderState::default(), |mut tess_gate| {
                             tess_gate.render(&*sprite_instance)
@@ -444,4 +463,26 @@ impl LuminanceRenderer {
 
 fn color_to_array(c: Color) -> [f32; 4] {
     [c.r, c.g, c.b, c.a]
+}
+
+fn build_screen_program(
+    surface: &mut Surface,
+    custom_shader: Option<&str>,
+) -> Program<(), (), ScreenUniformInterface> {
+    let built_program = surface
+        .new_shader_program::<(), (), ScreenUniformInterface>()
+        .from_strings(
+            include_str!("shaders/screen.vert"),
+            None,
+            None,
+            custom_shader.unwrap_or(DEFAULT_CUSTOM_SHADER),
+        )
+        .unwrap();
+
+    // Log any shader compilation warnings
+    for warning in built_program.warnings {
+        warn!("Shader compile arning: {}", warning);
+    }
+
+    built_program.program
 }

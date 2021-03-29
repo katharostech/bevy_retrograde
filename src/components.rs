@@ -75,6 +75,11 @@ pub struct Camera {
     pub letterbox_color: Color,
     /// The aspect ratio of the pxiels when rendered through this camera
     pub pixel_aspect_ratio: f32,
+    /// Additional shader code that will be added to the camera rendering that can be used for
+    /// post-processing
+    ///
+    /// TODO: Example
+    pub custom_shader: Option<String>,
 }
 
 impl Default for Camera {
@@ -85,6 +90,7 @@ impl Default for Camera {
             background_color: Color::default(),
             letterbox_color: Color::default(),
             pixel_aspect_ratio: 1.0,
+            custom_shader: None,
         }
     }
 }

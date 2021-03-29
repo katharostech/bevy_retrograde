@@ -152,6 +152,9 @@ pub use bundles::*;
 mod collisions;
 pub use collisions::*;
 
+mod shaders;
+pub use shaders::*;
+
 #[derive(Debug, Clone, Copy, StageLabel, Hash, PartialEq, Eq)]
 pub enum RetroStage {
     WorldPositionPropagation,
