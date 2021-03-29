@@ -1,4 +1,4 @@
-use bevy::{core::FixedTimestep, prelude::*, utils::HashSet};
+use bevy::{core::FixedTimestep, prelude::*};
 use bevy_retro::*;
 
 // Create a stage label that will be used for our game logic stage
@@ -23,7 +23,7 @@ impl FromWorld for RadishImages {
 fn main() {
     App::build()
         .insert_resource(WindowDescriptor {
-            title: "Bevy Retro Collisions".into(),
+            title: "Bevy Retro Sprite Sheet Collisions".into(),
             ..Default::default()
         })
         .add_plugins(RetroPlugins)
@@ -34,14 +34,21 @@ fn main() {
             SystemStage::parallel()
                 .with_run_criteria(FixedTimestep::step(0.05))
                 .with_system(move_player.system())
-                .with_system(collision_detection.system()),
+                .with_system(collision_detection.system())
+                .with_system(animate_sprite.system()),
         )
         .run();
 }
 
 struct Player;
+struct SpriteAnimFrame(usize);
 
-fn setup(mut commands: Commands, radish_images: Res<RadishImages>) {
+fn setup(
+    mut commands: Commands,
+    radish_images: Res<RadishImages>,
+    mut sprite_sheet_assets: ResMut<Assets<SpriteSheet>>,
+    asset_server: Res<AssetServer>,
+) {
     // Spawn the camera
     commands.spawn().insert_bundle(CameraBundle {
         camera: Camera {
@@ -49,18 +56,24 @@ fn setup(mut commands: Commands, radish_images: Res<RadishImages>) {
             background_color: Color::new(0.2, 0.2, 0.2, 1.0),
             ..Default::default()
         },
-        position: Position::new(0, 0, 0),
         ..Default::default()
     });
 
     // Spawn a radish for the player
     commands
         .spawn()
-        .insert_bundle(SpriteBundle {
-            image: radish_images.uncollided.clone(),
-            position: Position::new(0, 0, 3),
-            ..Default::default()
+        .insert_bundle(SpriteSheetBundle {
+            sprite_bundle: SpriteBundle {
+                image: asset_server.load("yellowRadishSheet.png"),
+                position: Position::new(0, 0, 3),
+                ..Default::default()
+            },
+            sprite_sheet: sprite_sheet_assets.add(SpriteSheet {
+                grid_size: UVec2::splat(16),
+                tile_index: 0,
+            }),
         })
+        .insert(SpriteAnimFrame(0))
         .insert(Player);
 
     // Spawn some radishes that just sit there
@@ -102,83 +115,96 @@ fn move_player(keyboard_input: Res<Input<KeyCode>>, mut query: Query<&mut Positi
 }
 
 fn collision_detection(
-    // We will need to read and write to the radish entities at different stages of the collision
-    // detection so we create a query set to enforce that don't borrow the reading and writing
-    // queries at the same time.
-    mut queries: QuerySet<(
-        WorldPositions,
-        Query<(Entity, &Handle<Image>, &Sprite, &WorldPosition)>,
-        Query<(Entity, &mut Handle<Image>)>,
-    )>,
+    // We need mutable access to the world positions so that we can sync transforms
+    mut world_positions: WorldPositionsQuery,
+    mut players: Query<(Entity, &Handle<Image>, &Sprite, &Handle<SpriteSheet>), With<Player>>,
+    mut radishes: Query<(Entity, &mut Handle<Image>, &Sprite), Without<Player>>,
     mut scene_graph: ResMut<SceneGraph>,
     image_assets: Res<Assets<Image>>,
+    sprite_sheet_assets: Res<Assets<SpriteSheet>>,
     radish_images: Res<RadishImages>,
 ) {
     // Make sure collision positions are synchronized
-    queries.q0_mut().sync_world_positions(&mut scene_graph);
+    world_positions.sync_world_positions(&mut scene_graph);
 
-    // Create list of colliding radishes
-    let mut colliding_radishes = HashSet::default();
-
-    // Create list of radish pairs we've already checked
-    let mut checked_radishes = HashSet::default();
-
-    for (radish1, radish1_image, radish1_sprite, radish1_pos) in queries.q1().iter() {
-        // Get the collision image for radish 1
-        let radish1_image = if let Some(col) = image_assets.get(radish1_image) {
+    // Loop over the players
+    for (player, player_image, player_sprite, player_sprite_sheet) in players.iter_mut() {
+        // Get the collision image of the player
+        let player_image = if let Some(col) = image_assets.get(player_image) {
+            col
+        } else {
+            continue;
+        };
+        // Get the spritesheet of the player
+        let player_sprite_sheet = if let Some(col) = sprite_sheet_assets.get(player_sprite_sheet) {
             col
         } else {
             continue;
         };
 
-        for (radish2, radish2_image, radish2_sprite, radish2_pos) in queries.q1().iter() {
-            // Skip if radish two is the same radish as radish 1 or if we've already checked this
-            // pair
-            if radish1 == radish2
-                || checked_radishes.contains(&(radish1, radish2))
-                || checked_radishes.contains(&(radish2, radish1))
-            {
-                continue;
-            }
-
-            // Get collision image for radish 2
-            let radish2_image = if let Some(col) = image_assets.get(radish2_image) {
+        for (radish, mut radish_image, radish_sprite) in radishes.iter_mut() {
+            // Get collision image for the other radish
+            let other_radish_image = if let Some(col) = image_assets.get(radish_image.clone()) {
                 col
             } else {
                 continue;
             };
 
-            // If they are colliding
+            // Check for collisions
             if pixels_collide_with(
                 PixelColliderInfo {
-                    image: radish1_image,
-                    sprite: radish1_sprite,
-                    position: radish1_pos,
-                    sprite_sheet: None,
+                    image: player_image,
+                    sprite: player_sprite,
+                    // We need to grab the world position of the player from the
+                    // `WorldPositionsQuery` query. Also, because the `WorldPositionsQuery` takes
+                    // mutable borrow to the world position, we have to clone it to avoid mutably
+                    // borrowing it twice when we get the position of the radish immediately below.
+                    position: &world_positions
+                        .get_world_position_mut(player)
+                        .unwrap()
+                        .clone(),
+                    sprite_sheet: Some(player_sprite_sheet),
                 },
                 PixelColliderInfo {
-                    image: radish2_image,
-                    sprite: radish2_sprite,
-                    position: radish2_pos,
+                    image: other_radish_image,
+                    sprite: radish_sprite,
+                    position: &world_positions
+                        .get_world_position_mut(radish)
+                        .unwrap()
+                        .clone(),
+
                     sprite_sheet: None,
                 },
             ) {
-                // Add them to the colliding radish list
-                colliding_radishes.insert(radish1);
-                colliding_radishes.insert(radish2);
+                // Set the radish image to the collided image if we are running into him
+                *radish_image = radish_images.collided.clone();
+            } else {
+                // Set the radish image to the uncollided image if we are not running into him
+                *radish_image = radish_images.uncollided.clone();
             }
-
-            // Add this pair to the list of radishes we've checked
-            checked_radishes.insert((radish1, radish2));
         }
     }
+}
 
-    // Make all colliding radishes red and non-colliding radishes blue
-    for (radish, mut image) in queries.q2_mut().iter_mut() {
-        if colliding_radishes.contains(&radish) {
-            *image = radish_images.collided.clone();
-        } else {
-            *image = radish_images.uncollided.clone();
+fn animate_sprite(
+    // Keep track if the frame number
+    mut frame: Local<u8>,
+    mut query: Query<(&Handle<SpriteSheet>, &mut SpriteAnimFrame), With<Handle<Image>>>,
+    mut sprite_sheet_assets: ResMut<Assets<SpriteSheet>>,
+) {
+    // Increment frame number
+    *frame = frame.wrapping_add(1);
+
+    let frames = [4, 5, 6, 7];
+
+    // Play the next animation frame every 10 frames
+    if *frame % 10 == 0 {
+        *frame = 0;
+        for (sprite_sheet_handle, mut frame) in query.iter_mut() {
+            if let Some(sprite_sheet) = sprite_sheet_assets.get_mut(sprite_sheet_handle) {
+                frame.0 = frame.0.wrapping_add(1);
+                sprite_sheet.tile_index = frames[frame.0 % frames.len()];
+            }
         }
     }
 }

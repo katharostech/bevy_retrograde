@@ -11,16 +11,30 @@ use crate::*;
 
 /// A query that can be used to synchronize the [`WorldPosition`] components of all the entities in
 /// the world.
-pub type WorldPositions<'a> =
+pub type WorldPositionsQuery<'a> =
     Query<'a, (Entity, &'static mut Position, &'static mut WorldPosition)>;
 
-pub trait WorldPositionSyncQueryTrait<'a> {
+pub trait WorldPositionSyncQueryTrait<'a, 'b> {
     fn sync_world_positions(self, scene_graph: &mut SceneGraph);
+    fn get_world_position_mut(
+        self,
+        entity: Entity,
+    ) -> Result<Mut<'b, WorldPosition>, QueryEntityError>;
+    fn get_position_mut(self, entity: Entity) -> Result<Mut<'b, Position>, QueryEntityError>;
 }
 
-impl<'a> WorldPositionSyncQueryTrait<'a> for &mut WorldPositions<'a> {
+impl<'a, 'b> WorldPositionSyncQueryTrait<'a, 'b> for &'b mut WorldPositionsQuery<'a> {
     fn sync_world_positions(self, scene_graph: &mut SceneGraph) {
         propagate_world_positions(scene_graph, self);
+    }
+    fn get_world_position_mut(
+        self,
+        entity: Entity,
+    ) -> Result<Mut<'b, WorldPosition>, QueryEntityError> {
+        Ok(self.get_mut(entity)?.2)
+    }
+    fn get_position_mut(self, entity: Entity) -> Result<Mut<'b, Position>, QueryEntityError> {
+        Ok(self.get_mut(entity)?.1)
     }
 }
 
