@@ -45,8 +45,7 @@ Bevy Retro releases for each Bevy release.
 
 ## Examples
 
-Check out the [examples] folder for more examples, but here's a quick example of what using Bevy
-Retro looks like.
+Check out the [examples] folder for more examples, but here's a quick look at using Bevy Retro:
 
 [examples]: https://github.com/katharostech/bevy_retro/tree/master/examples
 

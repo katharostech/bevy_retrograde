@@ -42,7 +42,7 @@ impl Default for CrtShader {
 impl CrtShader {
     pub fn get_shader(&self) -> String {
         // TODO: Use uniforms instead of string substitution
-        let s = include_str!("./shaders/crt_shader.glsl")
+        include_str!("./shaders/crt_shader.glsl")
             .replace("{{CURVATURE_X}}", &format!("{:.6}", self.curvature_x))
             .replace("{{CURVATURE_Y}}", &format!("{:.6}", self.curvature_y))
             .replace(
@@ -56,9 +56,6 @@ impl CrtShader {
             .replace(
                 "{{SCAN_LINE_OPACITY}}",
                 &format!("{:.6}", self.scan_line_opacity),
-            );
-
-        println!("{}", s);
-        s
+            )
     }
 }
