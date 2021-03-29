@@ -24,6 +24,14 @@ An example demonstrating how to detect pixel-perfect collisions between sprites
 
 [collisions]: ./collisions.rs
 
+## [post_processing]
+
+An example demonstrating how to add post-processing, using either the built-in CRT or your own custom shaders.
+
+![post_processing](./screenshots/post_processing.png)
+
+[post_processing]: ./post_processing.rs
+
 ## [radishmark]
 
 A bunnymark style demo that logs frame time diagnostics to the console.

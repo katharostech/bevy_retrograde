@@ -8,7 +8,7 @@ struct GameStage;
 fn main() {
     App::build()
         .insert_resource(WindowDescriptor {
-            title: "Bevy Retro Hello World".into(),
+            title: "Bevy Retro Post-Processing".into(),
             ..Default::default()
         })
         .add_plugins(RetroPlugins)
@@ -40,16 +40,19 @@ fn setup(
             // Set our camera to have a fixed height and an auto-resized width
             size: CameraSize::FixedHeight(100),
             background_color: Color::new(0.2, 0.2, 0.2, 1.0),
+            // Add a custom shader
             custom_shader: Some(
+                // Here we use the built-in CRT shader. We could also alternatively provide our own
+                // shader string. See `src/shaders/crt_shader.glsl` for an example.
                 CrtShader {
-                    lines_velocity: 20.0,
+                    // We can change the default settings here
+                    scan_line_opacity: 0.3,
                     ..Default::default()
                 }
                 .get_shader(),
             ),
             ..Default::default()
         },
-        position: Position::new(0, 0, 0),
         ..Default::default()
     });
 
@@ -71,11 +74,6 @@ fn setup(
         .insert_bundle(SpriteBundle {
             image: yellow_radish_image,
             position: Position::new(-20, 0, 0),
-            sprite: Sprite {
-                // Make him upside down 🙃
-                flip_y: true,
-                ..Default::default()
-            },
             ..Default::default()
         })
         .id();

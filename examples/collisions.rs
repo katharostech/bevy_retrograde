@@ -1,6 +1,5 @@
 use bevy::{core::FixedTimestep, prelude::*, utils::HashSet};
 use bevy_retro::*;
-use bevy_retro_ldtk::*;
 
 // Create a stage label that will be used for our game logic stage
 #[derive(StageLabel, Debug, Eq, Hash, PartialEq, Clone)]
@@ -28,7 +27,6 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(RetroPlugins)
-        .add_plugin(LdtkPlugin)
         .init_resource::<RadishImages>()
         .add_startup_system(setup.system())
         .add_stage(
