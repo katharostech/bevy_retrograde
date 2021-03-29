@@ -20,7 +20,7 @@ pub trait WorldPositionSyncQueryTrait<'a, 'b> {
         self,
         entity: Entity,
     ) -> Result<Mut<'b, WorldPosition>, QueryEntityError>;
-    fn get_position_mut(self, entity: Entity) -> Result<Mut<'b, Position>, QueryEntityError>;
+    fn get_local_position_mut(self, entity: Entity) -> Result<Mut<'b, Position>, QueryEntityError>;
 }
 
 impl<'a, 'b> WorldPositionSyncQueryTrait<'a, 'b> for &'b mut WorldPositionsQuery<'a> {
@@ -33,7 +33,7 @@ impl<'a, 'b> WorldPositionSyncQueryTrait<'a, 'b> for &'b mut WorldPositionsQuery
     ) -> Result<Mut<'b, WorldPosition>, QueryEntityError> {
         Ok(self.get_mut(entity)?.2)
     }
-    fn get_position_mut(self, entity: Entity) -> Result<Mut<'b, Position>, QueryEntityError> {
+    fn get_local_position_mut(self, entity: Entity) -> Result<Mut<'b, Position>, QueryEntityError> {
         Ok(self.get_mut(entity)?.1)
     }
 }
