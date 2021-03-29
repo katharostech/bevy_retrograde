@@ -168,10 +168,7 @@ fn collision_detection(
                 PixelColliderInfo {
                     image: other_radish_image,
                     sprite: radish_sprite,
-                    position: &world_positions
-                        .get_world_position_mut(radish)
-                        .unwrap()
-                        .clone(),
+                    position: &world_positions.get_world_position_mut(radish).unwrap(),
 
                     sprite_sheet: None,
                 },
