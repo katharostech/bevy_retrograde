@@ -105,7 +105,7 @@ pub enum CameraSize {
     FixedWidth(u32),
     /// Fix the camera width and height in pixels and fill the empty space with the camera
     /// background color.
-    Fixed { width: u32, height: u32 },
+    LetterBoxed { width: u32, height: u32 },
 }
 
 impl Default for CameraSize {

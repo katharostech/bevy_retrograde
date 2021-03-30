@@ -56,7 +56,7 @@ fn main() {
 fn setup(mut commands: Commands) {
     commands.spawn().insert_bundle(CameraBundle {
         camera: Camera {
-            size: CameraSize::Fixed {
+            size: CameraSize::LetterBoxed {
                 width: GAME_WIDTH as u32,
                 height: GAME_HEIGHT as u32,
             },

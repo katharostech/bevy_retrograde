@@ -205,7 +205,7 @@ impl LuminanceRenderer {
                 width,
                 (width as f32 / aspect_ratio * camera.pixel_aspect_ratio).floor() as u32,
             ],
-            CameraSize::Fixed { width, height } => [width, height],
+            CameraSize::LetterBoxed { width, height } => [width, height],
         };
 
         // Recreate the scene framebuffer if its size does not match our target size
@@ -365,7 +365,7 @@ impl LuminanceRenderer {
                         interface.set(
                             &uniforms.camera_size_fixed,
                             match camera.size {
-                                CameraSize::Fixed { .. } => 0,
+                                CameraSize::LetterBoxed { .. } => 0,
                                 CameraSize::FixedWidth(_) => 1,
                                 CameraSize::FixedHeight(_) => 2,
                             },
