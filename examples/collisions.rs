@@ -159,7 +159,7 @@ fn collision_detection(
                     // `WorldPositionsQuery` query. Also, because the `WorldPositionsQuery` takes
                     // mutable borrow to the world position, we have to clone it to avoid mutably
                     // borrowing it twice when we get the position of the radish immediately below.
-                    position: &world_positions
+                    world_position: &world_positions
                         .get_world_position_mut(player)
                         .unwrap()
                         .clone(),
@@ -168,7 +168,7 @@ fn collision_detection(
                 PixelColliderInfo {
                     image: other_radish_image,
                     sprite: radish_sprite,
-                    position: &world_positions.get_world_position_mut(radish).unwrap(),
+                    world_position: &world_positions.get_world_position_mut(radish).unwrap(),
 
                     sprite_sheet: None,
                 },

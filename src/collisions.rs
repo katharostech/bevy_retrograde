@@ -4,9 +4,10 @@ use image::GenericImageView;
 use crate::*;
 
 /// Information needed to detect pixel collisions using [`pixels_collid_with`].
+#[derive(Clone, Copy)]
 pub struct PixelColliderInfo<'a> {
     pub image: &'a Image,
-    pub position: &'a WorldPosition,
+    pub world_position: &'a IVec3,
     pub sprite: &'a Sprite,
     pub sprite_sheet: Option<&'a SpriteSheet>,
 }
@@ -19,10 +20,10 @@ impl<'a> PixelColliderInfo<'a> {
             self.image.dimensions()
         };
         let (image_width, image_height) = (image_width as i32, image_height as i32);
-        let min = Point2D::new(self.position.x, self.position.y);
+        let min = Point2D::new(self.world_position.x, self.world_position.y);
         let max = Point2D::new(
-            self.position.x + image_width,
-            self.position.y + image_height,
+            self.world_position.x + image_width,
+            self.world_position.y + image_height,
         );
 
         let bounds = Box2D::new(min, max);
