@@ -151,7 +151,7 @@ fn collision_detection(
             };
 
             // Check for collisions
-            if pixels_collide_with(
+            if pixels_collide_with_pixels(
                 PixelColliderInfo {
                     image: player_image,
                     sprite: player_sprite,
