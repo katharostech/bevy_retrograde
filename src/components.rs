@@ -114,6 +114,26 @@ impl Default for CameraSize {
     }
 }
 
+impl Camera {
+    /// Get the size in game pixels ( retro-sized, not screen pixels ) of the camera view
+    pub fn get_target_size(&self, window: &bevy::window::Window) -> UVec2 {
+        let window_width = window.width();
+        let window_height = window.height();
+        let aspect_ratio = window_width / window_height;
+        match self.size {
+            CameraSize::FixedHeight(height) => UVec2::new(
+                (aspect_ratio * height as f32 / self.pixel_aspect_ratio).floor() as u32,
+                height,
+            ),
+            CameraSize::FixedWidth(width) => UVec2::new(
+                width,
+                (width as f32 / aspect_ratio * self.pixel_aspect_ratio).floor() as u32,
+            ),
+            CameraSize::LetterBoxed { width, height } => UVec2::new(width, height),
+        }
+    }
+}
+
 /// Sprite options
 #[derive(Debug, Clone)]
 pub struct Sprite {

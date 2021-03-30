@@ -171,8 +171,10 @@ impl LuminanceRenderer {
         let sprite_sheet_assets = world.get_resource::<Assets<SpriteSheet>>().unwrap();
 
         // Get the window this renderer is supposed to render to
+        let bevy_windows = world.get_resource::<Windows>().unwrap();
+        let bevy_window = bevy_windows.get(*window_id).unwrap();
         let winit_windows = world.get_resource::<WinitWindows>().unwrap();
-        let window = winit_windows.get_window(*window_id).unwrap();
+        let winit_window = winit_windows.get_window(*window_id).unwrap();
 
         // Get the camera
         let mut camera_iter = cameras.iter(world);
@@ -194,19 +196,8 @@ impl LuminanceRenderer {
         }
 
         // Calculate the target size of our scene framebuffer
-        let window_size = window.inner_size();
-        let aspect_ratio = window_size.width as f32 / window_size.height as f32;
-        let target_size = match camera.size {
-            CameraSize::FixedHeight(height) => [
-                (aspect_ratio * height as f32 / camera.pixel_aspect_ratio).floor() as u32,
-                height,
-            ],
-            CameraSize::FixedWidth(width) => [
-                width,
-                (width as f32 / aspect_ratio * camera.pixel_aspect_ratio).floor() as u32,
-            ],
-            CameraSize::LetterBoxed { width, height } => [width, height],
-        };
+        let target_size = camera.get_target_size(bevy_window);
+        let target_size = [target_size.x, target_size.y];
 
         // Recreate the scene framebuffer if its size does not match our target size
         let fbsize = scene_framebuffer.size();
@@ -356,6 +347,7 @@ impl LuminanceRenderer {
 
                     shd_gate.shade(screen_program, |mut interface, uniforms, mut rdr_gate| {
                         interface.set(&uniforms.camera_size, target_size);
+                        let window_size = winit_window.inner_size();
                         interface.set(
                             &uniforms.window_size,
                             [window_size.width, window_size.height],
