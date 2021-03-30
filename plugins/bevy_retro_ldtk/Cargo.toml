@@ -24,7 +24,6 @@ ldtk = "0.3"
 anyhow = "1.0.37"
 serde_json = "1.0.61"
 thiserror = "1.0.23"
-hex = "0.4.3"
 
 [dependencies.bevy]
 git = "https://github.com/bevyengine/bevy"

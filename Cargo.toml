@@ -66,6 +66,10 @@ wasm-bindgen = { version = "0.2" }
 [build-dependencies]
 cfg_aliases = "0.1.1"
 
+[dev-dependencies]
+bevy_retro_ldtk = { path = "./plugins/bevy_retro_ldtk" }
+hex = "0.4.3"
+
 [profile.dev]
 opt-level = 3
 debug = 1

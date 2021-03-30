@@ -6,7 +6,7 @@ use bevy_retro::{
         imageops::{self, flip_horizontal_in_place, flip_vertical_in_place},
         GenericImage, GenericImageView,
     },
-    Camera, Color, Image, Position, SceneGraph, Sprite, SpriteBundle, Visible,
+    *,
 };
 
 use crate::*;
@@ -22,14 +22,13 @@ struct LdtkMapHasLoaded;
 /// This system spawns the map layers for every unloaded entity with an LDtk map
 fn process_ldtk_maps(
     mut commands: Commands,
-    mut cameras: Query<&mut Camera>,
-    mut new_maps: Query<(Entity, &Handle<LdtkMap>, &LdtkMapConfig), Without<LdtkMapHasLoaded>>,
+    mut new_maps: Query<(Entity, &Handle<LdtkMap>), Without<LdtkMapHasLoaded>>,
     map_assets: Res<Assets<LdtkMap>>,
     mut image_assets: ResMut<Assets<Image>>,
     mut scene_graph: ResMut<SceneGraph>,
 ) {
     // Loop through all of the maps
-    for (map_ent, map_handle, config) in new_maps.iter_mut() {
+    for (map_ent, map_handle) in new_maps.iter_mut() {
         // Get the map asset, if available
         if let Some(map) = map_assets.get(map_handle) {
             let project = &map.project;
@@ -57,128 +56,111 @@ fn process_ldtk_maps(
                 }
             }
 
-            // Get the level that we are to display
-            let level = map.project.levels.get(config.level as usize).unwrap();
+            // Loop through the levels in the map
+            for level in &map.project.levels {
+                // Loop through the layers in the selected level
+                for (z, layer) in level
+                    .layer_instances
+                    .as_ref()
+                    .unwrap()
+                    .iter()
+                    .rev() // Reverse the layer order so that the bottom layer is first
+                    .enumerate()
+                {
+                    // Get the information for the tileset associated to this layer
+                    let tileset_handle = if let Some(uid) = layer.__tileset_def_uid {
+                        tilesets.get(&uid).expect("Missing tileset").clone()
 
-            // If the camera background color isn't set, set it
-            if config.set_clear_color {
-                for mut camera in cameras.iter_mut() {
-                    let decoded = hex::decode(
-                        level
-                            .bg_color
-                            .as_ref()
-                            .unwrap_or(&map.project.default_level_bg_color)
-                            .strip_prefix("#")
-                            .expect("Invalid background color"),
-                    )
-                    .expect("Invalid background color");
+                    // Skip this layer if there is no tileset texture for it
+                    } else {
+                        continue;
+                    };
+                    // This unwrap is OK because we checked above that the asset was loaded
+                    let tileset_image = image_assets.get(tileset_handle).unwrap();
 
-                    camera.background_color =
-                        Color::from_rgba8(decoded[0], decoded[1], decoded[2], 1);
-                }
-            }
+                    // Get a list of all the tiles in the layer
+                    let tiles = if !layer.auto_layer_tiles.is_empty() {
+                        &layer.auto_layer_tiles
+                    } else if !layer.grid_tiles.is_empty() {
+                        &layer.grid_tiles
+                    } else {
+                        // Skip the layer if there are no tiles for it
+                        continue;
+                    };
 
-            // Loop through the layers in the selected level
-            for (z, layer) in level
-                .layer_instances
-                .as_ref()
-                .unwrap()
-                .iter()
-                .rev() // Reverse the layer order so that the bottom layer is first
-                .enumerate()
-            {
-                // Get the information for the tileset associated to this layer
-                let tileset_handle = if let Some(uid) = layer.__tileset_def_uid {
-                    tilesets.get(&uid).expect("Missing tileset").clone()
+                    // Create the layer image
+                    let width = (layer.__c_wid * layer.__grid_size) as u32;
+                    let height = (layer.__c_hei * layer.__grid_size) as u32;
+                    let mut layer_image = image::RgbaImage::new(width, height);
 
-                // Skip this layer if there is no tileset texture for it
-                } else {
-                    continue;
-                };
-                // This unwrap is OK because we checked above that the asset was loaded
-                let tileset_image = image_assets.get(tileset_handle).unwrap();
+                    // For every tile in the layer
+                    for tile in tiles {
+                        // Get a view of the tilesheet image referenced by the tile
 
-                // Get a list of all the tiles in the layer
-                let tiles = if !layer.auto_layer_tiles.is_empty() {
-                    &layer.auto_layer_tiles
-                } else if !layer.grid_tiles.is_empty() {
-                    &layer.grid_tiles
-                } else {
-                    // Skip the layer if there are no tiles for it
-                    continue;
-                };
+                        // TODO: [perf] we only technically need to copy this image if it is flipped,
+                        // but right now we are doing it no matter what for ease
+                        let mut tile_src = tileset_image
+                            .view(
+                                tile.src[0] as u32,
+                                tile.src[1] as u32,
+                                layer.__grid_size as u32,
+                                layer.__grid_size as u32,
+                            )
+                            .to_image();
 
-                // Create the layer image
-                let width = (layer.__c_wid * layer.__grid_size) as u32;
-                let height = (layer.__c_hei * layer.__grid_size) as u32;
-                let mut layer_image = image::RgbaImage::new(width, height);
+                        if tile.f.x {
+                            flip_horizontal_in_place(&mut tile_src);
+                        }
+                        if tile.f.y {
+                            flip_vertical_in_place(&mut tile_src);
+                        }
 
-                // For every tile in the layer
-                for tile in tiles {
-                    // Get a view of the tilesheet image referenced by the tile
-
-                    // TODO: [perf] we only technically need to copy this image if it is flipped,
-                    // but right now we are doing it no matter what for ease
-                    let mut tile_src = tileset_image
-                        .view(
-                            tile.src[0] as u32,
-                            tile.src[1] as u32,
+                        // Get a sub-image for the spot that the tile is supposed to go
+                        let mut tile_target = layer_image.sub_image(
+                            tile.px[0] as u32,
+                            tile.px[1] as u32,
                             layer.__grid_size as u32,
                             layer.__grid_size as u32,
-                        )
-                        .to_image();
+                        );
 
-                    if tile.f.x {
-                        flip_horizontal_in_place(&mut tile_src);
-                    }
-                    if tile.f.y {
-                        flip_vertical_in_place(&mut tile_src);
+                        // Overlay the tile on top of the layer
+                        imageops::overlay(&mut tile_target, &tile_src, 0, 0);
                     }
 
-                    // Get a sub-image for the spot that the tile is supposed to go
-                    let mut tile_target = layer_image.sub_image(
-                        tile.px[0] as u32,
-                        tile.px[1] as u32,
-                        layer.__grid_size as u32,
-                        layer.__grid_size as u32,
-                    );
-
-                    // Overlay the tile on top of the layer
-                    imageops::overlay(&mut tile_target, &tile_src, 0, 0);
-                }
-
-                // If the layer opacity is not 100%, adjust the transparency accordingly
-                if layer.__opacity != 1.0 {
-                    for pixel in layer_image.pixels_mut() {
-                        pixel[3] = (layer.__opacity * 255.0 * (pixel[3] as f32 / 255.0)) as u8;
+                    // If the layer opacity is not 100%, adjust the transparency accordingly
+                    if layer.__opacity != 1.0 {
+                        for pixel in layer_image.pixels_mut() {
+                            pixel[3] = (layer.__opacity * 255.0 * (pixel[3] as f32 / 255.0)) as u8;
+                        }
                     }
-                }
 
-                // Spawn the layer
-                let layer_ent = commands
-                    .spawn()
-                    .insert_bundle(SpriteBundle {
-                        image: image_assets.add(Image::from(layer_image)),
-                        // Each layer is 2 units higher than the one before it
-                        sprite: Sprite {
-                            centered: config.center_map,
+                    // Spawn the layer
+                    let layer_ent = commands
+                        .spawn()
+                        .insert_bundle(SpriteBundle {
+                            image: image_assets.add(Image::from(layer_image)),
+                            sprite: Sprite {
+                                centered: false,
+                                ..Default::default()
+                            },
+                            // Each layer is 2 units higher than the one before it
+                            visible: Visible(layer.visible),
+                            position: Position::new(level.world_x, level.world_y, z as i32 * 2),
                             ..Default::default()
-                        },
-                        visible: Visible(layer.visible),
-                        position: Position::new(0, 0, z as i32 * 2),
-                        ..Default::default()
-                    })
-                    .insert(LdtkMapLayer {
-                        map: map_handle.clone(),
-                        layer_instance: layer.clone(),
-                    })
-                    .id();
+                        })
+                        .insert(LdtkMapLayer {
+                            map: map_handle.clone(),
+                            level_identifier: level.identifier.clone(),
+                            layer_instance: layer.clone(),
+                        })
+                        .id();
 
-                scene_graph.add_child(map_ent, layer_ent).unwrap();
+                    scene_graph.add_child(map_ent, layer_ent).unwrap();
+                }
+
+                // Mark the map as having been loaded so that we don't process it again
+                commands.entity(map_ent).insert(LdtkMapHasLoaded);
             }
-
-            // Mark the map as having been loaded so that we don't process it again
-            commands.entity(map_ent).insert(LdtkMapHasLoaded);
         }
     }
 }
@@ -191,7 +173,7 @@ fn hot_reload_maps(
     mut commands: Commands,
     mut events: EventReader<MapEvent>,
     layers: Query<(Entity, &LdtkMapLayer, &Handle<Image>)>,
-    maps: Query<(Entity, &Handle<LdtkMap>), With<LdtkMapConfig>>,
+    maps: Query<(Entity, &Handle<LdtkMap>)>,
     mut image_assets: ResMut<Assets<Image>>,
 ) {
     for event in events.iter() {
