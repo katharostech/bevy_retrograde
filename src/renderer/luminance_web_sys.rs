@@ -38,7 +38,8 @@
 use luminance::context::GraphicsContext;
 use luminance::framebuffer::{Framebuffer, FramebufferError};
 use luminance::texture::Dim2;
-use luminance_webgl::webgl2::{StateQueryError, WebGL2};
+use luminance_glow::{Context, Glow, StateQueryError};
+
 use std::fmt;
 use wasm_bindgen::JsCast as _;
 use web_sys::{Document, HtmlCanvasElement, Window};
@@ -107,7 +108,7 @@ pub struct WebSysWebGL2Surface {
     pub window: Window,
     pub document: Document,
     pub canvas: HtmlCanvasElement,
-    backend: WebGL2,
+    backend: Glow,
 }
 
 impl WebSysWebGL2Surface {
@@ -118,16 +119,15 @@ impl WebSysWebGL2Surface {
             .document()
             .ok_or_else(|| WebSysWebGL2SurfaceError::cannot_grab_document())?;
 
-        let webgl2 = canvas
+        let webgl = canvas
             .get_context("webgl2")
             .map_err(|_| WebSysWebGL2SurfaceError::cannot_grab_webgl2_context())?
             .ok_or_else(|| WebSysWebGL2SurfaceError::no_available_webgl2_context())?;
-        let ctx = webgl2
-            .dyn_into()
-            .map_err(|_| WebSysWebGL2SurfaceError::no_available_webgl2_context())?;
+
+        let ctx = Context::from_webgl2_context(webgl.dyn_into().unwrap());
 
         // create the backend object and return the whole object
-        let backend = WebGL2::new(ctx)?;
+        let backend = Glow::from_context(ctx)?;
 
         Ok(Self {
             window,
@@ -138,14 +138,14 @@ impl WebSysWebGL2Surface {
     }
 
     /// Get the back buffer.
-    pub fn back_buffer(&mut self) -> Result<Framebuffer<WebGL2, Dim2, (), ()>, FramebufferError> {
+    pub fn back_buffer(&mut self) -> Result<Framebuffer<Glow, Dim2, (), ()>, FramebufferError> {
         let dim = [self.canvas.width(), self.canvas.height()];
         Framebuffer::back_buffer(self, dim)
     }
 }
 
 unsafe impl GraphicsContext for WebSysWebGL2Surface {
-    type Backend = WebGL2;
+    type Backend = Glow;
 
     fn backend(&mut self) -> &mut Self::Backend {
         &mut self.backend

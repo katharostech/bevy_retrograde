@@ -5,10 +5,18 @@ use luminance::{
     pixel::{Floating, NormRGBA8UI, NormUnsigned, RGBA32F},
     render_state::RenderState,
     shader::Uniform,
+    tess::Interleaved,
     texture::{Dim2, GenMipmaps, MagFilter, MinFilter, Sampler, Wrap},
     UniformInterface,
 };
-use luminance_front::{framebuffer::Framebuffer, shader::Program, tess::Tess, texture::Texture};
+
+use luminance_glow::Glow;
+
+pub type Framebuffer<D, CS, DS> = luminance::framebuffer::Framebuffer<Glow, D, CS, DS>;
+pub type Program<Sem, Out, Uni> = luminance::shader::Program<Glow, Sem, Out, Uni>;
+pub type Tess<V, I = (), W = (), S = Interleaved> = luminance::tess::Tess<Glow, V, I, W, S>;
+pub type Texture<D, P> = luminance::texture::Texture<Glow, D, P>;
+
 use parking_lot::Mutex;
 
 use super::*;

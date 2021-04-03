@@ -32,9 +32,8 @@ webp = ["image/webp"]
 bmp = ["image/bmp"]
 
 [dependencies]
-luminance-front = "0.3.1"
-luminance-windowing = "0.9.3"
 luminance = { version = "0.43.2", features = ["derive"] }
+luminance-glow = { git = "https://github.com/katharostech/luminance-glow", branch = "master" }
 
 winit = { version = "0.24", features = ["web-sys"] }
 image = { version = "0.23.14", default-features = false }
@@ -53,13 +52,9 @@ default-features = false
 features = ["bevy_winit", "x11"]
 
 [target.'cfg(not(any(target_arch = "wasm32")))'.dependencies]
-luminance-surfman = { path = "../luminance-surfman" }
-luminance-gl = "0.16.1"
+luminance-surfman = { git = "https://github.com/katharostech/luminance-surfman", branch = "master" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-# Waiting on PR: https://github.com/phaazon/luminance-rs/pull/489. For now we have a copy locally.
-# luminance-web-sys = "0.2.2"
-luminance-webgl = "0.3.2"
 web-sys = { version = "0.3", features=["HtmlCanvasElement", "WebGl2RenderingContext", "Window", "console"] }
 wasm-bindgen = { version = "0.2" }
 
