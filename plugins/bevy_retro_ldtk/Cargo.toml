@@ -27,4 +27,5 @@ thiserror = "1.0.23"
 
 [dependencies.bevy]
 git = "https://github.com/bevyengine/bevy"
+branch = "main"
 default-features = false
