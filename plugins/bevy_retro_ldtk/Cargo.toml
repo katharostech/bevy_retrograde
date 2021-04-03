@@ -19,7 +19,7 @@ categories = [
 default = []
 
 [dependencies]
-bevy_retro = { path = "https://github.com/katharostech/bevy_retro" }
+bevy_retro = { path = "../../" }
 ldtk = "0.3"
 anyhow = "1.0.37"
 serde_json = "1.0.61"
