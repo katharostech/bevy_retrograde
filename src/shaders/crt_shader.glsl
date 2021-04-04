@@ -27,9 +27,7 @@
 
 const float PI = 3.14159265359;
 
-in vec2 uv;
-
-out vec4 frag_color;
+varying vec2 uv;
 
 uniform float time;
 uniform sampler2D screen_texture;
@@ -67,13 +65,13 @@ void main() {
 	vec2 UV = uv;
 	vec2 l_uv = l_uv_curve(UV);
 	vec2 screen_l_uv = l_uv_curve(uv);
-	vec3 color = texture(screen_texture, screen_l_uv).rgb;
+	vec3 color = texture2D(screen_texture, screen_l_uv).rgb;
 
 	if (aberration_amount > 0.0) {
 		float adjusted_amount = aberration_amount / screen_size.x;
-		color.r = texture(screen_texture, vec2(screen_l_uv.x + adjusted_amount, screen_l_uv.y)).r;
-		color.g = texture(screen_texture, screen_l_uv).g;
-		color.b = texture(screen_texture, vec2(screen_l_uv.x - adjusted_amount, screen_l_uv.y)).b;
+		color.r = texture2D(screen_texture, vec2(screen_l_uv.x + adjusted_amount, screen_l_uv.y)).r;
+		color.g = texture2D(screen_texture, screen_l_uv).g;
+		color.b = texture2D(screen_texture, vec2(screen_l_uv.x - adjusted_amount, screen_l_uv.y)).b;
 	}
 
 	if (show_vignette) {
@@ -105,5 +103,5 @@ void main() {
 		color = corner_color.rgb;
 	}
 
-	frag_color = vec4(color, 1.0);
+	gl_FragColor = vec4(color, 1.0);
 }

@@ -2,13 +2,18 @@ use luminance::{
     blending::{Blending, Equation, Factor},
     context::GraphicsContext,
     pipeline::{PipelineState, TextureBinding},
-    pixel::{Floating, NormRGBA8UI, NormUnsigned, RGBA32F},
+    pixel::{NormRGBA8UI, NormUnsigned},
     render_state::RenderState,
     shader::Uniform,
     tess::Interleaved,
     texture::{Dim2, GenMipmaps, MagFilter, MinFilter, Sampler, Wrap},
-    UniformInterface,
+    Semantics, UniformInterface, Vertex,
 };
+
+#[cfg(not(wasm))]
+use luminance::pixel::{Floating, RGBA32F};
+#[cfg(wasm)]
+use luminance::pixel::{Unsigned, RGBA8UI};
 
 use luminance_glow::Glow;
 
@@ -32,24 +37,64 @@ const PIXELATED_SAMPLER: Sampler = Sampler {
     depth_comparison: None,
 };
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Semantics)]
+pub enum VertexSemantics {
+    #[sem(name = "v_pos", repr = "[f32; 2]", wrapper = "VertexPosition")]
+    Position,
+    #[sem(name = "v_uv", repr = "[f32; 2]", wrapper = "VertexUv")]
+    Uv,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq, Vertex)]
+#[vertex(sem = "VertexSemantics")]
+struct SpriteVert {
+    pos: VertexPosition,
+    uv: VertexUv,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq, Vertex)]
+#[vertex(sem = "VertexSemantics")]
+struct ScreenVert {
+    pos: VertexPosition,
+}
+
+// Quad vertices in a triangle fan
+const SPRITE_VERTS: [SpriteVert; 4] = [
+    SpriteVert::new(VertexPosition::new([0.0, 1.0]), VertexUv::new([0.0, 1.0])),
+    SpriteVert::new(VertexPosition::new([1.0, 1.0]), VertexUv::new([1.0, 1.0])),
+    SpriteVert::new(VertexPosition::new([1.0, 0.0]), VertexUv::new([1.0, 0.0])),
+    SpriteVert::new(VertexPosition::new([0.0, 0.0]), VertexUv::new([0.0, 0.0])),
+];
+
+// Quad vertices in a triangle fan
+const SCREEN_VERTS: [ScreenVert; 4] = [
+    ScreenVert::new(VertexPosition::new([-1.0, 1.0])),
+    ScreenVert::new(VertexPosition::new([1.0, 1.0])),
+    ScreenVert::new(VertexPosition::new([1.0, -1.0])),
+    ScreenVert::new(VertexPosition::new([-1.0, -1.0])),
+];
+
 #[derive(UniformInterface)]
 struct SpriteUniformInterface {
     camera_position: Uniform<[i32; 2]>,
-    camera_size: Uniform<[u32; 2]>,
-    camera_centered: Uniform<bool>,
+    camera_size: Uniform<[i32; 2]>,
+    camera_centered: Uniform<i32>,
 
     sprite_texture: Uniform<TextureBinding<Dim2, NormUnsigned>>,
-    sprite_flip: Uniform<u32>,
-    sprite_centered: Uniform<bool>,
-    sprite_tileset_grid_size: Uniform<[u32; 2]>,
-    sprite_tileset_index: Uniform<u32>,
+    sprite_texture_size: Uniform<[i32; 2]>,
+    sprite_flip: Uniform<i32>,
+    sprite_centered: Uniform<i32>,
+    sprite_tileset_grid_size: Uniform<[i32; 2]>,
+    sprite_tileset_index: Uniform<i32>,
     sprite_position: Uniform<[i32; 3]>,
     sprite_offset: Uniform<[i32; 2]>,
 }
 
 #[derive(UniformInterface)]
 struct ScreenUniformInterface {
-    camera_size: Uniform<[u32; 2]>,
+    camera_size: Uniform<[i32; 2]>,
     /// Indicates whether or not the width or height of the camera is supposed to be fixed:
     ///
     /// - `camera_size_fixed == 0` means both the width and the height are fixed
@@ -57,8 +102,11 @@ struct ScreenUniformInterface {
     /// - `camera_size_fixed == 2` means the height is fixed
     camera_size_fixed: Uniform<i32>,
     pixel_aspect_ratio: Uniform<f32>,
-    window_size: Uniform<[u32; 2]>,
+    window_size: Uniform<[i32; 2]>,
+    #[cfg(not(wasm))]
     screen_texture: Uniform<TextureBinding<Dim2, Floating>>,
+    #[cfg(wasm)]
+    screen_texture: Uniform<TextureBinding<Dim2, Unsigned>>,
     /// The number of seconds since startup
     #[uniform(unbound)]
     time: Uniform<f32>,
@@ -68,14 +116,12 @@ struct ScreenUniformInterface {
 const DEFAULT_CUSTOM_SHADER: &str = r#"
     uniform sampler2D screen_texture;
     uniform float time;
-    uniform uvec2 window_size;
+    uniform ivec2 window_size;
 
-    in vec2 uv;
-
-    out vec4 frag_color;
+    varying vec2 uv;
 
     void main() {
-        frag_color = vec4(texture(screen_texture, uv).rgb, 1.);
+        gl_FragColor = vec4(texture2D(screen_texture, uv).rgb, 1.);
     }
 "#;
 
@@ -83,8 +129,12 @@ pub(crate) struct LuminanceRenderer {
     pub(crate) surface: Surface,
     window_id: bevy::window::WindowId,
     sprite_program: Program<(), (), SpriteUniformInterface>,
-    sprite_instance: Tess<()>,
+    sprite_tess: Tess<SpriteVert>,
+    #[cfg(not(wasm))]
     scene_framebuffer: Framebuffer<Dim2, RGBA32F, ()>,
+    #[cfg(wasm)]
+    scene_framebuffer: Framebuffer<Dim2, RGBA8UI, ()>,
+    screen_tess: Tess<ScreenVert>,
     screen_program: Program<(), (), ScreenUniformInterface>,
 
     texture_cache: HashMap<Handle<Image>, Starc<Mutex<Texture<Dim2, NormRGBA8UI>>>>,
@@ -99,10 +149,18 @@ pub(crate) struct LuminanceRenderer {
 impl LuminanceRenderer {
     #[tracing::instrument(skip(surface))]
     pub fn init(window_id: bevy::window::WindowId, mut surface: Surface) -> Self {
-        // Create the tesselator for the sprite instances
-        let sprite_instance = surface
+        // Create the tesselator for the sprites
+        let sprite_tess = surface
             .new_tess()
-            .set_vertex_nb(4)
+            .set_vertices(&SPRITE_VERTS[..])
+            .set_mode(luminance::tess::Mode::TriangleFan)
+            .build()
+            .unwrap();
+
+        // Create the tesselator for the screen quad
+        let screen_tess = surface
+            .new_tess()
+            .set_vertices(&SCREEN_VERTS[..])
             .set_mode(luminance::tess::Mode::TriangleFan)
             .build()
             .unwrap();
@@ -130,8 +188,9 @@ impl LuminanceRenderer {
         Self {
             window_id,
             surface,
-            sprite_instance,
+            sprite_tess,
             sprite_program: built_sprite_program.program,
+            screen_tess,
             screen_program,
             scene_framebuffer,
             texture_cache: Default::default(),
@@ -149,7 +208,8 @@ impl LuminanceRenderer {
         let Self {
             sprite_program,
             screen_program,
-            sprite_instance,
+            sprite_tess,
+            screen_tess,
             scene_framebuffer,
             surface,
             window_id,
@@ -268,8 +328,8 @@ impl LuminanceRenderer {
                         |mut interface, uniforms, mut render_gate| {
                             // Set the camera uniforms
                             interface.set(&uniforms.camera_position, [camera_pos.x, camera_pos.y]);
-                            interface.set(&uniforms.camera_size, target_size);
-                            interface.set(&uniforms.camera_centered, camera.centered);
+                            interface.set(&uniforms.camera_size, [target_size[0] as i32, target_size[1] as i32]);
+                            interface.set(&uniforms.camera_centered, if camera.centered { 1 } else { 0 });
 
                             for (image_handle, sprite, sprite_sheet, world_position) in
                                 &mut sprite_data
@@ -290,24 +350,31 @@ impl LuminanceRenderer {
                                 // Set the texture uniform
                                 interface.set(&uniforms.sprite_texture, bound_texture.binding());
 
+                                // Set the texture size uniform
+                                let size = texture.size();
+                                let size = [size[0] as i32, size[1] as i32];
+                                interface.set(&uniforms.sprite_texture_size, size);
+
                                 // Set the sprite uniforms
                                 interface.set(
                                     &uniforms.sprite_flip,
-                                    if sprite.flip_x { 0b01 } else { 0 } as u32
-                                        | if sprite.flip_y { 0b10 } else { 0 } as u32,
+                                    if sprite.flip_x { 0b01 } else { 0 } as i32
+                                        | if sprite.flip_y { 0b10 } else { 0 } as i32,
                                 );
-                                interface.set(&uniforms.sprite_centered, sprite.centered);
+                                interface.set(&uniforms.sprite_centered, if sprite.centered { 1 } else { 0 });
 
                                 // Set the sprite tileset uniforms
+                                let grid_size = 
+                                    sprite_sheet
+                                        .map(|x| [x.grid_size.x as i32, x.grid_size.y as i32])
+                                        .unwrap_or([0; 2]);
                                 interface.set(
                                     &uniforms.sprite_tileset_grid_size,
-                                    sprite_sheet
-                                        .map(|x| [x.grid_size.x, x.grid_size.y])
-                                        .unwrap_or([0; 2]),
+                                    grid_size
                                 );
                                 interface.set(
                                     &uniforms.sprite_tileset_index,
-                                    sprite_sheet.map(|x| x.tile_index).unwrap_or(0),
+                                    sprite_sheet.map(|x| x.tile_index as i32).unwrap_or(0),
                                 );
 
                                 // Set sprite position and offset
@@ -328,7 +395,7 @@ impl LuminanceRenderer {
 
                                 // Render the sprite
                                 render_gate.render(&render_state, |mut tess_gate| {
-                                    tess_gate.render(&*sprite_instance)
+                                    tess_gate.render(&*sprite_tess)
                                 })?;
                             }
 
@@ -354,11 +421,14 @@ impl LuminanceRenderer {
                     let bound_texture = pipeline.bind_texture(scene_framebuffer.color_slot())?;
 
                     shd_gate.shade(screen_program, |mut interface, uniforms, mut rdr_gate| {
-                        interface.set(&uniforms.camera_size, target_size);
+                        interface.set(
+                            &uniforms.camera_size,
+                            [target_size[0] as i32, target_size[1] as i32],
+                        );
                         let window_size = winit_window.inner_size();
                         interface.set(
                             &uniforms.window_size,
-                            [window_size.width, window_size.height],
+                            [window_size.width as i32, window_size.height as i32],
                         );
                         interface.set(&uniforms.screen_texture, bound_texture.binding());
                         interface.set(&uniforms.pixel_aspect_ratio, camera.pixel_aspect_ratio);
@@ -373,7 +443,7 @@ impl LuminanceRenderer {
                         interface.set(&uniforms.time, bevy_time.seconds_since_startup() as f32);
 
                         rdr_gate.render(&RenderState::default(), |mut tess_gate| {
-                            tess_gate.render(&*sprite_instance)
+                            tess_gate.render(&*screen_tess)
                         })
                     })
                 },

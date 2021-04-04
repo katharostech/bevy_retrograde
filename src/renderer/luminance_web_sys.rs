@@ -120,11 +120,11 @@ impl WebSysWebGL2Surface {
             .ok_or_else(|| WebSysWebGL2SurfaceError::cannot_grab_document())?;
 
         let webgl = canvas
-            .get_context("webgl2")
+            .get_context("webgl")
             .map_err(|_| WebSysWebGL2SurfaceError::cannot_grab_webgl2_context())?
             .ok_or_else(|| WebSysWebGL2SurfaceError::no_available_webgl2_context())?;
 
-        let ctx = Context::from_webgl2_context(webgl.dyn_into().unwrap());
+        let ctx = Context::from_webgl1_context(webgl.dyn_into().unwrap());
 
         // create the backend object and return the whole object
         let backend = Glow::from_context(ctx)?;

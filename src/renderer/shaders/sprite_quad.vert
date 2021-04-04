@@ -1,36 +1,18 @@
-ivec2[4] quad_vert_positions = ivec2[](
-  // Bottom left
-  ivec2(0, 1),
-  // Bottom right
-  ivec2(1, 1),
-  // Top Right
-  ivec2(1, 0),
-  // Top left
-  ivec2(0, 0)
-);
+attribute vec2 v_pos;
+attribute vec2 v_uv;
 
-vec2[4] quad_vert_uvs = vec2[](
-  // Bottom left
-  vec2(0.0, 1.0),
-  // Bottom right
-  vec2(1.0, 1.0),
-  // Top right
-  vec2(1.0, 0.0),
-  // top left
-  vec2(0.0, 0.0)
-);
+varying vec2 uv;
 
-out vec2 uv;
-
-uniform uvec2 camera_size;
+uniform ivec2 camera_size;
 uniform ivec2 camera_position;
 uniform bool camera_centered;
 
 uniform sampler2D sprite_texture;
+uniform ivec2 sprite_texture_size;
 uniform bool sprite_centered;
-uniform uint sprite_flip;
-uniform uvec2 sprite_tileset_grid_size;
-uniform uint sprite_tileset_index;
+uniform int sprite_flip;
+uniform ivec2 sprite_tileset_grid_size;
+uniform int sprite_tileset_index;
 uniform ivec3 sprite_position;
 uniform ivec2 sprite_offset;
 
@@ -40,31 +22,27 @@ struct SpriteUvAndSize {
 };
 
 SpriteUvAndSize calculate_sprite_uv_and_size() {
-  vec2 uv = quad_vert_uvs[gl_VertexID];
-
-  // Get the size of the sprite
-  ivec2 sprite_sheet_size = textureSize(sprite_texture, 0);
+  vec2 uv = v_uv;
   
   // Flip sprite UVs if necessary
-  uint x_flip_bit = uint(1);
-  uint y_flip_bit = uint(2);
-  if ((sprite_flip & x_flip_bit) == x_flip_bit) {
+  if (sprite_flip == 1 || sprite_flip == 3) {
     uv = vec2(1.0 - uv.x, uv.y);
   }
-  if ((sprite_flip & y_flip_bit) == y_flip_bit) {
+  if (sprite_flip == 2 || sprite_flip == 3) {
     uv = vec2(uv.x, 1.0 - uv.y);
   }
 
   // If the sprite is a tileset ( we detect this by checking the
   // tilesheet grid size is not 0 )
-  if (sprite_tileset_grid_size.x != uint(0) && sprite_tileset_grid_size.y != uint(0)) {
+  if (sprite_tileset_grid_size.x != 0 && sprite_tileset_grid_size.y != 0) {
     // Get the number of tiles in the sheet
-    uvec2 tile_count = uvec2(sprite_sheet_size) / sprite_tileset_grid_size;
+    ivec2 tile_count = sprite_texture_size / sprite_tileset_grid_size;
 
     // Get the position of the tile in the sprite sheet
-    uvec2 tile_pos = uvec2(
-      sprite_tileset_index % tile_count.x,
-      sprite_tileset_index / tile_count.x
+    int y = sprite_tileset_index / tile_count.x;
+    ivec2 tile_pos = ivec2(
+      sprite_tileset_index - y * tile_count.x,
+      y
     );
 
     // Adjust the uv to select the correct portion of the tileset
@@ -75,7 +53,7 @@ SpriteUvAndSize calculate_sprite_uv_and_size() {
 
   } else {
     // Return the size of the sprite
-    return SpriteUvAndSize(uv, sprite_sheet_size);
+    return SpriteUvAndSize(uv, sprite_texture_size);
   }
 }
 
@@ -94,11 +72,8 @@ void main() {
   // Get the pixel screen position of the center of the sprite
   ivec2 screen_pos = sprite_position.xy - adjusted_camera_pos + sprite_offset;
 
-  // Get the vertex position in the quad
-  ivec2 vertex_base_pos = quad_vert_positions[gl_VertexID];
-
   // Get the local position of the vertex in pixels
-  ivec2 vertex_pos = vertex_base_pos * sprite_size;
+  ivec2 vertex_pos = ivec2(v_pos) * sprite_size;
 
   // Center the sprite if necessary
   if (sprite_centered) {
