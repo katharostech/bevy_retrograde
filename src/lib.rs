@@ -14,6 +14,16 @@
 //! 2D-centric experience on top of Bevy that helps take out some of the pitfalls and makes it
 //! easier to think about your game when all you need is 2D.
 //!
+//! We want to provide a batteries included plugin that comes with everything you need to make a 2D
+//! pixel game with Bevy, and over time we will be adding features other than rendering such as
+//! sound playing, data saving, etc. While adding these features we will try to maintain full web
+//! compatibility, but it can't be guaranteed that all features will be feasible to implement for
+//! web.
+//! 
+//! These extra features will be included as optional cargo featurs that can be disabled if not
+//! needed and, where applicable, be packaged a separate Rust crates that can be used even if you
+//! don't want to use the rest of Bevy Retro.
+//!
 //! # Development Status
 //!
 //! Bevy Retro is in very early stages of development, but should still be somewhat usable.
@@ -34,7 +44,6 @@
 //! - An [LDtk](https://ldtk.io) map loading [plugin](./plugins/bevy_retro_ldtk)
 //! - Pixel-perfect collision detection
 //! - Custom shaders for post-processing, including a built-in CRT shader
-//!
 //!
 //! # Examples
 //!
