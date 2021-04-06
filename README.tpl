@@ -5,4 +5,8 @@
 [![lines of code](https://tokei.rs/b1/github/katharostech/{{crate}}?category=code)](https://github.com/katharostech/{{crate}})
 [![Katharos License](https://img.shields.io/badge/License-Katharos-blue)](https://github.com/katharostech/katharos-license)
 
+[bounty bros game screenshot](./doc/bounty_bros.png)
+
+_Screenshot of [Bounty Bros.](https://katharostech.com/post/bounty-bros-on-web) game_
+
 {{readme}}
