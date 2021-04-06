@@ -5,9 +5,11 @@
 [![lines of code](https://tokei.rs/b1/github/katharostech/bevy_retro?category=code)](https://github.com/katharostech/bevy_retro)
 [![Katharos License](https://img.shields.io/badge/License-Katharos-blue)](https://github.com/katharostech/katharos-license)
 
-[bounty bros game screenshot](./doc/bounty_bros.png)
+![bounty bros game screenshot](./doc/bounty_bros.png)
 
-_Screenshot of [Bounty Bros.](https://katharostech.com/post/bounty-bros-on-web) game_
+_( Screenshot of [Bounty Bros.](https://katharostech.com/post/bounty-bros-on-web) game made with Bevy Retro and [Skip'n Go][skipngo] )_
+
+[skipngo]:  https://github.com/katharostech/skipngo
 
 Bevy Retro is a 2D, pixel-perfect renderer for [Bevy] that can target both web and desktop using
 OpenGL/WebGL.
