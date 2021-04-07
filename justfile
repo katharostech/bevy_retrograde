@@ -15,5 +15,8 @@ run-example-web example='hello_world':
     ln -fs ../../../assets target/wasm/{{example}}
     basic-http-server target/wasm/{{example}}
 
+doc *args:
+    cargo doc --features {{dev_features}} {{args}}
+
 readme:
     cargo readme > README.md

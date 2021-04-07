@@ -149,6 +149,7 @@
 
 use bevy::{asset::AssetStage, prelude::*};
 
+/// Re-export of the [`image`] crate
 pub use image;
 
 mod renderer;
@@ -169,12 +170,17 @@ pub use collisions::*;
 mod shaders;
 pub use shaders::*;
 
+/// The ECS schedule stages that the Bevy retro code is run in
 #[derive(Debug, Clone, Copy, StageLabel, Hash, PartialEq, Eq)]
 pub enum RetroStage {
+    /// Stage that runs immediately before [`Render`][RetroStage::Render] and that propagates the world transform of all
+    /// objects in the world
     WorldPositionPropagation,
+    /// The rendering stage
     Render,
 }
 
+/// The core set of Bevy Retro plugins
 pub struct RetroPlugins;
 
 impl PluginGroup for RetroPlugins {
@@ -190,6 +196,7 @@ impl PluginGroup for RetroPlugins {
     }
 }
 
+/// The Core Bevy Retro plugin
 #[derive(Default)]
 pub struct RetroPlugin;
 
@@ -217,6 +224,14 @@ impl Plugin for RetroPlugin {
 }
 
 /// Utility to implement deref for single-element tuple structs
+/// 
+/// # Example
+/// 
+/// ```rust
+/// struct Score(usize);
+/// 
+/// impl_deref!(Score, usize);
+/// ```
 #[macro_export(crate)]
 macro_rules! impl_deref {
     ($struct:ident, $target:path) => {

@@ -3,7 +3,7 @@ use image::GenericImageView;
 
 use crate::*;
 
-/// Information needed to detect pixel collisions using [`pixels_collid_with`].
+/// Information needed to detect pixel collisions using [`pixels_collide_with_pixels`].
 #[derive(Clone, Copy)]
 pub struct PixelColliderInfo<'a> {
     pub image: &'a Image,
@@ -114,7 +114,7 @@ impl Into<Box2D<i32>> for BoundingBox {
     }
 }
 
-/// Get whether or not the pixels in `a` collide with the pixels in `b`
+/// Get whether or not the pixels in `a` collide with the bounding box `b`
 pub fn pixels_collide_with_bounding_box(a: PixelColliderInfo, b: BoundingBox) -> bool {
     let a_bounds = a.get_bounds();
     let b_bounds: Box2D<i32> = b.into();

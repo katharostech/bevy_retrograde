@@ -1,5 +1,3 @@
-use bevy::asset::AssetPath;
-
 use crate::*;
 
 /// A bundle containing all the components necessary to render a sprite
@@ -17,18 +15,6 @@ pub struct SpriteBundle {
     pub world_position: WorldPosition,
 }
 
-impl BundleFromAsset for SpriteBundle {
-    fn bundle_from_asset<'a>(
-        asset_server: &AssetServer,
-        asset_path: bevy::asset::AssetPath<'a>,
-    ) -> Self {
-        Self {
-            image: asset_server.load(asset_path),
-            ..Default::default()
-        }
-    }
-}
-
 /// A bundle containing all the components necessary to render a spritesheet
 #[derive(Bundle, Default, Clone)]
 pub struct SpriteSheetBundle {
@@ -37,18 +23,4 @@ pub struct SpriteSheetBundle {
     pub sprite_bundle: SpriteBundle,
     /// The sprite sheet handle
     pub sprite_sheet: Handle<SpriteSheet>,
-}
-
-impl BundleFromAsset for SpriteSheetBundle {
-    fn bundle_from_asset(asset_server: &AssetServer, asset_path: bevy::asset::AssetPath) -> Self {
-        let image_asset_path = AssetPath::new_ref(asset_path.path(), Some("image"));
-
-        Self {
-            sprite_bundle: SpriteBundle {
-                image: asset_server.load(image_asset_path),
-                ..Default::default()
-            },
-            sprite_sheet: asset_server.load(asset_path),
-        }
-    }
 }

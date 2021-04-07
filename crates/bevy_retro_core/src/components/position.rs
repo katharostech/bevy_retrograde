@@ -10,11 +10,13 @@ use petgraph::{
 use crate::*;
 
 /// A query that can be used to synchronize the [`WorldPosition`] components of all the entities in
-/// the world.
+/// the world
 pub type WorldPositionsQuery<'a> =
     Query<'a, (Entity, &'static mut Position, &'static mut WorldPosition)>;
 
-pub trait WorldPositionSyncQueryTrait<'a, 'b> {
+/// Trait implemented for [`WorldPositionsQuery`] that adds convenience functions for
+/// getting/synchronizing world positions
+pub trait WorldPositionsQueryTrait<'a, 'b> {
     fn sync_world_positions(self, scene_graph: &mut SceneGraph);
     fn get_world_position_mut(
         self,
@@ -23,7 +25,7 @@ pub trait WorldPositionSyncQueryTrait<'a, 'b> {
     fn get_local_position_mut(self, entity: Entity) -> Result<Mut<'b, Position>, QueryEntityError>;
 }
 
-impl<'a, 'b> WorldPositionSyncQueryTrait<'a, 'b> for &'b mut WorldPositionsQuery<'a> {
+impl<'a, 'b> WorldPositionsQueryTrait<'a, 'b> for &'b mut WorldPositionsQuery<'a> {
     fn sync_world_positions(self, scene_graph: &mut SceneGraph) {
         propagate_world_positions(scene_graph, self);
     }
@@ -94,7 +96,7 @@ type GraphType = StableGraph<Entity, (), Directed>;
 /// The graph containing the hierarchy structure of the scene
 #[derive(Debug, Clone)]
 pub struct SceneGraph {
-    /// A mapping of [`Entities`] to their scene [`NodeIndex`]s
+    /// A mapping of [`Entity`]'s to their scene [`NodeIndex`]s
     pub(crate) entity_map: HashMap<Entity, NodeIndex>,
     /// The scene graph
     pub(crate) graph: GraphType,
@@ -112,8 +114,10 @@ impl Default for SceneGraph {
     }
 }
 
+/// An error that can occur while modifying the scene graph
 #[derive(thiserror::Error, Debug)]
 pub enum GraphError {
+    /// The operation would create a cycle in the scene graph, which is not allowed
     #[error("Operation would result in a cycle")]
     WouldCauseCycle,
 }
@@ -166,11 +170,11 @@ impl SceneGraph {
     }
 }
 
-pub use systems::*;
+pub(crate) use systems::*;
 mod systems {
     use super::*;
 
-    pub fn propagate_world_positions_system(
+    pub(crate) fn propagate_world_positions_system(
         mut scene_graph: ResMut<SceneGraph>,
         mut query: Query<(Entity, &mut Position, &mut WorldPosition)>,
     ) {

@@ -71,7 +71,7 @@ pub struct Camera {
     pub background_color: Color,
     /// The color of the letter box
     ///
-    /// The letter box is only visible when the camera size is set to [`Fixed`][CameraSize::Fixed].
+    /// The letter box is only visible when the camera size is set to [`LetterBoxed`][CameraSize::LetterBoxed].
     pub letterbox_color: Color,
     /// The aspect ratio of the pxiels when rendered through this camera
     pub pixel_aspect_ratio: f32,
@@ -95,6 +95,7 @@ impl Default for Camera {
     }
 }
 
+/// The size of the 2D camera
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum CameraSize {
     /// Fix the camera height in pixels and make the the width scale to whatever the window/screen

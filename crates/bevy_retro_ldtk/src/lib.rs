@@ -1,6 +1,8 @@
 //! A [Bevy Retro][br] plugin for loading [LDtk] tile maps.
 //!
-//! [ldtk]: https://github.com/deepnight/ldtk [br]: https://github.com/katharostech/bevy_retro
+//! [ldtk]: https://github.com/deepnight/ldtk
+//! 
+//! [br]: https://github.com/katharostech/bevy_retro
 //!
 //! # Usage
 //!
