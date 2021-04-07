@@ -24,6 +24,14 @@ An example demonstrating how to detect pixel-perfect collisions between sprites
 
 [collisions]: ./collisions.rs
 
+## [ldtk_map]
+
+An example showing you how to load and display an LDtk map file.
+
+![ldtk map](./screenshots/ldtk_map.png)
+
+[ldtk_map]: ./ldtk_map.rs
+
 ## [post_processing]
 
 An example demonstrating how to add post-processing, using either the built-in CRT or your own custom shaders.
@@ -44,6 +52,4 @@ A bunnymark style demo that logs frame time diagnostics to the console.
 
 Examples that we haven't made that we might make later:
 
-- LDtk map example ( move the one from the LDtk plugin here )
-- Collisions with a sprite sheet
 - Character controller
