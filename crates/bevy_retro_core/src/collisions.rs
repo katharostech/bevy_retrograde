@@ -99,7 +99,7 @@ pub fn pixels_collide_with_pixels(a: PixelColliderInfo, b: PixelColliderInfo) ->
     }
 }
 
-/// A bounding box defined by a min point and a max point
+/// A bounding box, used to detect collitions with [`pixels_collide_with_bounding_box`]
 pub struct BoundingBox {
     pub min: IVec2,
     pub max: IVec2,
