@@ -8,7 +8,7 @@ description = "A Bevy Retro plugin for reading the LDtk 2D tile map format."
 repository = "https://github.com/katharostech/bevy_retro"
 documentation = "https://docs.rs/bevy_retro_ldtk"
 readme = "README.md"
-keywords = ["gamedev", "map-editor", "tile", "bevy-retro", "2D"]
+keywords = ["gamedev", "map-editor", "tile", "bevy-retro", "2D", "bevy"]
 categories = [
     "games",
     "game-development",
@@ -19,7 +19,7 @@ categories = [
 default = []
 
 [dependencies]
-bevy_retro = { path = "../../" }
+bevy_retro_core = { path = "../bevy_retro_core" }
 ldtk = "0.3"
 anyhow = "1.0.37"
 serde_json = "1.0.61"

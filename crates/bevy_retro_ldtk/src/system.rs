@@ -1,6 +1,6 @@
 use asset::LdtkMap;
 use bevy::utils::HashMap;
-use bevy_retro::{
+use bevy_retro_core::{
     image::{
         self,
         imageops::{self, flip_horizontal_in_place, flip_vertical_in_place},

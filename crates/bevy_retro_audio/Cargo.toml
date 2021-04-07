@@ -1,0 +1,29 @@
+[package]
+name = "bevy_retro_audio"
+version = "0.0.0"
+authors = ["Zicklag <zicklag@katharostech.com>"]
+edition = "2018"
+license-file = "LICENSE.md"
+description = "A Bevy plugin for playing sounds."
+repository = "https://github.com/katharostech/bevy_retro"
+documentation = "https://docs.rs/bevy_retro_audio"
+readme = "README.md"
+keywords = ["gamedev", "audio", "bevy"]
+categories = [
+    "games",
+    "game-development",
+    "multimedia::audio"
+]
+
+[features]
+default = []
+
+[dependencies]
+bevy_retro_core = { path = "../bevy_retro_core" }
+anyhow = "1.0.37"
+thiserror = "1.0.23"
+
+[dependencies.bevy]
+git = "https://github.com/bevyengine/bevy"
+branch = "main"
+default-features = false

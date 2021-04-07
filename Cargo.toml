@@ -4,71 +4,31 @@ version = "0.0.0"
 authors = ["Zicklag <zicklag@katharostech.com>"]
 edition = "2018"
 
-documentation = "https://docs.rs/bevy_retro"
-repository = "https://github.com/katharostech/bevy_retro"
-readme = "README.md"
-license-file = "LICENSE.md"
-
-keywords = ["bevy", "2D", "pixel-perfect", "retro", "renderer", "web"]
-categories = ["game-development", "multimedia", "rendering::engine"]
-
 [workspace]
-members = [
-    ".",
-    "plugins/bevy_retro_ldtk"
-]
+members = ["crates/*"]
 
 [features]
 default = [
-    "jpeg",
-    "png",
+    "audio",
 ]
-gif = ["image/gif"]
-jpeg = ["image/jpeg"]
-png = ["image/png"]
-tga = ["image/tga"]
-tiff = ["image/tiff"]
-webp = ["image/webp"]
-bmp = ["image/bmp"]
+audio = ["bevy_retro_audio"]
+ldtk = ["bevy_retro_ldtk"]
 
 [dependencies]
-luminance = { version = "0.43.2", features = ["derive"] }
-luminance-glow = { git = "https://github.com/katharostech/luminance-glow", branch = "master" }
+bevy_retro_core = { path = "crates/bevy_retro_core" }
+bevy_retro_audio = { path = "crates/bevy_retro_audio", optional = true }
+bevy_retro_ldtk = { path = "crates/bevy_retro_ldtk", optional = true }
 
-winit = { version = "0.24", features = ["web-sys"] }
-image = { version = "0.23.14", default-features = false }
-thiserror = "1.0.24"
-anyhow = "1.0.38"
-petgraph = "0.5.1"
+[dev-dependencies]
+hex = "0.4.3"
 rand = "0.8.3"
-getrandom = { version = "0.2.2", features = ["js"] }
-parking_lot = { version = "0.11.1" }
-tracing = "0.1.25"
-euclid = "0.22.2"
 
-[dependencies.bevy]
+[dev-dependencies.bevy]
 git = "https://github.com/bevyengine/bevy"
 branch = "main"
 default-features = false
-features = ["bevy_winit", "x11"]
 
-[target.'cfg(not(any(target_arch = "wasm32")))'.dependencies]
-luminance-surfman = { git = "https://github.com/katharostech/luminance-surfman", branch = "master" }
-
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-web-sys = { version = "0.3", features=["HtmlCanvasElement", "WebGl2RenderingContext", "Window", "console"] }
-wasm-bindgen = { version = "0.2" }
-
-[build-dependencies]
-cfg_aliases = "0.1.1"
-
-[dev-dependencies]
-bevy_retro_ldtk = { path = "./plugins/bevy_retro_ldtk" }
-hex = "0.4.3"
-
-[profile.dev]
-opt-level = 3
-debug = 1
-
-[profile.release]
-lto = true
+[[example]]
+name = "ldtk_map"
+path = "examples/ldtk_map.rs"
+required-features = ["ldtk"]
