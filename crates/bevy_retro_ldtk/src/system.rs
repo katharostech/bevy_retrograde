@@ -1,5 +1,5 @@
 use asset::LdtkMap;
-use bevy::utils::HashMap;
+use bevy::{ecs::component::ComponentDescriptor, utils::HashMap};
 use bevy_retro_core::{
     image::{
         self,
@@ -14,7 +14,10 @@ use crate::*;
 /// Add the Ldtk map systems to the app builder
 pub(crate) fn add_systems(app: &mut AppBuilder) {
     app.add_system(process_ldtk_maps.system())
-        .add_system(hot_reload_maps.system());
+        .add_system(hot_reload_maps.system())
+        .register_component(ComponentDescriptor::new::<LdtkMapHasLoaded>(
+            bevy::ecs::component::StorageType::SparseSet,
+        ));
 }
 
 struct LdtkMapHasLoaded;
