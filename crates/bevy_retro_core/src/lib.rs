@@ -43,6 +43,7 @@ impl PluginGroup for RetroPlugins {
         group.add(bevy::window::WindowPlugin::default());
         group.add(bevy::asset::AssetPlugin::default());
         group.add(bevy::winit::WinitPlugin::default());
+        group.add(bevy::scene::ScenePlugin::default());
         group.add(RetroPlugin);
     }
 }
@@ -53,6 +54,7 @@ pub struct RetroPlugin;
 
 impl Plugin for RetroPlugin {
     fn build(&self, app: &mut AppBuilder) {
+        add_components(app);
         add_assets(app);
 
         app.init_resource::<SceneGraph>()

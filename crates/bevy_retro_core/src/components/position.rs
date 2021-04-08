@@ -6,6 +6,7 @@ use petgraph::{
     visit::{GraphBase, Visitable},
     Directed, Direction,
 };
+use serde::{Deserialize, Serialize};
 
 use crate::*;
 
@@ -40,7 +41,9 @@ impl<'a, 'b> WorldPositionsQueryTrait<'a, 'b> for &'b mut WorldPositionsQuery<'a
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Reflect)]
+#[reflect_value(PartialEq, Serialize, Deserialize, Component)]
+#[serde(default)]
 /// The position of a 2D object in the world
 pub struct Position {
     /// The actual position
@@ -90,6 +93,12 @@ impl std::ops::DerefMut for Position {
         &mut self.pos
     }
 }
+
+/// The global position in the world
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Reflect)]
+#[reflect_value(PartialEq, Serialize, Deserialize, Component)]
+pub struct WorldPosition(#[serde(default)] pub IVec3);
+impl_deref!(WorldPosition, IVec3);
 
 type GraphType = StableGraph<Entity, (), Directed>;
 

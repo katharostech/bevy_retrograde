@@ -1,9 +1,20 @@
 use bevy::{prelude::*, reflect::TypeUuid};
+use serde::{Deserialize, Serialize};
 
 use crate::*;
 
 mod position;
 pub use position::*;
+
+pub(crate) fn add_components(app: &mut AppBuilder) {
+    app.register_type::<Camera>()
+        .register_type::<Color>()
+        .register_type::<CameraSize>()
+        .register_type::<Position>()
+        .register_type::<WorldPosition>()
+        .register_type::<Sprite>()
+        .register_type::<SpriteSheet>();
+}
 
 /// The retro camera bundle
 #[derive(Bundle, Default, Debug, Clone)]
@@ -22,7 +33,8 @@ pub struct CameraBundle {
 }
 
 /// An 8-bit RGBA color
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Reflect)]
+#[reflect_value(Serialize, Deserialize, PartialEq, Component)]
 pub struct Color {
     pub r: f32,
     pub g: f32,
@@ -57,7 +69,8 @@ impl Default for Color {
 }
 
 /// The camera component
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Reflect)]
+#[reflect(Component)]
 pub struct Camera {
     /// The size of the camera along the fixed axis, which is by default the vertical axis
     pub size: CameraSize,
@@ -96,7 +109,8 @@ impl Default for Camera {
 }
 
 /// The size of the 2D camera
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Reflect)]
+#[reflect_value(PartialEq, Serialize, Deserialize)]
 pub enum CameraSize {
     /// Fix the camera height in pixels and make the the width scale to whatever the window/screen
     /// size is.
@@ -136,7 +150,8 @@ impl Camera {
 }
 
 /// Sprite options
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Reflect)]
+#[reflect(Component)]
 pub struct Sprite {
     /// Whether or not the sprite is centered about its position
     pub centered: bool,
@@ -160,20 +175,26 @@ impl Default for Sprite {
 }
 
 /// Settings for a sprite sheet
-#[derive(Debug, Clone, TypeUuid)]
+#[derive(Debug, Clone, TypeUuid, Reflect)]
 #[uuid = "64746631-1afe-4ca6-8398-7c0df62f7813"]
+#[reflect(Component)]
 pub struct SpriteSheet {
     pub grid_size: UVec2,
     pub tile_index: u32,
 }
 
-/// The global position in the world
-#[derive(Debug, Clone, Default, Copy)]
-pub struct WorldPosition(pub IVec3);
-impl_deref!(WorldPosition, IVec3);
+impl Default for SpriteSheet {
+    fn default() -> Self {
+        Self {
+            grid_size: UVec2::splat(16),
+            tile_index: 0,
+        }
+    }
+}
 
 /// Indicates whether or not an object should be rendered
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Reflect)]
+#[reflect(Component)]
 pub struct Visible(pub bool);
 impl_deref!(Visible, bool);
 
