@@ -59,6 +59,9 @@ Bevy Retro releases for each Bevy release.
 - An [LDtk](https://ldtk.io) map loading [plugin](./plugins/bevy_retro_ldtk)
 - Pixel-perfect collision detection
 - Custom shaders for post-processing, including a built-in CRT shader
+- Audio support ( ogg, flac, and wave ) including sound looping, built on [kira]
+
+[kira]: https://github.com/tesselode/kira
 
 ## Examples
 
