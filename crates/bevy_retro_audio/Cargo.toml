@@ -16,12 +16,24 @@ categories = [
 ]
 
 [features]
-default = []
+default = [
+    "flac",
+    "ogg",
+    "wav"
+]
+# Note: MP3 is not supported on web yet: https://github.com/germangb/minimp3-rs/issues/7#issue-398930679
+mp3 = ["kira/mp3"]
+flac = ["kira/flac"]
+ogg = ["kira/ogg"]
+wav = ["kira/wav"]
 
 [dependencies]
 bevy_retro_core = { path = "../bevy_retro_core" }
 anyhow = "1.0.37"
 thiserror = "1.0.23"
+kira = { git = "https://github.com/katharostech/kira", branch = "sound-from-reader", default-features = false }
+flume = "0.10.2"
+uuid = { version = "0.8.2", features = ["v4"] }
 
 [dependencies.bevy]
 git = "https://github.com/bevyengine/bevy"

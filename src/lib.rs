@@ -19,7 +19,7 @@
 //! sound playing, data saving, etc. While adding these features we will try to maintain full web
 //! compatibility, but it can't be guaranteed that all features will be feasible to implement for
 //! web.
-//! 
+//!
 //! These extra features will be included as optional cargo featurs that can be disabled if not
 //! needed and, where applicable, be packaged a separate Rust crates that can be used even if you
 //! don't want to use the rest of Bevy Retro.
@@ -138,7 +138,7 @@
 //!     });
 //! }
 //! ```
-//! 
+//!
 //! # License
 //!
 //! Bevy Retro LDtk is licensed under the [Katharos License][k_license] which places certain

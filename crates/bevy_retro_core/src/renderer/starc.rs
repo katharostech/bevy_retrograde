@@ -1,5 +1,5 @@
 //! This module was extracted from [GFX][gfx-link]:
-//! 
+//!
 //! [gfx-link]: https://github.com/gfx-rs/gfx/blob/843c68494fa4fe457d145bf53e09bb7d25bb8aa2/src/backend/gl/src/lib.rs#L266
 //!
 //! It is under the following license:

@@ -75,12 +75,12 @@ impl Plugin for RetroPlugin {
 }
 
 /// Utility to implement deref for single-element tuple structs
-/// 
+///
 /// # Example
-/// 
+///
 /// ```rust
 /// struct Score(usize);
-/// 
+///
 /// impl_deref!(Score, usize);
 /// ```
 #[macro_export(crate)]

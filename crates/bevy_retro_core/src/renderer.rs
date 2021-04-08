@@ -90,7 +90,9 @@ impl RetroRenderer {
             let winit_window = winit_windows.get_window(window.id()).unwrap();
 
             #[cfg(not(wasm))]
-            let surface = Surface::from_winit_window(winit_window, luminance_surfman::ShaderVersion::Gles1).unwrap();
+            let surface =
+                Surface::from_winit_window(winit_window, luminance_surfman::ShaderVersion::Gles1)
+                    .unwrap();
 
             #[cfg(wasm)]
             let surface = {

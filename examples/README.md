@@ -32,6 +32,12 @@ An example showing you how to load and display an LDtk map file.
 
 [ldtk_map]: ./ldtk_map.rs
 
+## [audio]
+
+An example demonstrating how to play sounds and play music on loop.
+
+[audio]: ./audio.rs
+
 ## [post_processing]
 
 An example demonstrating how to add post-processing, using either the built-in CRT or your own custom shaders.
