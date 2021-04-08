@@ -4,7 +4,7 @@ use bevy_retro::*;
 fn main() {
     App::build()
         .insert_resource(WindowDescriptor {
-            title: "Bevy Retro Sprite Sheet Collisions".into(),
+            title: "Bevy Retro Audio".into(),
             ..Default::default()
         })
         .add_plugins(RetroPlugins)

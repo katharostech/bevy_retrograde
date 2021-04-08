@@ -23,7 +23,7 @@ impl FromWorld for RadishImages {
 fn main() {
     App::build()
         .insert_resource(WindowDescriptor {
-            title: "Bevy Retro Sprite Sheet Collisions".into(),
+            title: "Bevy Retro Collisions".into(),
             ..Default::default()
         })
         .add_plugins(RetroPlugins)
