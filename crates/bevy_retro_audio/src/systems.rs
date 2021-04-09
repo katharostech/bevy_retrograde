@@ -7,11 +7,15 @@ use kira::sound::handle::SoundHandle as KiraSoundHandle;
 
 use super::*;
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash, StageLabel)]
+struct AudioStage;
+
 /// Add the Ldtk map systems to the app builder
 pub(crate) fn add_systems(app: &mut AppBuilder) {
-    app.add_system_to_stage(
+    app.add_stage_after(
         CoreStage::Last,
-        get_handle_sound_events_system().exclusive_system(),
+        AudioStage,
+        SystemStage::single(get_handle_sound_events_system().exclusive_system()),
     );
 }
 

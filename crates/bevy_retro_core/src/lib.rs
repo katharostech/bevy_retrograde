@@ -23,9 +23,10 @@ pub use shaders::*;
 
 /// The ECS schedule stages that the Bevy retro code is run in
 #[derive(Debug, Clone, Copy, StageLabel, Hash, PartialEq, Eq)]
-struct RetroStage;
-#[derive(Debug, Clone, Copy, StageLabel, Hash, PartialEq, Eq, SystemLabel)]
-struct PropagateSystem;
+enum RetroStage {
+    WorldPositionPropagation,
+    Rendering,
+}
 
 /// The Core Bevy Retro plugin
 #[derive(Default)]
@@ -37,20 +38,16 @@ impl Plugin for RetroCorePlugin {
         add_assets(app);
 
         app.init_resource::<SceneGraph>()
-            .add_stage_after(CoreStage::Last, RetroStage, SystemStage::parallel())
-            .add_system_set_to_stage(
-                RetroStage,
-                SystemSet::new()
-                    .with_system(
-                        propagate_world_positions_system
-                            .system()
-                            .label(PropagateSystem),
-                    )
-                    .with_system(
-                        get_render_system()
-                            .exclusive_system()
-                            .after(PropagateSystem),
-                    ),
+            .add_stage_after(
+                CoreStage::Last,
+                RetroStage::WorldPositionPropagation,
+                SystemStage::single_threaded()
+                    .with_system(propagate_world_positions_system.system()),
+            )
+            .add_stage_after(
+                RetroStage::WorldPositionPropagation,
+                RetroStage::Rendering,
+                SystemStage::single_threaded().with_system(get_render_system().exclusive_system()),
             );
     }
 }
