@@ -112,6 +112,33 @@ struct ScreenUniformInterface {
     time: Uniform<f32>,
 }
 
+/// Caches the shader uniform names so that we avoid expensive, repetative string copies when
+/// setting shader uniforms
+#[cfg(wasm)]
+fn intern_shader_uniform_names() {
+    use wasm_bindgen::intern;
+    // NOTE: This must be kept up-to-date with the names of the uniforms above
+    intern("camera_position");
+    intern("camera_size");
+    intern("camera_centered");
+    
+    intern("sprite_texture");
+    intern("sprite_texture_size");
+    intern("sprite_flip");
+    intern("sprite_centered");
+    intern("sprite_tileset_grid_siz3");
+    intern("sprite_tileset_index");
+    intern("sprite_position");
+    intern("sprite_offset");
+
+    intern("camera_size");
+    intern("camera_size_fixed");
+    intern("pixel_aspect_ratio");
+    intern("window_size");
+    intern("screen_texture");
+    intern("time");
+}
+
 /// The default custom camera shader string
 const DEFAULT_CUSTOM_SHADER: &str = r#"
     uniform sampler2D screen_texture;
@@ -149,6 +176,9 @@ pub(crate) struct LuminanceRenderer {
 impl LuminanceRenderer {
     #[tracing::instrument(skip(surface))]
     pub fn init(window_id: bevy::window::WindowId, mut surface: Surface) -> Self {
+        #[cfg(wasm)]
+        intern_shader_uniform_names();
+
         // Create the tesselator for the sprites
         let sprite_tess = surface
             .new_tess()
