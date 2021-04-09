@@ -31,28 +31,11 @@ pub enum RetroStage {
     Render,
 }
 
-/// The core set of Bevy Retro plugins
-pub struct RetroPlugins;
-
-impl PluginGroup for RetroPlugins {
-    fn build(&mut self, group: &mut bevy::app::PluginGroupBuilder) {
-        group.add(bevy::log::LogPlugin::default());
-        group.add(bevy::core::CorePlugin::default());
-        group.add(bevy::diagnostic::DiagnosticsPlugin::default());
-        group.add(bevy::input::InputPlugin::default());
-        group.add(bevy::window::WindowPlugin::default());
-        group.add(bevy::asset::AssetPlugin::default());
-        group.add(bevy::winit::WinitPlugin::default());
-        group.add(bevy::scene::ScenePlugin::default());
-        group.add(RetroPlugin);
-    }
-}
-
 /// The Core Bevy Retro plugin
 #[derive(Default)]
-pub struct RetroPlugin;
+pub struct RetroCorePlugin;
 
-impl Plugin for RetroPlugin {
+impl Plugin for RetroCorePlugin {
     fn build(&self, app: &mut AppBuilder) {
         add_components(app);
         add_assets(app);

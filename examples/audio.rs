@@ -8,7 +8,6 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(RetroPlugins)
-        .add_plugin(AudioPlugin)
         .add_startup_system(setup.system())
         .run();
 }

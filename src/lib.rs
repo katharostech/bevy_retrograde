@@ -147,6 +147,7 @@
 //!
 //! [k_license]: https://github.com/katharostech/katharos-license
 
+use bevy::prelude::PluginGroup;
 pub use bevy_retro_core::*;
 
 #[cfg(feature = "ldtk")]
@@ -154,3 +155,25 @@ pub use bevy_retro_ldtk::*;
 
 #[cfg(feature = "audio")]
 pub use bevy_retro_audio::*;
+
+/// The core set of Bevy Retro plugins
+pub struct RetroPlugins;
+
+impl PluginGroup for RetroPlugins {
+    fn build(&mut self, group: &mut bevy::app::PluginGroupBuilder) {
+        // Add the plugins we need from Bevy
+        group.add(bevy::log::LogPlugin::default());
+        group.add(bevy::core::CorePlugin::default());
+        group.add(bevy::diagnostic::DiagnosticsPlugin::default());
+        group.add(bevy::input::InputPlugin::default());
+        group.add(bevy::window::WindowPlugin::default());
+        group.add(bevy::asset::AssetPlugin::default());
+        group.add(bevy::winit::WinitPlugin::default());
+        group.add(bevy::scene::ScenePlugin::default());
+
+        group.add(RetroCorePlugin);
+
+        #[cfg(feature = "audio")]
+        group.add(AudioPlugin);
+    }
+}

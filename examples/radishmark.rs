@@ -39,8 +39,7 @@ fn main() {
             resizable: false,
             ..Default::default()
         })
-        .add_plugins(DefaultPlugins)
-        .add_plugin(RetroPlugin)
+        .add_plugins(RetroPlugins)
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(LogDiagnosticsPlugin::default())
         .insert_resource(RadishCounter { count: 0 })
