@@ -31,7 +31,7 @@ fn process_ldtk_maps(
     mut scene_graph: ResMut<SceneGraph>,
 ) {
     // Loop through all of the maps
-    for (map_ent, map_handle) in new_maps.iter_mut() {
+    'load_map: for (map_ent, map_handle) in new_maps.iter_mut() {
         // Get the map asset, if available
         if let Some(map) = map_assets.get(map_handle) {
             let project = &map.project;
@@ -54,8 +54,7 @@ fn process_ldtk_maps(
                     // Insert it into the tileset map
                     tilesets.insert(tileset_info.uid, image_handle);
                 } else {
-                    // Wait for tilemap to load
-                    return;
+                    continue 'load_map;
                 }
             }
 
