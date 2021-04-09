@@ -13,8 +13,8 @@ use crate::*;
 
 /// Add the Ldtk map systems to the app builder
 pub(crate) fn add_systems(app: &mut AppBuilder) {
-    app.add_system(process_ldtk_maps.system())
-        .add_system(hot_reload_maps.system())
+    app.add_system(hot_reload_maps.system().label("reload"))
+        .add_system(process_ldtk_maps.system().after("reload"))
         .register_component(ComponentDescriptor::new::<LdtkMapHasLoaded>(
             bevy::ecs::component::StorageType::SparseSet,
         ));
