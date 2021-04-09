@@ -1,5 +1,4 @@
 use bevy::{ecs::system::SystemParam, prelude::*, reflect::TypeUuid};
-use bevy_retro_core::impl_deref;
 use kira::manager::AudioManager as KiraAudioManager;
 use uuid::Uuid;
 
@@ -72,8 +71,7 @@ impl Sound {
 }
 
 /// The audio manager
-pub(crate) struct AudioManager(KiraAudioManager);
-impl_deref!(AudioManager, KiraAudioManager);
+pub(crate) struct AudioManager(pub(crate) KiraAudioManager);
 
 impl Default for AudioManager {
     fn default() -> Self {

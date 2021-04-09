@@ -28,7 +28,6 @@ ogg = ["kira/ogg"]
 wav = ["kira/wav"]
 
 [dependencies]
-bevy_retro_core = { path = "../bevy_retro_core" }
 anyhow = "1.0.37"
 thiserror = "1.0.23"
 kira = { git = "https://github.com/tesselode/kira", branch = "main", default-features = false }

@@ -1,4 +1,4 @@
-use bevy::{asset::AssetStage, prelude::*};
+use bevy::prelude::*;
 
 /// Re-export of the [`image`] crate
 pub use image;
@@ -42,7 +42,7 @@ impl Plugin for RetroCorePlugin {
 
         app.init_resource::<SceneGraph>()
             .add_stage_after(
-                AssetStage::AssetEvents,
+                CoreStage::Last,
                 RetroStage::WorldPositionPropagation,
                 SystemStage::parallel(),
             )

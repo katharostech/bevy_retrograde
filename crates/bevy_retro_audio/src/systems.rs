@@ -3,17 +3,14 @@ use bevy::{
     prelude::*,
     utils::HashMap,
 };
-use bevy_retro_core::RetroStage;
 use kira::sound::handle::SoundHandle as KiraSoundHandle;
 
 use super::*;
 
 /// Add the Ldtk map systems to the app builder
 pub(crate) fn add_systems(app: &mut AppBuilder) {
-    app.add_system_to_stage(
-        RetroStage::Render,
-        get_handle_sound_events_system().exclusive_system(),
-    );
+    app.add_stage_after(CoreStage::Last, "audio", SystemStage::parallel())
+        .add_system_to_stage("audio", get_handle_sound_events_system().exclusive_system());
 }
 
 fn get_handle_sound_events_system() -> impl FnMut(&mut World) {
@@ -30,7 +27,7 @@ fn get_handle_sound_events_system() -> impl FnMut(&mut World) {
         let mut handle_event = |event: &SoundEvent| match event {
             SoundEvent::CreateSound(handle, sound) => {
                 if let Some(sound_data) = sound_data_assets.remove(handle) {
-                    let sound_handle = audio_manager.add_sound(sound_data.0).unwrap();
+                    let sound_handle = audio_manager.0.add_sound(sound_data.0).unwrap();
                     sound_to_handle_map.insert(*sound, sound_handle);
 
                     true
