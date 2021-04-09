@@ -28,6 +28,13 @@ default-features = false
 hex = "0.4.3"
 rand = "0.8.3"
 
+[profile.dev]
+opt-level = 3
+debug = 1
+
+[profile.release]
+lto = true
+
 [[example]]
 name = "ldtk_map"
 path = "examples/ldtk_map.rs"
