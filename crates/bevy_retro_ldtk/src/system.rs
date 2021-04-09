@@ -11,13 +11,22 @@ use bevy_retro_core::{
 
 use crate::*;
 
+#[derive(Debug, Clone, Copy, StageLabel, Hash, PartialEq, Eq, SystemLabel)]
+struct HotReloadSystem;
+
 /// Add the Ldtk map systems to the app builder
 pub(crate) fn add_systems(app: &mut AppBuilder) {
-    app.add_system(hot_reload_maps.system().label("reload"))
-        .add_system(process_ldtk_maps.system().after("reload"))
+    app
+        // Register our marker component with sparse storage
         .register_component(ComponentDescriptor::new::<LdtkMapHasLoaded>(
             bevy::ecs::component::StorageType::SparseSet,
-        ));
+        ))
+        .add_system_set_to_stage(
+            CoreStage::PreUpdate,
+            SystemSet::new()
+                .with_system(hot_reload_maps.system().label(HotReloadSystem))
+                .with_system(process_ldtk_maps.system().after(HotReloadSystem)),
+        );
 }
 
 struct LdtkMapHasLoaded;

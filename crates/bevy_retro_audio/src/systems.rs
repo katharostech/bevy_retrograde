@@ -9,8 +9,10 @@ use super::*;
 
 /// Add the Ldtk map systems to the app builder
 pub(crate) fn add_systems(app: &mut AppBuilder) {
-    app.add_stage_after(CoreStage::Last, "audio", SystemStage::parallel())
-        .add_system_to_stage("audio", get_handle_sound_events_system().exclusive_system());
+    app.add_system_to_stage(
+        CoreStage::Last,
+        get_handle_sound_events_system().exclusive_system(),
+    );
 }
 
 fn get_handle_sound_events_system() -> impl FnMut(&mut World) {
