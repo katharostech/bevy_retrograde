@@ -18,9 +18,20 @@
       }
     </style>
   </head>
-  <body></body>
-  <script type="module">
-    import init from "/$example.js";
-    init();
-  </script>
+  <body>
+    <!-- Include the wasm-bindgen generated JS file -->
+    <script src="./$example.js"></script>
+
+    <script>
+      // Create an async function so we can use await syntax
+      async function run() {
+        // Loading the file above will create a global named after the example, first we initialize it
+        // by calling the global.
+
+        // This will trigger the "main" function of the game so that the game starts
+        await $example("$example_bg.wasm");
+      }
+      run();
+    </script>
+  </body>
 </html>
