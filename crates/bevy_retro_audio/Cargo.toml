@@ -31,7 +31,6 @@ wav = ["kira/wav"]
 anyhow = "1.0.37"
 thiserror = "1.0.23"
 kira = { git = "https://github.com/tesselode/kira", branch = "main", default-features = false }
-flume = "0.10.2"
 uuid = { version = "0.8.2", features = ["v4"] }
 
 [dependencies.bevy]
