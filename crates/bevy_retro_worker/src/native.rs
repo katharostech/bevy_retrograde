@@ -33,10 +33,8 @@ impl BlockingTaskPool {
         D: Send + Clone + 'static,
         R: Send + Clone + 'static,
     {
-        println!("actually spawn");
         self.task_pool
             .spawn(async move {
-                println!("inside");
                 function(data)
             })
             .await
@@ -48,7 +46,6 @@ impl BlockingTaskPool {
         D: Send + Clone + 'static,
         R: Send + Clone + 'static,
     {
-        println!("spawn");
         TASK_POOL.actually_spawn(function, data).await
     }
 }
