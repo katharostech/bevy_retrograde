@@ -20,6 +20,7 @@ impl FromWorld for RadishImages {
     }
 }
 
+#[bevy_retro::main]
 fn main() {
     App::build()
         .insert_resource(WindowDescriptor {

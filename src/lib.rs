@@ -150,11 +150,20 @@
 use bevy::prelude::PluginGroup;
 pub use bevy_retro_core::*;
 
+pub use bevy_retro_worker::*;
+pub use bevy_retro_macros::*;
+
 #[cfg(feature = "ldtk")]
 pub use bevy_retro_ldtk::*;
 
 #[cfg(feature = "audio")]
 pub use bevy_retro_audio::*;
+
+#[doc(hidden)]
+pub mod __macro_deps {
+    #[cfg(target_arch = "wasm32")]
+    pub use wasm_bindgen;
+}
 
 /// The core set of Bevy Retro plugins
 pub struct RetroPlugins;

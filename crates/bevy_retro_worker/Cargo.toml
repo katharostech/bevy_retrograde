@@ -1,0 +1,33 @@
+[package]
+name = "bevy_retro_worker"
+version = "0.1.0"
+authors = ["Zicklag <zicklag@katharostech.com>"]
+edition = "2018"
+
+[dependencies]
+lazy_static = "1.4.0"
+uuid = { version = "0.8.2", features = ["v4"] }
+async-channel = "1.6.1"
+
+[dependencies.web-sys]
+version = "0.3.49"
+features = [
+    "Window",
+    "Document",
+    "HtmlElement",
+    "Worker",
+    "MessageEvent",
+    "DedicatedWorkerGlobalScope",
+    "console",
+]
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+bevy_tasks = { git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys = "0.3.49"
+wasm-bindgen-futures = "0.4.22"
+wasm-bindgen = "0.2.72"
+
+[build-dependencies]
+cfg_aliases = "0.1.1"

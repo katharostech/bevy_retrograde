@@ -28,8 +28,14 @@
         // Loading the file above will create a global named after the example, first we initialize it
         // by calling the global.
 
-        // This will trigger the "main" function of the game so that the game starts
+        // Initialize the wasm module
         await $example("$example_bg.wasm");
+
+        // Import the start function exposed by Bevy Retro
+        const { start } = $example;
+
+        // And start the game
+        start()
       }
       run();
     </script>
