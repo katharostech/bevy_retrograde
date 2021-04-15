@@ -9,9 +9,9 @@ run-example example='hello_world':
 
 run-example-web example='hello_world':
     cargo build --example {{example}} --features {{dev_features}} --target wasm32-unknown-unknown
-    wasm-bindgen --out-dir target/wasm/{{example}} --target no-modules --no-modules-global {{example}} target/wasm32-unknown-unknown/debug/examples/{{example}}.wasm
+    wasm-bindgen --out-dir target/wasm/{{example}} --target web target/wasm32-unknown-unknown/debug/examples/{{example}}.wasm
     cp wasm_resources/index.tpl.html target/wasm/{{example}}/index.html
-    sed -i s/\$example/{{example}}/g target/wasm/{{example}}/index.html
+    sed -i s/\$example/{{example}}/ target/wasm/{{example}}/index.html
     ln -fs ../../../assets target/wasm/{{example}}
     basic-http-server target/wasm/{{example}}
 
