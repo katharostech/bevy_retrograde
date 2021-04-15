@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use bevy_retro::*;
 
-#[bevy_retro::main]
 fn main() {
     App::build()
         .insert_resource(WindowDescriptor {

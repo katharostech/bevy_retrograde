@@ -4,7 +4,6 @@ use bevy_retro::*;
 #[derive(StageLabel, Debug, Eq, Hash, PartialEq, Clone)]
 struct GameStage;
 
-#[bevy_retro::main]
 fn main() {
     App::build()
         .insert_resource(WindowDescriptor {

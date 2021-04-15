@@ -34,8 +34,6 @@ pub struct RetroCorePlugin;
 
 impl Plugin for RetroCorePlugin {
     fn build(&self, app: &mut AppBuilder) {
-        bevy_retro_worker::BlockingTaskPool::init();
-
         add_components(app);
         add_assets(app);
 

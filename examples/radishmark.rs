@@ -29,7 +29,6 @@ impl FromWorld for RadishImage {
 const GAME_WIDTH: i32 = 300;
 const GAME_HEIGHT: i32 = 300;
 
-#[bevy_retro::main]
 fn main() {
     App::build()
         .insert_resource(WindowDescriptor {
