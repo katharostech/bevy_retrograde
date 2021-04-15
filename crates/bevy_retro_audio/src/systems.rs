@@ -31,9 +31,18 @@ fn get_handle_sound_events_system() -> impl FnMut(&mut World) {
         let mut sound_data_assets = world.get_resource_mut::<Assets<SoundData>>().unwrap();
 
         let mut handle_event = |event: &SoundEvent| match event {
-            SoundEvent::CreateSound(handle, sound) => {
-                if let Some(sound_data) = sound_data_assets.remove(handle) {
-                    let sound_handle = audio_manager.0.add_sound(sound_data.0).unwrap();
+            SoundEvent::CreateSound(sound_data_asset_handle, sound) => {
+                if let Some(sound_data) = sound_data_assets.remove(sound_data_asset_handle) {
+                    let sound_handle = match sound_data {
+                        SoundData::Sound(sound) => audio_manager.0.add_sound(sound).unwrap(),
+                        SoundData::SoundHandle(handle) => handle.clone(),
+                    };
+
+                    sound_data_assets.set_untracked(
+                        sound_data_asset_handle,
+                        SoundData::SoundHandle(sound_handle.clone()),
+                    );
+
                     sound_to_handle_map.insert(*sound, sound_handle);
 
                     true

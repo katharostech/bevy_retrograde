@@ -21,6 +21,9 @@ pub use collisions::*;
 mod shaders;
 pub use shaders::*;
 
+mod bevy_extensions;
+pub use bevy_extensions::*;
+
 /// The ECS schedule stages that the Bevy retro code is run in
 #[derive(Debug, Clone, Copy, StageLabel, Hash, PartialEq, Eq)]
 enum RetroStage {

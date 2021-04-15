@@ -4,16 +4,24 @@ use bevy::{
     reflect::TypeUuid,
     utils::BoxedFuture,
 };
-use kira::sound::Sound as KiraSound;
+use kira::sound::{handle::SoundHandle as KiraSoundHandle, Sound as KiraSound};
 
 pub(crate) fn add_assets(app: &mut AppBuilder) {
     app.add_asset::<SoundData>()
         .add_asset_loader(SoundDataLoader);
 }
 
+/// Holds either the parsed data of a sound or a handle to that sound that can be used to play it on
+/// the Kira sound manager.
+///
+/// Users will most-likely not interact with this type directly but can pass it to
+/// [`SoundController::create_sound`].
 #[derive(Clone, Debug, TypeUuid)]
 #[uuid = "0b6b6127-a10a-4c67-938f-76f079a6f631"]
-pub struct SoundData(pub KiraSound);
+pub enum SoundData {
+    Sound(KiraSound),
+    SoundHandle(KiraSoundHandle),
+}
 
 /// An error that occurs when loading a GLTF file
 #[derive(thiserror::Error, Debug)]
@@ -79,7 +87,7 @@ async fn load_sound<'a, 'b>(
         }
     }?;
 
-    load_context.set_default_asset(LoadedAsset::new(SoundData(sound)));
+    load_context.set_default_asset(LoadedAsset::new(SoundData::Sound(sound)));
 
     Ok(())
 }
