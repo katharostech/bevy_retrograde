@@ -136,17 +136,15 @@ impl SceneGraph {
     /// This function will return an error when `child` is an ancestor of `parent`
     pub fn add_child(&mut self, parent: Entity, child: Entity) -> Result<(), GraphError> {
         let graph = &mut self.graph;
-        let parent_node = self
+        let parent_node = *self
             .entity_map
             .entry(parent)
-            .or_insert_with(|| graph.add_node(parent))
-            .clone();
+            .or_insert_with(|| graph.add_node(parent));
 
-        let child_node = self
+        let child_node = *self
             .entity_map
             .entry(child)
-            .or_insert_with(|| graph.add_node(child))
-            .clone();
+            .or_insert_with(|| graph.add_node(child));
 
         // Check for cycles
         if has_path_connecting(&*graph, child_node, parent_node, Some(&mut self.dfs_space)) {
@@ -161,17 +159,15 @@ impl SceneGraph {
     pub fn remove_child(&mut self, parent: Entity, child: Entity) {
         let graph = &mut self.graph;
 
-        let parent_node = self
+        let parent_node = *self
             .entity_map
             .entry(parent)
-            .or_insert_with(|| graph.add_node(parent))
-            .clone();
+            .or_insert_with(|| graph.add_node(parent));
 
-        let child_node = self
+        let child_node = *self
             .entity_map
             .entry(child)
-            .or_insert_with(|| graph.add_node(child))
-            .clone();
+            .or_insert_with(|| graph.add_node(child));
 
         if let Some(edge) = graph.find_edge(parent_node, child_node) {
             self.graph.remove_edge(edge);
@@ -245,7 +241,7 @@ mod systems {
                         node_pos.dirty = false;
                     }
 
-                    world_pos.clone()
+                    *world_pos
                 }
                 Err(e) => match e {
                     QueryEntityError::NoSuchEntity => {

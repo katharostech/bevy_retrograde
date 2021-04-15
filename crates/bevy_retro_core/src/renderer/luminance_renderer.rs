@@ -290,7 +290,7 @@ impl LuminanceRenderer {
             self.custom_shader = camera.custom_shader.clone();
 
             *screen_program =
-                build_screen_program(surface, camera.custom_shader.as_ref().map(String::as_str));
+                build_screen_program(surface, camera.custom_shader.as_deref());
         }
 
         // Calculate the target size of our scene framebuffer

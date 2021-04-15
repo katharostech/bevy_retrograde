@@ -39,6 +39,7 @@ impl<'a> PixelColliderInfo<'a> {
 }
 
 /// Get whether or not the pixels in `a` collide with the pixels in `b`
+#[allow(clippy::many_single_char_names)]
 pub fn pixels_collide_with_pixels(a: PixelColliderInfo, b: PixelColliderInfo) -> bool {
     let a_bounds = a.get_bounds();
     let b_bounds = b.get_bounds();
@@ -105,11 +106,11 @@ pub struct BoundingBox {
     pub max: IVec2,
 }
 
-impl Into<Box2D<i32>> for BoundingBox {
-    fn into(self) -> Box2D<i32> {
+impl From<BoundingBox> for Box2D<i32> {
+    fn from(bounding_box: BoundingBox) -> Self {
         Box2D::new(
-            Point2D::new(self.min.x, self.min.y),
-            Point2D::new(self.max.x, self.max.y),
+            Point2D::new(bounding_box.min.x, bounding_box.min.y),
+            Point2D::new(bounding_box.max.x, bounding_box.max.y),
         )
     }
 }

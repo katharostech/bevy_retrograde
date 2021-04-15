@@ -53,7 +53,7 @@ impl AssetServerExt for AssetServer {
             let handle = self.load(path);
 
             // Cache its handle
-            ASSET_CACHE.insert(id.clone(), handle.clone_untyped());
+            ASSET_CACHE.insert(id, handle.clone_untyped());
 
             // And return the handle
             handle

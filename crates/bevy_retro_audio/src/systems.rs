@@ -35,7 +35,7 @@ fn get_handle_sound_events_system() -> impl FnMut(&mut World) {
                 if let Some(sound_data) = sound_data_assets.remove(sound_data_asset_handle) {
                     let sound_handle = match sound_data {
                         SoundData::Sound(sound) => audio_manager.0.add_sound(sound).unwrap(),
-                        SoundData::SoundHandle(handle) => handle.clone(),
+                        SoundData::SoundHandle(handle) => handle,
                     };
 
                     sound_data_assets.set_untracked(

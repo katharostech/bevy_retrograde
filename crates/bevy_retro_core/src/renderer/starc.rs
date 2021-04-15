@@ -73,7 +73,7 @@ impl<T> Starc<T> {
         let thread = self.thread;
         a.map_err(|a| Starc {
             arc: a,
-            thread: thread,
+            thread,
         })
     }
 }
