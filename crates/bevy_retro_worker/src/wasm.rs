@@ -1,12 +1,21 @@
 use std::{collections::HashMap, mem, ptr};
 
 use async_channel::Sender;
+use async_lock::RwLock;
+use event_listener::{Event, EventListener};
 use js_sys::{Array, ArrayBuffer, Uint8Array};
 use lazy_static::lazy_static;
-use std::sync::Mutex;
 use uuid::Uuid;
 use wasm_bindgen::{prelude::*, JsCast};
+use wasm_bindgen_futures::spawn_local;
 use web_sys::{DedicatedWorkerGlobalScope, MessageEvent, Worker};
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+
+}
 
 lazy_static! {
     static ref TASK_POOL: BlockingTaskPool = BlockingTaskPool::create();
@@ -14,8 +23,10 @@ lazy_static! {
 
 pub struct BlockingTaskPool {
     _worker_callback: Closure<dyn FnMut(MessageEvent)>,
-    job_result_senders: Mutex<HashMap<Uuid, Sender<Vec<u8>>>>,
-    worker: Mutex<Worker>,
+    job_result_senders: RwLock<HashMap<Uuid, Sender<Vec<u8>>>>,
+    initialized: RwLock<bool>,
+    initialization_listener: RwLock<Option<EventListener>>,
+    worker: RwLock<Worker>,
 }
 
 // Correct me if I'm wrong, but it should be safe to implement sync for this because we only use it
@@ -59,6 +70,7 @@ impl BlockingTaskPool {
 
     /// Creates the task pool
     fn create() -> Self {
+        log("create worker");
         // Get the path to the web worker JavaScript
         let worker = web_sys::Worker::new(include_str!(concat!(
             env!("OUT_DIR"),
@@ -66,10 +78,21 @@ impl BlockingTaskPool {
         )))
         .unwrap();
 
+        let initialize_event = Event::new();
+        let initialization_listener = RwLock::new(Some(initialize_event.listen()));
+
         // Create the callback that will be run when we get messages from our worker
-        let worker_callback = Closure::wrap(Box::new(|event: MessageEvent| {
+        let worker_callback = Closure::wrap(Box::new(move |event: MessageEvent| {
             // Get the data from our event
             let data = event.data();
+
+            // If the data is simply `true` then this is the initialization hook
+            if data == JsValue::TRUE {
+                // Send the initialization event
+                log("notifying of init");
+                initialize_event.notify(1);
+                return;
+            }
 
             // Our data will be an array so cast it to an array
             let args = data.unchecked_ref::<js_sys::Array>();
@@ -85,13 +108,13 @@ impl BlockingTaskPool {
             let data: Vec<u8> =
                 Uint8Array::new(args.get(1).unchecked_ref::<ArrayBuffer>()).to_vec();
 
-            // Using the job UUID obtain the sender that can be used to send the result
-            let mut map = TASK_POOL.job_result_senders.lock().unwrap();
+            spawn_local(async move {
+                // Using the job UUID obtain the sender that can be used to send the result
+                let mut map = TASK_POOL.job_result_senders.write().await;
 
-            let sender = map.remove(&uuid).expect("Unexpected job ID completed");
+                let sender = map.remove(&uuid).expect("Unexpected job ID completed");
 
-            // Kick of the send operation in an async task
-            wasm_bindgen_futures::spawn_local(async move {
+                // Kick of the send operation in an async task
                 sender
                     .send(data)
                     .await
@@ -105,8 +128,10 @@ impl BlockingTaskPool {
         // Return the worker
         Self {
             _worker_callback: worker_callback,
-            worker: Mutex::new(worker),
+            worker: RwLock::new(worker),
+            initialized: RwLock::new(false),
             job_result_senders: Default::default(),
+            initialization_listener,
         }
     }
 
@@ -118,6 +143,21 @@ impl BlockingTaskPool {
         D: Send + Clone + 'static,
         R: Send + Clone + 'static,
     {
+        // Wait for worker initialization
+        if !*self.initialized.read().await {
+            let mut event_listener = self.initialization_listener.write().await;
+            let mut clear_event_listener = false;
+            if let Some(event_listener) = &mut *event_listener{
+                event_listener.await;
+                clear_event_listener = true;
+            }
+            if clear_event_listener {
+                *event_listener = None;
+            }
+            *self.initialized.write().await = true;
+        }
+
+        log("actually_spawn function");
         // Create the array of Transferables to send to the worker
         let array = js_sys::Array::new();
 
@@ -159,17 +199,16 @@ impl BlockingTaskPool {
         let (sender, receiver) = async_channel::bounded(1);
 
         // Add the sender to our pending job senders
-        self.job_result_senders
-            .lock()
-            .unwrap()
-            .insert(job_id, sender);
+        self.job_result_senders.write().await.insert(job_id, sender);
 
         // Then we post our data to the worker
         self.worker
-            .lock()
-            .unwrap()
+            .write()
+            .await
             .post_message_with_transfer(&array, &array)
             .expect("Could not send message to worker");
+
+        log("posted job");
 
         // And we wait for a response from the worker with the raw bytes of our return type
         let ret = receiver
@@ -190,6 +229,7 @@ impl BlockingTaskPool {
         D: Send + Clone + 'static,
         R: Send + Clone + 'static,
     {
+        log("spawn function");
         TASK_POOL.actually_spawn(function, data).await
     }
 }
@@ -213,11 +253,14 @@ pub struct WorkerCallback(Closure<dyn FnMut(MessageEvent)>);
 #[wasm_bindgen]
 #[doc(hidden)]
 pub fn start_worker_pool_worker() -> WorkerCallback {
+    log("Starting worker!");
     // Get the global worker scope
     let worker = js_sys::global().unchecked_into::<DedicatedWorkerGlobalScope>();
 
     // Create the callback that we will run when getting messages from parent
     let worker_callback = Closure::wrap(Box::new(|event: MessageEvent| {
+        log("Got job");
+
         // Get the global worker scope
         let worker = js_sys::global().unchecked_into::<DedicatedWorkerGlobalScope>();
 
@@ -293,6 +336,10 @@ pub fn start_worker_pool_worker() -> WorkerCallback {
     }) as Box<dyn FnMut(MessageEvent)>);
 
     worker.set_onmessage(Some(worker_callback.as_ref().unchecked_ref()));
+
+    // Send init message
+    log("sending init message");
+    worker.post_message(&JsValue::TRUE).unwrap();
 
     WorkerCallback(worker_callback)
 }
