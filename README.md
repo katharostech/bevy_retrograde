@@ -39,6 +39,14 @@ These extra features will be included as optional cargo featurs that can be disa
 needed and, where applicable, be packaged a separate Rust crates that can be used even if you
 don't want to use the rest of Bevy Retro.
 
+## License
+
+Bevy Retro LDtk is licensed under the [Katharos License][k_license] which places certain
+restrictions on what you are allowed to use it for. Please read and understand the terms before
+using Bevy Retro for your project.
+
+[k_license]: https://github.com/katharostech/katharos-license
+
 ## Development Status
 
 Bevy Retro is in very early stages of development, but should still be somewhat usable.
@@ -59,9 +67,6 @@ Bevy Retro releases for each Bevy release.
 - An [LDtk](https://ldtk.io) map loading [plugin](./plugins/bevy_retro_ldtk)
 - Pixel-perfect collision detection
 - Custom shaders for post-processing, including a built-in CRT shader
-- Audio support ( ogg, flac, and wave ) including sound looping, built on [kira]
-
-[kira]: https://github.com/tesselode/kira
 
 ## Examples
 
@@ -156,11 +161,23 @@ fn setup(
     });
 }
 ```
+### Running Examples
 
-## License
+We use the [just] for automating our development tasks and the project `justfile` includes tasks
+for running the examples for web or native:
 
-Bevy Retro LDtk is licensed under the [Katharos License][k_license] which places certain
-restrictions on what you are allowed to use it for. Please read and understand the terms before
-using Bevy LDtk for your project.
+```bash
+# Run native example
+just run-example audio # or any other example name
 
-[k_license]: https://github.com/katharostech/katharos-license
+# Run web example
+just run-example-web collisions
+```
+
+When running the web examples it will try to use [`basic-http-server`] to host the example on
+port http://localhost:4000. You can install [`basic-http-server`] or you can modify the justfile
+to use whatever your favorite development http server is.
+
+[just]: https://github.com/casey/just
+
+[`basic-http-server`]: https://github.com/brson/basic-http-server
