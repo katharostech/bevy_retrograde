@@ -13,7 +13,8 @@ pub(crate) fn add_components(app: &mut AppBuilder) {
         .register_type::<Position>()
         .register_type::<WorldPosition>()
         .register_type::<Sprite>()
-        .register_type::<SpriteSheet>();
+        .register_type::<SpriteSheet>()
+        .register_type::<Visible>();
 }
 
 /// The retro camera bundle
