@@ -14,6 +14,7 @@ use luminance_web_sys::WebSysWebGL2Surface;
 use std::sync::Arc;
 #[cfg(wasm)]
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
 
 #[cfg(not(wasm))]
 type Surface = luminance_surfman::SurfmanSurface;
@@ -22,9 +23,6 @@ type Surface = WebSysWebGL2Surface;
 
 pub(crate) mod luminance_renderer;
 pub(crate) mod starc;
-
-#[cfg(wasm)]
-mod js;
 
 use self::luminance_renderer::LuminanceRenderer;
 
@@ -57,6 +55,10 @@ struct RetroRenderer {
 
     #[cfg(wasm)]
     pub browser_resize_handles: HashMap<bevy::window::WindowId, BrowserResizeHandle>,
+    /// These event handlers are held here to keep them from getting dropped so that they can be
+    /// called from JavaScript when the browser is resized.
+    #[cfg(wasm)]
+    pub _browser_resize_event_handlers: HashMap<bevy::window::WindowId, Closure<dyn FnMut()>>,
     #[cfg(not(wasm))]
     pub window_resized_event_reader: ManualEventReader<bevy::window::WindowResized>,
 }
@@ -112,9 +114,32 @@ impl RetroRenderer {
                 let canvas = winit_window.canvas();
 
                 // Setup browser resize callback
-                let browser_resize_handle =
-                    self.browser_resize_handles.entry(window.id()).or_default();
-                js::setup_canvas_resize_callback(browser_resize_handle.clone());
+                let browser_resize_handle = self
+                    .browser_resize_handles
+                    .entry(window.id())
+                    .or_default()
+                    .clone();
+
+                let resize_listener = Closure::wrap(Box::new(move || {
+                    let browser_window = web_sys::window().unwrap();
+                    let window_width = browser_window.inner_width().unwrap().as_f64().unwrap();
+                    let window_height = browser_window.inner_height().unwrap().as_f64().unwrap();
+
+                    browser_resize_handle.set_new_size(window_width as u32, window_height as u32);
+                })
+                    as Box<dyn FnMut() + 'static>);
+
+                browser_window
+                    .add_event_listener_with_callback(
+                        "resize",
+                        resize_listener.as_ref().unchecked_ref(),
+                    )
+                    .expect("Could not add browser resize event listener");
+
+                // Store the browser event listener so that it doesn't get dropped and so that it can be called
+                // by the event handler when the browser resizes.
+                self._browser_resize_event_handlers
+                    .insert(window_id, resize_listener);
 
                 // Set the browser title
                 browser_window.document().unwrap().set_title(window.title());
