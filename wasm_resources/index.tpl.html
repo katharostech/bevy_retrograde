@@ -65,7 +65,7 @@
         // If all the AudioContexts have now resumed then we
         // unbind all the event listeners from the page to prevent
         // unnecessary resume attempts
-        if (count == audioContextList.length) {
+        if (count && count == audioContextList.length) {
           userInputEventNames.forEach((eventName) => {
             document.removeEventListener(eventName, resumeAllContexts);
           });
