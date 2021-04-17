@@ -14,6 +14,7 @@ use luminance_web_sys::WebSysWebGL2Surface;
 use std::sync::Arc;
 #[cfg(wasm)]
 use wasm_bindgen::prelude::*;
+#[cfg(wasm)]
 use wasm_bindgen::JsCast;
 
 #[cfg(not(wasm))]
