@@ -82,3 +82,28 @@ macro_rules! impl_deref {
         }
     };
 }
+
+/// Utility macro for adding a `#[cfg]` attribute to a batch of items
+/// 
+/// # Example
+/// 
+/// ```
+/// // Only import these libraries for wasm targets
+/// cfg_items!(wasm, {
+///     use web_sys;
+///     use js_sys;
+/// });
+/// ```
+#[macro_export(crate)]
+macro_rules! cfg_items {
+    ($cfg:meta, {
+        $(
+            $item:item
+        )*
+    }) => {
+        $(
+            #[cfg($cfg)]
+            $item
+        )*
+    };
+}

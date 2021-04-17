@@ -6,46 +6,43 @@ use bevy::{
     winit::WinitWindows,
 };
 
-#[cfg(wasm)]
-mod luminance_web_sys;
-#[cfg(wasm)]
-use luminance_web_sys::WebSysWebGL2Surface;
-#[cfg(wasm)]
-use std::sync::Arc;
-#[cfg(wasm)]
-use wasm_bindgen::prelude::*;
-#[cfg(wasm)]
-use wasm_bindgen::JsCast;
-
-#[cfg(not(wasm))]
-type Surface = luminance_surfman::SurfmanSurface;
-#[cfg(wasm)]
-type Surface = WebSysWebGL2Surface;
+use crate::cfg_items;
 
 pub(crate) mod luminance_renderer;
 pub(crate) mod starc;
 
 use self::luminance_renderer::LuminanceRenderer;
 
+cfg_items!(wasm, {
+    mod luminance_web_sys;
+    use luminance_web_sys::WebSysWebGL2Surface;
+    use std::sync::Arc;
+    use wasm_bindgen::prelude::*;
+    use wasm_bindgen::JsCast;
+
+    type Surface = WebSysWebGL2Surface;
+
+    #[wasm_bindgen]
+    #[derive(Clone, Debug, Default)]
+    pub struct BrowserResizeHandle(Arc<parking_lot::Mutex<Option<(u32, u32)>>>);
+
+    #[wasm_bindgen]
+    impl BrowserResizeHandle {
+        #[wasm_bindgen]
+        pub fn set_new_size(&self, width: u32, height: u32) {
+            *self.0.lock() = Some((width, height));
+        }
+    }
+});
+
+#[cfg(not(wasm))]
+type Surface = luminance_surfman::SurfmanSurface;
+
 pub(crate) fn get_render_system() -> impl FnMut(&mut World) {
     let mut renderer = RetroRenderer::default();
 
     move |world| {
         renderer.update(world);
-    }
-}
-
-#[cfg(wasm)]
-#[wasm_bindgen]
-#[derive(Clone, Debug, Default)]
-pub struct BrowserResizeHandle(Arc<parking_lot::Mutex<Option<(u32, u32)>>>);
-
-#[cfg(wasm)]
-#[wasm_bindgen]
-impl BrowserResizeHandle {
-    #[wasm_bindgen]
-    pub fn set_new_size(&self, width: u32, height: u32) {
-        *self.0.lock() = Some((width, height));
     }
 }
 
@@ -60,6 +57,7 @@ struct RetroRenderer {
     /// called from JavaScript when the browser is resized.
     #[cfg(wasm)]
     pub _browser_resize_event_handlers: HashMap<bevy::window::WindowId, Closure<dyn FnMut()>>,
+
     #[cfg(not(wasm))]
     pub window_resized_event_reader: ManualEventReader<bevy::window::WindowResized>,
 }
@@ -194,6 +192,7 @@ impl RetroRenderer {
 
         #[cfg(not(wasm))]
         self.handle_native_window_resize(world);
+
         #[cfg(wasm)]
         self.handle_browser_resize(world);
 
