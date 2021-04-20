@@ -117,7 +117,7 @@ struct ScreenUniformInterface {
 #[cfg(wasm)]
 fn intern_shader_uniform_names() {
     use wasm_bindgen::intern;
-    // NOTE: This must be kept up-to-date with the names of the uniforms above
+    // NOTE: This must be kept up-to-date with the names of the uniforms above to be useful
     intern("camera_position");
     intern("camera_size");
     intern("camera_centered");
@@ -530,7 +530,7 @@ impl LuminanceRenderer {
         }
         *pending_textures = new_pending_textures;
 
-        // for every window resize event
+        // for every image asset event
         for event in image_asset_event_reader.iter(&image_asset_events) {
             match event {
                 AssetEvent::Created { handle } => {

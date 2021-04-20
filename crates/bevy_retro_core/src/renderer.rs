@@ -15,12 +15,12 @@ use self::luminance_renderer::LuminanceRenderer;
 
 cfg_items!(wasm, {
     mod luminance_web_sys;
-    use luminance_web_sys::WebSysWebGL2Surface;
+    use luminance_web_sys::WebSysWebGLSurface;
     use std::sync::Arc;
     use wasm_bindgen::prelude::*;
     use wasm_bindgen::JsCast;
 
-    type Surface = WebSysWebGL2Surface;
+    type Surface = WebSysWebGLSurface;
 
     #[wasm_bindgen]
     #[derive(Clone, Debug, Default)]
@@ -144,7 +144,7 @@ impl RetroRenderer {
                 browser_window.document().unwrap().set_title(window.title());
 
                 // Get the Luminance surface
-                WebSysWebGL2Surface::from_canvas(canvas).expect("Could not create graphics surface")
+                WebSysWebGLSurface::from_canvas(canvas).expect("Could not create graphics surface")
             };
 
             self.renderers
