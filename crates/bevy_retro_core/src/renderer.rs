@@ -8,7 +8,7 @@ use bevy::{
     winit::WinitWindows,
 };
 
-pub(crate) mod backend;
+pub mod backend;
 pub(crate) mod starc;
 
 use self::backend::Renderer;
@@ -20,7 +20,7 @@ crate::cfg_items!(wasm, {
     use wasm_bindgen::prelude::*;
     use wasm_bindgen::JsCast;
 
-    type Surface = WebSysWebGLSurface;
+    pub type Surface = WebSysWebGLSurface;
 
     #[wasm_bindgen]
     #[derive(Clone, Debug, Default)]
@@ -36,7 +36,7 @@ crate::cfg_items!(wasm, {
 });
 
 #[cfg(not(wasm))]
-type Surface = luminance_surfman::SurfmanSurface;
+pub type Surface = luminance_surfman::SurfmanSurface;
 
 /// Helper function that returns the rendering system
 pub(crate) fn get_render_system() -> impl FnMut(&mut World) {

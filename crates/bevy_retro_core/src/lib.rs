@@ -3,9 +3,11 @@ use bevy::prelude::*;
 /// Re-export of the [`image`] crate
 pub use image;
 
-mod renderer;
+// FIXME: We need to organize these modules
+
+pub mod renderer;
 use renderer::*;
-pub use renderer::{RenderHook, RenderHooks};
+pub use renderer::{RenderHook, RenderHooks, Surface};
 
 mod assets;
 pub use assets::*;
@@ -24,6 +26,9 @@ pub use shaders::*;
 
 mod bevy_extensions;
 pub use bevy_extensions::*;
+
+/// Luminance rendering types
+pub use luminance;
 
 /// The ECS schedule stages that the Bevy retro code is run in
 #[derive(Debug, Clone, Copy, StageLabel, Hash, PartialEq, Eq)]

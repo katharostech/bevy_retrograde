@@ -256,7 +256,7 @@ impl RenderHook for SpriteHook {
             .pipeline(
                 // Render to the scene framebuffer
                 &target_framebuffer,
-                &PipelineState::default().set_clear_color(color_to_array(camera.background_color)),
+                &PipelineState::default().enable_clear_color(false),
                 |pipeline, mut shading_gate| {
                     shading_gate.shade(
                         sprite_program,

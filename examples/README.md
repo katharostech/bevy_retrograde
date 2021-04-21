@@ -46,6 +46,16 @@ An example demonstrating how to add post-processing, using either the built-in C
 
 [post_processing]: ./post_processing.rs
 
+## [custom_rendering]
+
+An advanced example that shows how to do fully custom rendering of your own objects. This utilizes
+raw calls to the [Luminance] graphics API allowing you to render _any_ kind of object, even 3D if you wanted to.
+
+![custom_rendering](./screenshots/custom_rendering.gif)
+
+[Luminance]: https://github.com/phaazon/luminance-rs
+[custom_rendering]: ./custom_rendering.rs
+
 ## [radishmark]
 
 A bunnymark style demo that logs frame time diagnostics to the console.
