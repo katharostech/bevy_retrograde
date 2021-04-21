@@ -5,6 +5,7 @@ pub use image;
 
 mod renderer;
 use renderer::*;
+pub use renderer::{RenderHook, RenderHooks};
 
 mod assets;
 pub use assets::*;
@@ -41,6 +42,8 @@ impl Plugin for RetroCorePlugin {
         add_assets(app);
 
         app.init_resource::<SceneGraph>()
+            .init_resource::<RenderHooks>()
+            .add_render_hook::<renderer::backend::sprite_hook::SpriteHook>()
             .add_stage_after(
                 CoreStage::Last,
                 RetroStage::WorldPositionPropagation,
@@ -84,9 +87,9 @@ macro_rules! impl_deref {
 }
 
 /// Utility macro for adding a `#[cfg]` attribute to a batch of items
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// // Only import these libraries for wasm targets
 /// cfg_items!(wasm, {

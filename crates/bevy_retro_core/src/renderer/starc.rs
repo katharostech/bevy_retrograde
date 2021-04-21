@@ -71,10 +71,7 @@ impl<T> Starc<T> {
     pub(crate) fn try_unwrap(self) -> Result<T, Self> {
         let a = Arc::try_unwrap(self.arc);
         let thread = self.thread;
-        a.map_err(|a| Starc {
-            arc: a,
-            thread,
-        })
+        a.map_err(|a| Starc { arc: a, thread })
     }
 }
 
