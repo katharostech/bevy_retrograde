@@ -67,6 +67,9 @@ Bevy Retro releases for each Bevy release.
 - An [LDtk](https://ldtk.io) map loading [plugin](./plugins/bevy_retro_ldtk)
 - Pixel-perfect collision detection
 - Custom shaders for post-processing, including a built-in CRT shader
+- Render hooks allowing you to drop down into raw [Luminance] calls for custom rendering
+
+[Luminance]: https://github.com/phaazon/luminance-rs
 
 ## Examples
 
