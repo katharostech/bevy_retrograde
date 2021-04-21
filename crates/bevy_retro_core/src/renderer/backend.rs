@@ -106,8 +106,10 @@ struct ScreenUniformInterface {
 /// [`RenderHook`] implementations.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 struct Renderable {
-    hook_idx: usize,
+    // NOTE: The order of these fields are important! We want to sort based on the handle first and the
+    // hook idx second.
     handle: RenderHookRenderableHandle,
+    hook_idx: usize,
 }
 
 pub(crate) struct Renderer {
@@ -222,6 +224,16 @@ impl Renderer {
                 .new_framebuffer(target_size, 0, PIXELATED_SAMPLER)
                 .expect("Create framebuffer");
         }
+
+        // Clear the screen
+        surface
+            .new_pipeline_gate()
+            .pipeline(
+                &scene_framebuffer,
+                &PipelineState::default().set_clear_color(color_to_array(camera.background_color)),
+                |_, _| Ok(()),
+            )
+            .assume();
 
         let mut renderables = Vec::new();
         // Loop through our render hooks and run their render functions

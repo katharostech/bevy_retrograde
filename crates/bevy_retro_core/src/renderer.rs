@@ -66,9 +66,9 @@ impl std::cmp::Ord for RenderHookRenderableHandle {
         if self == other {
             std::cmp::Ordering::Equal
         } else if self.is_transparent && !other.is_transparent {
-            std::cmp::Ordering::Less
-        } else if !self.is_transparent && other.is_transparent {
             std::cmp::Ordering::Greater
+        } else if !self.is_transparent && other.is_transparent {
+            std::cmp::Ordering::Less
         } else {
             self.depth.cmp(&other.depth)
         }
