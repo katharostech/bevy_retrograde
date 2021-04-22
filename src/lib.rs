@@ -61,7 +61,7 @@
 //!
 //! ```no_run
 //! use bevy::prelude::*;
-//! use bevy_retro::*;
+//! use bevy_retro::prelude::*;
 //!
 //! fn main() {
 //!     App::build()
@@ -167,19 +167,10 @@
 //!
 //! [`basic-http-server`]: https://github.com/brson/basic-http-server
 
-use bevy::prelude::PluginGroup;
-pub use bevy_retro_core::*;
-
-#[cfg(feature = "ldtk")]
-pub use bevy_retro_ldtk::*;
-
-#[cfg(feature = "audio")]
-pub use bevy_retro_audio::*;
-
-/// The core set of Bevy Retro plugins
+/// The Bevy Retro default plugins
 pub struct RetroPlugins;
 
-impl PluginGroup for RetroPlugins {
+impl bevy::app::PluginGroup for RetroPlugins {
     fn build(&mut self, group: &mut bevy::app::PluginGroupBuilder) {
         // Add the plugins we need from Bevy
         group.add(bevy::log::LogPlugin::default());
@@ -191,9 +182,37 @@ impl PluginGroup for RetroPlugins {
         group.add(bevy::winit::WinitPlugin::default());
         group.add(bevy::scene::ScenePlugin::default());
 
-        group.add(RetroCorePlugin);
+        group.add(core::RetroCorePlugin);
 
         #[cfg(feature = "audio")]
-        group.add(AudioPlugin);
+        group.add(audio::RetroAudioPlugin);
     }
 }
+
+/// The Bevy Retro prelude
+#[doc(hidden)]
+pub mod prelude {
+    #[doc(no_inline)]
+    pub use crate::*;
+    #[doc(no_inline)]
+    pub use bevy_retro_core::prelude::*;
+    #[doc(no_inline)]
+    pub use bevy_retro_macros::impl_deref;
+
+    #[doc(no_inline)]
+    #[cfg(feature = "audio")]
+    pub use bevy_retro_audio::*;
+
+    #[doc(no_inline)]
+    #[cfg(feature = "ldtk")]
+    pub use bevy_retro_ldtk::*;
+}
+
+#[doc(inline)]
+pub use bevy_retro_core as core;
+
+pub use bevy_retro_macros::impl_deref;
+
+#[cfg(feature = "audio")]
+#[doc(inline)]
+pub use bevy_retro_audio as audio;

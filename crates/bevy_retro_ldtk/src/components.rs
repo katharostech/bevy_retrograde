@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_retro_core::{Position, WorldPosition};
+use bevy_retro_core::components::{Position, WorldPosition};
 use ldtk::LayerInstance;
 
 use crate::asset::LdtkMap;

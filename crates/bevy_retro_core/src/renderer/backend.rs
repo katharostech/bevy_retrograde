@@ -1,40 +1,16 @@
 use std::usize;
 
+use bevy::{prelude::*, winit::WinitWindows};
 use luminance::{
-    blending::{Blending, Equation, Factor},
     context::GraphicsContext,
     pipeline::{PipelineState, TextureBinding},
-    pixel::{NormRGBA8UI, NormUnsigned},
     render_state::RenderState,
     shader::Uniform,
-    tess::Interleaved,
-    texture::{Dim2, GenMipmaps, MagFilter, MinFilter, Sampler, Wrap},
+    texture::{Dim2, MagFilter, MinFilter, Sampler, Wrap},
     Semantics, UniformInterface, Vertex,
 };
-use luminance_glow::Glow;
-use parking_lot::Mutex;
 
-use super::*;
-use crate::{starc::Starc, *};
-
-use crate::cfg_items;
-
-pub(crate) mod sprite_hook;
-
-cfg_items!(not(wasm), {
-    use luminance::pixel::{Floating, RGBA32F};
-    pub type SceneFramebuffer = Framebuffer<Dim2, RGBA32F, ()>;
-});
-
-cfg_items!(wasm, {
-    use luminance::pixel::{Unsigned, RGBA8UI};
-    pub type SceneFramebuffer = Framebuffer<Dim2, RGBA8UI, ()>;
-});
-
-pub type Framebuffer<D, CS, DS> = luminance::framebuffer::Framebuffer<Glow, D, CS, DS>;
-pub type Program<Sem, Out, Uni> = luminance::shader::Program<Glow, Sem, Out, Uni>;
-pub type Tess<V, I = (), W = (), S = Interleaved> = luminance::tess::Tess<Glow, V, I, W, S>;
-pub type Texture<D, P> = luminance::texture::Texture<Glow, D, P>;
+use crate::{graphics::*, prelude::*};
 
 /// The default custom camera shader string
 const DEFAULT_CUSTOM_SHADER: &str = r#"
@@ -66,7 +42,7 @@ const SCREEN_VERTS: [ScreenVert; 4] = [
 ];
 
 /// The scene framebuffer sampler
-const PIXELATED_SAMPLER: Sampler = Sampler {
+pub(crate) const PIXELATED_SAMPLER: Sampler = Sampler {
     wrap_r: Wrap::ClampToEdge,
     wrap_s: Wrap::ClampToEdge,
     wrap_t: Wrap::ClampToEdge,
@@ -81,6 +57,7 @@ const PIXELATED_SAMPLER: Sampler = Sampler {
 struct ScreenVert {
     pos: VertexPosition,
 }
+
 #[derive(UniformInterface)]
 struct ScreenUniformInterface {
     camera_size: Uniform<[i32; 2]>,
@@ -94,9 +71,9 @@ struct ScreenUniformInterface {
 
     window_size: Uniform<[i32; 2]>,
     #[cfg(not(wasm))]
-    screen_texture: Uniform<TextureBinding<Dim2, Floating>>,
+    screen_texture: Uniform<TextureBinding<Dim2, luminance::pixel::Floating>>,
     #[cfg(wasm)]
-    screen_texture: Uniform<TextureBinding<Dim2, Unsigned>>,
+    screen_texture: Uniform<TextureBinding<Dim2, luminance::pixel::Unsigned>>,
     /// The number of seconds since startup
     #[uniform(unbound)]
     time: Uniform<f32>,

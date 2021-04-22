@@ -9,12 +9,14 @@
 
 use bevy::prelude::*;
 use bevy_retro::{
-    luminance::{
-        context::GraphicsContext, pipeline::PipelineState, render_state::RenderState,
-        shader::Uniform, tess::Mode,
+    core::{
+        graphics::*,
+        luminance::{
+            self, context::GraphicsContext, pipeline::PipelineState, render_state::RenderState,
+            shader::Uniform, tess::Mode, Semantics, UniformInterface, Vertex,
+        },
     },
-    renderer::{AppBuilderRenderHookExt, RenderHookRenderableHandle},
-    *,
+    prelude::*,
 };
 
 /// This is our triangle component. Our custom renderer will render all entities with a Triangle
@@ -62,8 +64,8 @@ fn move_triangle(time: Res<Time>, mut query: Query<(&mut Triangle, &mut Position
 /// And we will create our render hook struct that will do our custom rendering. This struct
 /// contains the persistant graphics objects that it will use while rendering.
 struct TriangleRenderHook {
-    tri_program: renderer::backend::Program<VertexSemantics, (), Uniforms>,
-    tri_tess: renderer::backend::Tess<Vertex>,
+    tri_program: Program<VertexSemantics, (), Uniforms>,
+    tri_tess: Tess<Vertex>,
 
     current_triangle_batch: Option<Vec<Entity>>,
 }
@@ -105,7 +107,7 @@ impl RenderHook for TriangleRenderHook {
         &mut self,
         world: &mut World,
         _surface: &mut Surface,
-    ) -> Vec<renderer::RenderHookRenderableHandle> {
+    ) -> Vec<RenderHookRenderableHandle> {
         // We create a query for all of our triangles in our scene
         let mut triangles = world.query::<(Entity, &Triangle, &WorldPosition)>();
 
@@ -146,9 +148,9 @@ impl RenderHook for TriangleRenderHook {
         world: &mut World,
         surface: &mut Surface,
         // This is the framebuffer that we should render to
-        target_framebuffer: &renderer::backend::SceneFramebuffer,
+        target_framebuffer: &SceneFramebuffer,
         // This is the list of renderables that we should render
-        renderables: &[renderer::RenderHookRenderableHandle],
+        renderables: &[RenderHookRenderableHandle],
     ) {
         let Self {
             current_triangle_batch,
@@ -235,7 +237,7 @@ void main() {
 }
 "#;
 
-#[derive(Debug, luminance::UniformInterface)]
+#[derive(Debug, UniformInterface)]
 struct Uniforms {
     #[uniform(unbound)]
     tri_pos: Uniform<[f32; 3]>,
@@ -243,7 +245,7 @@ struct Uniforms {
     tri_scale: Uniform<f32>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, luminance::Semantics)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Semantics)]
 pub enum VertexSemantics {
     // - Reference vertex positions with the "co" variable in vertex shaders.
     // - The underlying representation is [f32; 2], which is a vec2 in GLSL.
@@ -258,7 +260,7 @@ pub enum VertexSemantics {
 }
 
 #[repr(C)]
-#[derive(Clone, Copy, Debug, PartialEq, luminance::Vertex)]
+#[derive(Clone, Copy, Debug, PartialEq, Vertex)]
 #[vertex(sem = "VertexSemantics")]
 struct Vertex {
     pos: VertexPosition,

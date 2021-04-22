@@ -2,7 +2,7 @@ use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     prelude::*,
 };
-use bevy_retro::*;
+use bevy_retro::prelude::*;
 use rand::{thread_rng, Rng};
 
 struct RadishCounter {

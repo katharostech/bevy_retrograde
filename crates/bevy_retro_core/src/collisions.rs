@@ -1,9 +1,12 @@
+//! Collision detection utilities
+
 use euclid::default::{Box2D, Point2D, Vector2D};
 use image::GenericImageView;
 
-use crate::*;
+use crate::prelude::*;
+use bevy::prelude::*;
 
-/// Information needed to detect pixel collisions using [`pixels_collide_with_pixels`].
+/// Information needed to detect pixel collisions using [`pixels_collide_with_pixels`]
 #[derive(Clone, Copy)]
 pub struct PixelColliderInfo<'a> {
     pub image: &'a Image,

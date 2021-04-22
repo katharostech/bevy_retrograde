@@ -1,9 +1,10 @@
+//! Asset types
+
+use crate::prelude::*;
 use bevy::prelude::*;
 
 mod image;
 pub use self::image::*;
-
-use crate::*;
 
 /// Add asset types and asset loader to the app builder
 pub(crate) fn add_assets(app: &mut AppBuilder) {

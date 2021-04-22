@@ -1,43 +1,46 @@
+//! Bevy Retro core
+
 use bevy::prelude::*;
+
+/// The prelude
+#[doc(hidden)]
+pub mod prelude {
+    pub use crate::assets::*;
+    pub use crate::bevy_extensions::*;
+    pub use crate::bundles::*;
+    pub use crate::collisions::*;
+    pub use crate::components::*;
+    pub use crate::hierarchy::*;
+    pub use crate::shaders::*;
+}
 
 /// Re-export of the [`image`] crate
 pub use image;
 
-// FIXME: We need to organize these modules
-
-pub mod renderer;
-use renderer::*;
-pub use renderer::{RenderHook, RenderHooks, Surface};
-
-mod assets;
-pub use assets::*;
-
-mod components;
-pub use components::*;
-
-mod bundles;
-pub use bundles::*;
-
-mod collisions;
-pub use collisions::*;
-
-mod shaders;
-pub use shaders::*;
-
-mod bevy_extensions;
-pub use bevy_extensions::*;
-
 /// Luminance rendering types
 pub use luminance;
 
+pub mod assets;
+pub mod bevy_extensions;
+pub mod bundles;
+pub mod collisions;
+pub mod components;
+pub mod graphics;
+pub mod hierarchy;
+pub mod shaders;
+
+mod renderer;
+
 /// The ECS schedule stages that the Bevy retro code is run in
 #[derive(Debug, Clone, Copy, StageLabel, Hash, PartialEq, Eq)]
-enum RetroStage {
+enum RetroCoreStage {
     WorldPositionPropagation,
     Rendering,
 }
 
-/// The Core Bevy Retro plugin
+use crate::{graphics::*, prelude::*, renderer::*};
+
+/// The Bevy Retro Core plugin
 #[derive(Default)]
 pub struct RetroCorePlugin;
 
@@ -48,70 +51,17 @@ impl Plugin for RetroCorePlugin {
 
         app.init_resource::<SceneGraph>()
             .init_resource::<RenderHooks>()
-            .add_render_hook::<renderer::backend::sprite_hook::SpriteHook>()
+            .add_render_hook::<graphics::hooks::SpriteHook>()
             .add_stage_after(
                 CoreStage::Last,
-                RetroStage::WorldPositionPropagation,
+                RetroCoreStage::WorldPositionPropagation,
                 SystemStage::single_threaded()
                     .with_system(propagate_world_positions_system.system()),
             )
             .add_stage_after(
-                RetroStage::WorldPositionPropagation,
-                RetroStage::Rendering,
+                RetroCoreStage::WorldPositionPropagation,
+                RetroCoreStage::Rendering,
                 SystemStage::single_threaded().with_system(get_render_system().exclusive_system()),
             );
     }
-}
-
-/// Utility to implement deref for single-element tuple structs
-///
-/// # Example
-///
-/// ```rust
-/// struct Score(usize);
-///
-/// impl_deref!(Score, usize);
-/// ```
-#[macro_export(crate)]
-macro_rules! impl_deref {
-    ($struct:ident, $target:path) => {
-        impl std::ops::Deref for $struct {
-            type Target = $target;
-
-            fn deref(&self) -> &Self::Target {
-                &self.0
-            }
-        }
-
-        impl std::ops::DerefMut for $struct {
-            fn deref_mut(&mut self) -> &mut Self::Target {
-                &mut self.0
-            }
-        }
-    };
-}
-
-/// Utility macro for adding a `#[cfg]` attribute to a batch of items
-///
-/// # Example
-///
-/// ```
-/// // Only import these libraries for wasm targets
-/// cfg_items!(wasm, {
-///     use web_sys;
-///     use js_sys;
-/// });
-/// ```
-#[macro_export(crate)]
-macro_rules! cfg_items {
-    ($cfg:meta, {
-        $(
-            $item:item
-        )*
-    }) => {
-        $(
-            #[cfg($cfg)]
-            $item
-        )*
-    };
 }

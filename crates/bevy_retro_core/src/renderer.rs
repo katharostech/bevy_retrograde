@@ -1,25 +1,25 @@
-//! Contains the core rendering infrastructure of Bevy Retro
+//! Rendering
 
 use bevy::{
     app::{Events, ManualEventReader},
     prelude::*,
     utils::HashMap,
     window::WindowCreated,
-    winit::WinitWindows,
 };
 
-pub mod backend;
+pub(crate) mod backend;
 pub(crate) mod starc;
 
 use self::backend::Renderer;
 
-crate::cfg_items!(wasm, {
+bevy_retro_macros::items_attr!(cfg(wasm), {
     mod luminance_web_sys;
     use luminance_web_sys::WebSysWebGLSurface;
     use std::sync::Arc;
     use wasm_bindgen::prelude::*;
     use wasm_bindgen::JsCast;
 
+    /// A [`luminance`] surface using the Bevy Retro backend
     pub type Surface = WebSysWebGLSurface;
 
     #[wasm_bindgen]
@@ -36,6 +36,7 @@ crate::cfg_items!(wasm, {
 });
 
 #[cfg(not(wasm))]
+/// A [`luminance`] surface using the Bevy Retro backend
 pub type Surface = luminance_surfman::SurfmanSurface;
 
 /// Helper function that returns the rendering system
@@ -44,108 +45,6 @@ pub(crate) fn get_render_system() -> impl FnMut(&mut World) {
 
     move |world| {
         renderer.update(world);
-    }
-}
-
-/// Represents a renderable object at a specific depth in the scene
-///
-/// The `depth` and `is_transparent` fields are used to sort the renderable
-/// objects before rendering and the `identifier` field is used by the
-/// [`RenderHook`] that created the handle to identify the renderable that this
-/// handle refers to.
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct RenderHookRenderableHandle {
-    pub identifier: usize,
-    pub is_transparent: bool,
-    pub depth: i32,
-}
-
-// Sort non-transparent before transparent, and lower depth before higher depth
-impl std::cmp::Ord for RenderHookRenderableHandle {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        if self == other {
-            std::cmp::Ordering::Equal
-        } else if self.is_transparent && !other.is_transparent {
-            std::cmp::Ordering::Greater
-        } else if !self.is_transparent && other.is_transparent {
-            std::cmp::Ordering::Less
-        } else {
-            self.depth.cmp(&other.depth)
-        }
-    }
-}
-
-impl PartialOrd for RenderHookRenderableHandle {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-/// A trait that can be implemented and added to the [`RenderHooks`] resource to
-/// extend the Bevy Retro renderer
-pub trait RenderHook {
-    /// Function called upon window creation to initialize the render hook
-    fn init(window_id: bevy::window::WindowId, surface: &mut Surface) -> Box<dyn RenderHook>
-    where
-        Self: Sized;
-
-    /// This function is called before rendering to the retro-resolution framebuffer and is expected
-    /// to return a vector of [`RenderHookRenderableHandle`]'s, one for each item that will be
-    /// rendered by this hook. The [`RenderHookRenderableHandle`] indicates the depth of the object
-    /// in the scene and whether or not it is transparent.
-    #[allow(unused_variables)]
-    fn prepare_low_res(
-        &mut self,
-        world: &mut World,
-        surface: &mut Surface,
-    ) -> Vec<RenderHookRenderableHandle> {
-        vec![]
-    }
-
-    /// This function is called after [`prepare_low_res`] is called, possibly multiple times, once
-    /// for every batch of renderables that are grouped after depth sorting with all the other
-    /// renderables produced by other render hookds. It is passed a framebuffer and a list of
-    /// renderables that should be rendered by this hook in this pass.
-    #[allow(unused_variables)]
-    fn render_low_res(
-        &mut self,
-        world: &mut World,
-        surface: &mut Surface,
-        target_framebuffer: &backend::SceneFramebuffer,
-        renderables: &[RenderHookRenderableHandle],
-    ) {
-    }
-
-    // TODO: Add high-res render hook
-}
-
-type RenderHookInitFn =
-    dyn Fn(bevy::window::WindowId, &mut Surface) -> Box<dyn RenderHook> + Sync + Send + 'static;
-
-/// Extension trait for adding an `add_render_hook` function to the Bevy [`AppBuilder`]
-pub trait AppBuilderRenderHookExt {
-    fn add_render_hook<T: RenderHook + 'static>(self) -> Self;
-}
-impl AppBuilderRenderHookExt for &mut AppBuilder {
-    fn add_render_hook<T: RenderHook + 'static>(self) -> Self {
-        let world = self.world_mut();
-        world.resource_scope(|_, mut render_hooks: Mut<RenderHooks>| {
-            render_hooks.add_render_hook::<T>();
-        });
-
-        self
-    }
-}
-
-#[derive(Default)]
-pub struct RenderHooks {
-    pub(crate) new_hooks: Vec<Box<RenderHookInitFn>>,
-}
-
-impl RenderHooks {
-    pub fn add_render_hook<T: RenderHook + 'static>(&mut self) {
-        self.new_hooks
-            .push(Box::new(T::init) as Box<RenderHookInitFn>);
     }
 }
 

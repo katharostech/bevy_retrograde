@@ -1,13 +1,16 @@
-//! This module holds extension traits for Bevy types
+//! Extension traits for Bevy types
 
-use bevy::asset::*;
+use bevy::{asset::*, prelude::*};
 use dashmap::DashMap;
 
+use crate::graphics::*;
+
 lazy_static::lazy_static! {
+    /// An asset handle cache used by [`AssetServerExt`]
     static ref ASSET_CACHE: DashMap<AssetPathId, HandleUntyped> = DashMap::new();
 }
 
-/// Extension functions for the Bevy asset server
+/// Extension functions for the Bevy [`AssetServer`]
 pub trait AssetServerExt {
     /// Load an asset and add it to an internal cache, or if it has already been loaded, get the
     /// cached asset handle.
@@ -62,5 +65,21 @@ impl AssetServerExt for AssetServer {
 
     fn remove_from_cache<T: Asset>(handle: Handle<T>) {
         ASSET_CACHE.retain(|_, v| v != &handle.clone_untyped());
+    }
+}
+
+/// Render hook extension to the Bevy [`AppBuilder`]
+pub trait AppBuilderRenderHookExt {
+    /// Add a new [`RenderHook`] to the Bevy Retro renderer
+    fn add_render_hook<T: RenderHook + 'static>(self) -> Self;
+}
+impl AppBuilderRenderHookExt for &mut AppBuilder {
+    fn add_render_hook<T: RenderHook + 'static>(self) -> Self {
+        let world = self.world_mut();
+        world.resource_scope(|_, mut render_hooks: Mut<RenderHooks>| {
+            render_hooks.add_render_hook::<T>();
+        });
+
+        self
     }
 }

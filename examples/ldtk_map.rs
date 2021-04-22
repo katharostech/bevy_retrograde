@@ -1,5 +1,5 @@
 use bevy::{core::FixedTimestep, prelude::*};
-use bevy_retro::*;
+use bevy_retro::prelude::*;
 
 #[derive(StageLabel, Debug, Clone, Hash, Eq, PartialEq)]
 struct GameStage;

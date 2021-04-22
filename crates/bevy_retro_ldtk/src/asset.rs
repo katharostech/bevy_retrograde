@@ -4,7 +4,7 @@ use bevy::{
     reflect::TypeUuid,
     utils::{BoxedFuture, HashMap},
 };
-use bevy_retro_core::Image;
+use bevy_retro_core::assets::Image;
 
 /// An LDtk map asset
 #[derive(TypeUuid)]

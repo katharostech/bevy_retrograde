@@ -1,7 +1,7 @@
+//! ECS components
+
 use bevy::{prelude::*, reflect::TypeUuid};
 use serde::{Deserialize, Serialize};
-
-use crate::*;
 
 mod position;
 pub use position::*;
@@ -15,22 +15,6 @@ pub(crate) fn add_components(app: &mut AppBuilder) {
         .register_type::<Sprite>()
         .register_type::<SpriteSheet>()
         .register_type::<Visible>();
-}
-
-/// The retro camera bundle
-#[derive(Bundle, Default, Debug, Clone)]
-pub struct CameraBundle {
-    /// The camera config
-    pub camera: Camera,
-
-    /// The position of the center of the camera
-    ///
-    /// If the width or height of the camera is an even number, the center pixel will be the pixel
-    /// to the top-left of the true center.
-    pub position: Position,
-
-    /// The global world position of the sprite
-    pub world_position: WorldPosition,
 }
 
 /// An 8-bit RGBA color
@@ -75,8 +59,8 @@ impl Default for Color {
 pub struct Camera {
     /// The size of the camera along the fixed axis, which is by default the vertical axis
     pub size: CameraSize,
-    /// Whether the camera should be centered about it's position. Defaults to `true`. If `false`
-    /// the top-left corner of the camrera will be at its [`Position`].
+    /// Whether the camera should be centered about it's position. Defaults to `true`. If set to
+    /// false `false`, the top-left corner of the camera will be at its [`Position`].
     pub centered: bool,
     /// The background color of the camera
     ///
@@ -92,7 +76,29 @@ pub struct Camera {
     /// Additional shader code that will be added to the camera rendering that can be used for
     /// post-processing
     ///
-    /// TODO: Example
+    /// This must be a [OpenGL ES Shading Language 1.0][essl1] string.
+    ///
+    /// [essl1]: https://www.khronos.org/registry/OpenGL/specs/es/2.0/GLSL_ES_Specification_1.00.pdf
+    ///
+    /// ```
+    /// // Spawn the camera
+    /// commands.spawn().insert_bundle(CameraBundle {
+    ///     camera: Camera {
+    ///         // Set our camera to have a fixed height and an auto-resized width
+    ///         size: CameraSize::FixedHeight(100),
+    ///         background_color: Color::new(0.2, 0.2, 0.2, 1.0),
+    ///         custom_shader: Some(
+    ///             CrtShader {
+    ///                 // You can configure shader options here
+    ///                 ..Default::default()
+    ///             }
+    ///             .get_shader(),
+    ///         ),
+    ///         ..Default::default()
+    ///     },
+    ///     ..Default::default()
+    /// });
+    /// ```
     pub custom_shader: Option<String>,
 }
 
@@ -197,7 +203,7 @@ impl Default for SpriteSheet {
 #[derive(Debug, Clone, Copy, Reflect)]
 #[reflect(Component)]
 pub struct Visible(pub bool);
-impl_deref!(Visible, bool);
+bevy_retro_macros::impl_deref!(Visible, bool);
 
 impl Default for Visible {
     fn default() -> Self {

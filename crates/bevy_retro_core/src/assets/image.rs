@@ -6,14 +6,14 @@ use bevy::{
 };
 use image::{io::Reader as ImageReader, RgbaImage};
 
-use crate::*;
-
-/// An LDtk map asset
+/// A raster image asset
+///
+/// [`Image`] dereferences to an [`RgbaImage`] so you can call all of those functions on this type.
 #[derive(TypeUuid)]
 #[uuid = "48d2e3c8-2f48-4330-b7fe-fac3e81c60f3"]
 #[derive(Clone, Debug)]
 pub struct Image(RgbaImage);
-impl_deref!(Image, RgbaImage);
+bevy_retro_macros::impl_deref!(Image, RgbaImage);
 
 impl From<RgbaImage> for Image {
     fn from(image: RgbaImage) -> Self {

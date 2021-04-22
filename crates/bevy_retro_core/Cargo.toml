@@ -26,6 +26,7 @@ webp = ["image/webp"]
 bmp = ["image/bmp"]
 
 [dependencies]
+bevy_retro_macros = { path = "../bevy_retro_macros" }
 luminance = { version = "0.43.2", features = ["derive"] }
 luminance-glow = { git = "https://github.com/katharostech/luminance-glow", branch = "master" }
 winit = { version = "0.24", features = ["web-sys"] }

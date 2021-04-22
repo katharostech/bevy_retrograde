@@ -1,7 +1,9 @@
+//! Pre-made [camera pos-processing][`crate::components::Camera::custom_shader`] shaders
+
 /// A CRT shader that can be used as a custom shader for a camera.
 ///
 /// ```
-/// Spawn the camera
+/// // Spawn the camera
 /// commands.spawn().insert_bundle(CameraBundle {
 ///     camera: Camera {
 ///         // Set our camera to have a fixed height and an auto-resized width

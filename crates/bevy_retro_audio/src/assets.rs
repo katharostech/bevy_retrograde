@@ -11,11 +11,10 @@ pub(crate) fn add_assets(app: &mut AppBuilder) {
         .add_asset_loader(SoundDataLoader);
 }
 
-/// Holds either the parsed data of a sound or a handle to that sound that can be used to play it on
-/// the Kira sound manager.
+/// An asset that holds the data necessary to create a sound using the [`SoundController`][`crate::SoundController`] resource
 ///
 /// Users will most-likely not interact with this type directly but can pass it to
-/// [`SoundController::create_sound`].
+/// [`create_sound`][`crate::SoundController::create_sound`].
 #[derive(Clone, Debug, TypeUuid)]
 #[uuid = "0b6b6127-a10a-4c67-938f-76f079a6f631"]
 pub enum SoundData {
@@ -23,7 +22,7 @@ pub enum SoundData {
     SoundHandle(KiraSoundHandle),
 }
 
-/// An error that occurs when loading a GLTF file
+/// An error that occurs when loading a sound asset
 #[derive(thiserror::Error, Debug)]
 pub enum SoundDataLoaderError {
     #[error("Non-unicode filenames are not supported")]

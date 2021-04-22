@@ -11,12 +11,12 @@
 
 ![bounty bros game screenshot](./doc/bounty_bros.png)
 
-[skipngo]:  https://github.com/katharostech/skipngo
+[skipngo]: https://github.com/katharostech/skipngo
 
 Bevy Retro is a 2D, pixel-perfect renderer for [Bevy] that can target both web and desktop using
 OpenGL/WebGL.
 
-[Bevy]: https://bevyengine.org
+[bevy]: https://bevyengine.org
 
 Bevy Retro is focused on providing an easy and ergonomic way to write 2D, pixel-perfect games.
 Compared to the out-of-the-box Bevy setup, it has no concept of 3D, and sprites don't even have
@@ -69,7 +69,7 @@ Bevy Retro releases for each Bevy release.
 - Custom shaders for post-processing, including a built-in CRT shader
 - Render hooks allowing you to drop down into raw [Luminance] calls for custom rendering
 
-[Luminance]: https://github.com/phaazon/luminance-rs
+[luminance]: https://github.com/phaazon/luminance-rs
 
 ## Examples
 
@@ -79,7 +79,7 @@ Check out the [examples] folder for more examples, but here's a quick look at us
 
 ```rust
 use bevy::prelude::*;
-use bevy_retro::*;
+use bevy_retro::prelude::*;
 
 fn main() {
     App::build()
@@ -164,6 +164,7 @@ fn setup(
     });
 }
 ```
+
 ### Running Examples
 
 We use the [just] for automating our development tasks and the project `justfile` includes tasks
@@ -182,5 +183,4 @@ port http://localhost:4000. You can install [`basic-http-server`] or you can mod
 to use whatever your favorite development http server is.
 
 [just]: https://github.com/casey/just
-
 [`basic-http-server`]: https://github.com/brson/basic-http-server

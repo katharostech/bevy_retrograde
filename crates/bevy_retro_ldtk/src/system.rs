@@ -1,15 +1,14 @@
-use asset::LdtkMap;
-use bevy::{ecs::component::ComponentDescriptor, utils::HashMap};
+use crate::{asset::LdtkMap, LdtkMapLayer};
+use bevy::{ecs::component::ComponentDescriptor, prelude::*, utils::HashMap};
+
 use bevy_retro_core::{
     image::{
         self,
         imageops::{self, flip_horizontal_in_place, flip_vertical_in_place},
         GenericImage, GenericImageView,
     },
-    *,
+    prelude::*,
 };
-
-use crate::*;
 
 #[derive(Debug, Clone, Copy, StageLabel, Hash, PartialEq, Eq, SystemLabel)]
 struct HotReloadSystem;

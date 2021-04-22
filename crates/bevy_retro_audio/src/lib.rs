@@ -1,8 +1,10 @@
-//! An audio system for Bevy Retro
+//! The Bevy Retro audio plugin
 //!
-//! Currently this is just a thin layer over [Kira] and the design is not well fleshed out, but it
-//! will evolve over time as we get a better understanding of our needs and how to integrate audio
-//! control through the ECS.
+//! Bevy Retro attempts to provide an _extremely_ simple, yet still effective API for playing audio
+//! in games using [Kira]. If more control is desired you may want to look into [`bevy_kira_audio`]
+//! which grants more control over audio playback.
+//!
+//! [`bevy_kira_audio`]: https://github.com/NiklasEi/bevy_kira_audio
 //!
 //! [Kira]: https://docs.rs/kira
 
@@ -19,11 +21,11 @@ pub use components::*;
 mod systems;
 pub(crate) use systems::*;
 
-/// Bevy plugin that adds support for loading LDtk tile maps
+/// The Bevy Retro audio plugin
 #[derive(Default)]
-pub struct AudioPlugin;
+pub struct RetroAudioPlugin;
 
-impl Plugin for AudioPlugin {
+impl Plugin for RetroAudioPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app
             // Add audio manager resource
@@ -40,6 +42,8 @@ pub use events::*;
 mod events {
     use super::*;
 
+    /// A sound event used to control the sound playback system
+    #[doc(hidden)]
     #[derive(Debug, Clone)]
     #[allow(clippy::large_enum_variant)]
     pub enum SoundEvent {
