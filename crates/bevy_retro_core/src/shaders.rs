@@ -2,7 +2,7 @@
 
 /// A CRT shader that can be used as a custom shader for a camera.
 ///
-/// ```
+/// ```ignore
 /// // Spawn the camera
 /// commands.spawn().insert_bundle(CameraBundle {
 ///     camera: Camera {

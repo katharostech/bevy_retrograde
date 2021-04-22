@@ -5,6 +5,7 @@
 /// # Example
 ///
 /// ```rust
+/// # use bevy_retro_macros::impl_deref;
 /// struct Score(usize);
 ///
 /// impl_deref!(Score, usize);
@@ -33,6 +34,7 @@ macro_rules! impl_deref {
 /// # Example
 ///
 /// ```
+/// # use bevy_retro_macros::items_attr;
 /// // Only import these libraries for wasm targets
 /// items_attr!(cfg(wasm), {
 ///     use web_sys;

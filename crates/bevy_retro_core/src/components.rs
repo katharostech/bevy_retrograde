@@ -80,7 +80,7 @@ pub struct Camera {
     ///
     /// [essl1]: https://www.khronos.org/registry/OpenGL/specs/es/2.0/GLSL_ES_Specification_1.00.pdf
     ///
-    /// ```
+    /// ```ignore
     /// // Spawn the camera
     /// commands.spawn().insert_bundle(CameraBundle {
     ///     camera: Camera {
