@@ -15,15 +15,11 @@ audio = ["bevy_retro_audio"]
 ldtk = ["bevy_retro_ldtk"]
 
 [dependencies]
+bevy = { version = "0.5", default-features = false }
 bevy_retro_macros = { path = "crates/bevy_retro_macros" }
 bevy_retro_core = { path = "crates/bevy_retro_core" }
 bevy_retro_audio = { path = "crates/bevy_retro_audio", optional = true }
 bevy_retro_ldtk = { path = "crates/bevy_retro_ldtk", optional = true }
-
-[dependencies.bevy]
-git = "https://github.com/bevyengine/bevy"
-branch = "main"
-default-features = false
 
 [dev-dependencies]
 hex = "0.4.3"
