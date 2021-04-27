@@ -1,0 +1,16 @@
+[package]
+name = "bevy_retro_text"
+version = "0.1.0"
+authors = ["Zicklag <zicklag@katharostech.com>"]
+edition = "2018"
+
+[dependencies]
+bevy = { version = "0.5", default-features = false }
+bevy_retro_core = { path = "../bevy_retro_core" }
+bevy_retro_macros = { path = "../bevy_retro_macros" }
+
+unicode-linebreak = "0.1.1"
+bdf = { git = "https://github.com/katharostech/rust-bdf", branch = "ignore-errored-glyphs" }
+
+thiserror = "1.0.24"
+anyhow = "1.0.40"

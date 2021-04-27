@@ -186,24 +186,25 @@ impl bevy::app::PluginGroup for RetroPlugins {
 
         #[cfg(feature = "audio")]
         group.add(audio::RetroAudioPlugin);
+
+        #[cfg(feature = "text")]
+        group.add(text::RetroTextPlugin);
     }
 }
 
 /// The Bevy Retro prelude
 #[doc(hidden)]
 pub mod prelude {
-    #[doc(no_inline)]
     pub use crate::*;
-    #[doc(no_inline)]
     pub use bevy_retro_core::prelude::*;
-    #[doc(no_inline)]
     pub use bevy_retro_macros::impl_deref;
 
-    #[doc(no_inline)]
     #[cfg(feature = "audio")]
     pub use bevy_retro_audio::*;
 
-    #[doc(no_inline)]
+    #[cfg(feature = "text")]
+    pub use bevy_retro_text::*;
+
     #[cfg(feature = "ldtk")]
     pub use bevy_retro_ldtk::*;
 }
@@ -216,3 +217,7 @@ pub use bevy_retro_macros::impl_deref;
 #[cfg(feature = "audio")]
 #[doc(inline)]
 pub use bevy_retro_audio as audio;
+
+#[cfg(feature = "text")]
+#[doc(inline)]
+pub use bevy_retro_text as text;

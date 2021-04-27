@@ -12,7 +12,7 @@ use image::{io::Reader as ImageReader, RgbaImage};
 #[derive(TypeUuid)]
 #[uuid = "48d2e3c8-2f48-4330-b7fe-fac3e81c60f3"]
 #[derive(Clone, Debug)]
-pub struct Image(RgbaImage);
+pub struct Image(pub RgbaImage);
 bevy_retro_macros::impl_deref!(Image, RgbaImage);
 
 impl From<RgbaImage> for Image {

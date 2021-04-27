@@ -24,6 +24,14 @@ An example demonstrating how to detect pixel-perfect collisions between sprites
 
 [collisions]: ./collisions.rs
 
+## [text]
+
+An example showing how to render text using BDF font files.
+
+![text](./screenshots/text.png)
+
+[text]: ./text.rs
+
 ## [ldtk_map]
 
 An example showing you how to load and display an LDtk map file.

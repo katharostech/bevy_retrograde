@@ -1,6 +1,7 @@
 //! Component bundles
 
 use bevy::prelude::*;
+
 use crate::prelude::*;
 
 /// The components necessary to render a sprite
