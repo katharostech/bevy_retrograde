@@ -1,5 +1,5 @@
 use bevy::{
-    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+    diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
     prelude::*,
 };
 use bevy_retro::prelude::*;
@@ -41,18 +41,21 @@ fn main() {
         })
         .add_plugins(RetroPlugins)
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
-        .add_plugin(LogDiagnosticsPlugin::default())
         .insert_resource(RadishCounter { count: 0 })
         .init_resource::<RadishImage>()
         .add_startup_system(setup.system())
         .add_system(mouse_handler.system())
         .add_system(movement_system.system())
         .add_system(collision_system.system())
-        .add_system(counter_system.system())
+        .add_system(fps.system())
         .run();
 }
 
-fn setup(mut commands: Commands) {
+struct FpsCounterText;
+struct SpritesCounterText;
+
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+    // Spawn the camera
     commands.spawn().insert_bundle(CameraBundle {
         camera: Camera {
             size: CameraSize::LetterBoxed {
@@ -63,6 +66,44 @@ fn setup(mut commands: Commands) {
         },
         ..Default::default()
     });
+
+    let font = asset_server.load("cozette.bdf");
+
+    // Add a frames per second counter
+    commands
+        .spawn()
+        .insert_bundle(TextBundle {
+            text: Text {
+                text: "FPS: 0".into(),
+                ..Default::default()
+            },
+            sprite: Sprite {
+                centered: false,
+                ..Default::default()
+            },
+            font: font.clone(),
+            position: Position::new(-150, -150, 1024),
+            ..Default::default()
+        })
+        .insert(FpsCounterText);
+
+    // Add a sprites counter
+    commands
+        .spawn()
+        .insert_bundle(TextBundle {
+            text: Text {
+                text: "Sprites: 0".into(),
+                ..Default::default()
+            },
+            sprite: Sprite {
+                centered: false,
+                ..Default::default()
+            },
+            font,
+            position: Position::new(-150, -134, 1024),
+            ..Default::default()
+        })
+        .insert(SpritesCounterText);
 }
 
 fn mouse_handler(
@@ -112,10 +153,21 @@ fn collision_system(mut bird_query: Query<(&mut Radish, &Position)>) {
     }
 }
 
-fn counter_system(mut idx: Local<u32>, counter: Res<RadishCounter>) {
-    *idx = idx.wrapping_add(1);
+fn fps(
+    mut fps_query: Query<&mut Text, With<FpsCounterText>>,
+    diagnostics: Res<Diagnostics>,
+    mut sprite_count_query: Query<&mut Text, (With<SpritesCounterText>, Without<FpsCounterText>)>,
+    counter: Res<RadishCounter>,
+) {
+    if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
+        for mut text in fps_query.iter_mut() {
+            if let Some(fps) = fps.average() {
+                text.text = format!("FPS: {:.0}", fps);
+            }
+        }
+    }
 
-    if *idx % 100 == 0 {
-        info!("radish_count               : {}", counter.count);
+    for mut text in sprite_count_query.iter_mut() {
+        text.text = format!("Sprites: {}", counter.count);
     }
 }
