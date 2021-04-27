@@ -11,12 +11,12 @@
 
 ![bounty bros game screenshot](./doc/bounty_bros.png)
 
-[skipngo]: https://github.com/katharostech/skipngo
+[skipngo]:  https://github.com/katharostech/skipngo
 
 Bevy Retro is a 2D, pixel-perfect renderer for [Bevy] that can target both web and desktop using
 OpenGL/WebGL.
 
-[bevy]: https://bevyengine.org
+[Bevy]: https://bevyengine.org
 
 Bevy Retro is focused on providing an easy and ergonomic way to write 2D, pixel-perfect games.
 Compared to the out-of-the-box Bevy setup, it has no concept of 3D, and sprites don't even have
@@ -66,6 +66,7 @@ Bevy Retro releases for each Bevy release.
   letter-boxed
 - An [LDtk](https://ldtk.io) map loading [plugin](./plugins/bevy_retro_ldtk)
 - Pixel-perfect collision detection
+- Text rendering of BDF fonts
 - Custom shaders for post-processing, including a built-in CRT shader
 - Render hooks allowing you to drop down into raw [Luminance] calls for custom rendering
 
@@ -164,7 +165,6 @@ fn setup(
     });
 }
 ```
-
 ### Running Examples
 
 We use the [just] for automating our development tasks and the project `justfile` includes tasks
@@ -183,4 +183,5 @@ port http://localhost:4000. You can install [`basic-http-server`] or you can mod
 to use whatever your favorite development http server is.
 
 [just]: https://github.com/casey/just
+
 [`basic-http-server`]: https://github.com/brson/basic-http-server
