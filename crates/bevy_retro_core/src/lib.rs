@@ -33,7 +33,7 @@ mod renderer;
 
 /// The ECS schedule stages that the Bevy retro code is run in
 #[derive(Debug, Clone, Copy, StageLabel, Hash, PartialEq, Eq)]
-enum RetroCoreStage {
+pub enum RetroCoreStage {
     WorldPositionPropagation,
     Rendering,
 }

@@ -1,12 +1,17 @@
 use std::usize;
 
-use bevy::{prelude::*, winit::WinitWindows};
+use bevy::{
+    app::{Events, ManualEventReader},
+    prelude::*,
+    winit::WinitWindows,
+};
 use luminance::{
     context::GraphicsContext,
     pipeline::{PipelineState, TextureBinding},
+    pixel::NormRGBA8UI,
     render_state::RenderState,
     shader::Uniform,
-    texture::{Dim2, MagFilter, MinFilter, Sampler, Wrap},
+    texture::{Dim2, GenMipmaps, MagFilter, MinFilter, Sampler, Wrap},
     Semantics, UniformInterface, Vertex,
 };
 
@@ -101,6 +106,11 @@ pub(crate) struct Renderer {
 
     /// The list of render hooks
     render_hooks: Vec<Box<dyn RenderHook>>,
+
+    // The texture cache
+    texture_cache: TextureCache,
+    image_asset_event_reader: ManualEventReader<AssetEvent<Image>>,
+    pending_textures: Vec<Handle<Image>>,
 }
 
 impl Renderer {
@@ -143,6 +153,10 @@ impl Renderer {
             scene_framebuffer,
             custom_shader: None,
             render_hooks: Vec::new(),
+
+            texture_cache: Default::default(),
+            image_asset_event_reader: Default::default(),
+            pending_textures: Default::default(),
         }
     }
 
@@ -158,8 +172,20 @@ impl Renderer {
             surface,
             window_id,
             render_hooks,
+            pending_textures,
+            texture_cache,
+            image_asset_event_reader,
             ..
         } = self;
+
+        // Upload any textures that have been created to the GPU
+        Self::handle_image_asset_event(
+            pending_textures,
+            texture_cache,
+            image_asset_event_reader,
+            surface,
+            world,
+        );
 
         // Get the back buffer
         let back_buffer = surface.back_buffer().unwrap();
@@ -213,9 +239,9 @@ impl Renderer {
             .assume();
 
         let mut renderables = Vec::new();
-        // Loop through our render hooks and run their render functions
+        // Loop through our render hooks and run their prepare functions
         for (i, hook) in render_hooks.iter_mut().enumerate() {
-            for handle in hook.prepare_low_res(world, surface) {
+            for handle in hook.prepare_low_res(world, texture_cache, surface) {
                 // Add all the renderables from this render hook to our renderables list
                 renderables.push(Renderable {
                     hook_idx: i,
@@ -223,6 +249,20 @@ impl Renderer {
                 });
             }
         }
+
+        // Handle any images that have been created during render hook preparation
+        //
+        // TODO(zicklag): I feel like this is kind of weird like there's a better way to do this,
+        // but I'm not sure. The issue is that the text render hook rasterizes text block images
+        // that must be uploaded here.
+        Self::handle_image_asset_event(
+            pending_textures,
+            texture_cache,
+            image_asset_event_reader,
+            surface,
+            world,
+        );
+
         // Sort renderables before rendering
         renderables.sort();
 
@@ -252,11 +292,18 @@ impl Renderer {
                     render_hooks
                         .get_mut(current_batch_render_hook_idx)
                         .unwrap()
-                        .render_low_res(world, surface, &scene_framebuffer, &batch_renderables);
+                        .render_low_res(
+                            world,
+                            surface,
+                            texture_cache,
+                            &scene_framebuffer,
+                            &batch_renderables,
+                        );
 
                     // And start a new batch
                     current_batch.clear();
                     current_batch.push(renderable);
+                    current_batch_render_hook_idx = renderable.hook_idx;
                 }
             }
         }
@@ -266,7 +313,13 @@ impl Renderer {
         render_hooks
             .get_mut(current_batch_render_hook_idx)
             .unwrap()
-            .render_low_res(world, surface, &scene_framebuffer, &batch_renderables);
+            .render_low_res(
+                world,
+                surface,
+                texture_cache,
+                &scene_framebuffer,
+                &batch_renderables,
+            );
 
         let bevy_time = world.get_resource::<Time>().unwrap();
 
@@ -322,6 +375,77 @@ impl Renderer {
         for hook_init in render_hooks.new_hooks.drain(0..) {
             self.render_hooks
                 .push(hook_init(self.window_id, &mut self.surface));
+        }
+
+        // Sort render hooks based on priority
+        self.render_hooks
+            .sort_unstable_by(|a, b| b.priority().cmp(&a.priority()));
+    }
+
+    #[tracing::instrument(skip(
+        pending_textures,
+        texture_cache,
+        image_asset_event_reader,
+        surface,
+        world
+    ))]
+    pub(crate) fn handle_image_asset_event(
+        pending_textures: &mut Vec<Handle<Image>>,
+        texture_cache: &mut TextureCache,
+        image_asset_event_reader: &mut ManualEventReader<AssetEvent<Image>>,
+        surface: &mut Surface,
+        world: &mut World,
+    ) {
+        let image_asset_events = world.get_resource::<Events<AssetEvent<Image>>>().unwrap();
+        let image_assets = world.get_resource::<Assets<Image>>().unwrap();
+
+        let mut upload_texture = |image: &Image| {
+            // Get the sprite image info
+            let (sprite_width, sprite_height) = image.dimensions();
+            let sprite_size = [sprite_width, sprite_height];
+            let pixels = image.as_raw();
+
+            // Upload the sprite to the GPU
+            let mut texture = surface
+                .new_texture::<Dim2, NormRGBA8UI>(sprite_size, 0, PIXELATED_SAMPLER)
+                .unwrap();
+            texture.upload_raw(GenMipmaps::No, pixels).unwrap();
+
+            texture
+        };
+
+        // Attempt to load pending textures
+        let mut new_pending_textures = Vec::new();
+        for handle in &*pending_textures {
+            if let Some(image) = image_assets.get(handle) {
+                upload_texture(image);
+            } else {
+                new_pending_textures.push(handle.clone());
+            }
+        }
+        *pending_textures = new_pending_textures;
+
+        // for every image asset event
+        for event in image_asset_event_reader.iter(&image_asset_events) {
+            match event {
+                AssetEvent::Created { handle } => {
+                    if let Some(image) = image_assets.get(handle) {
+                        texture_cache.insert(handle.clone(), upload_texture(image));
+                    } else {
+                        pending_textures.push(handle.clone());
+                    }
+                }
+                AssetEvent::Modified { handle } => {
+                    if let Some(image) = image_assets.get(handle) {
+                        texture_cache.insert(handle.clone(), upload_texture(image));
+                    } else {
+                        pending_textures.push(handle.clone());
+                    }
+                }
+                AssetEvent::Removed { handle } => {
+                    texture_cache.remove(handle);
+                }
+            }
         }
     }
 }

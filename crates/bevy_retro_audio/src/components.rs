@@ -31,7 +31,7 @@ impl<'a> SoundController<'a> {
     }
 
     /// Play a sound
-    /// 
+    ///
     /// This will play the sound using the default settings
     pub fn play_sound(&mut self, sound: Sound) {
         self.play_sound_with_settings(sound, Default::default())

@@ -1,15 +1,28 @@
 //! The Bevy Retro text rendering plugin
 
 use bevy::{ecs::component::ComponentDescriptor, prelude::*};
+use bevy_retro_core::RetroCoreStage;
+
+#[doc(hidden)]
+pub mod prelude {
+    pub use crate::assets::*;
+    pub use crate::components::*;
+    pub use crate::RetroTextPlugin;
+}
 
 mod assets;
-pub use assets::*;
 
 mod components;
-pub use components::*;
 
 mod systems;
+pub use systems::rasterize_text_block;
 use systems::*;
+
+use prelude::*;
+
+/// The bevy stage the [`RetroTextPlugin`] runs its systems in
+#[derive(StageLabel, Debug, Clone, Hash, PartialEq, Eq)]
+pub struct RetroTextStage;
 
 /// Text rendering plugin for Bevy Retro
 pub struct RetroTextPlugin;
@@ -26,7 +39,10 @@ impl Plugin for RetroTextPlugin {
             // Add our font asset loader
             .add_asset_loader(FontLoader)
             // Add our font rendering system
-            // FIXME: Add to proper stage to sync with render system properly
-            .add_system_to_stage(CoreStage::PreUpdate, font_rendering.system());
+            .add_stage_before(
+                RetroCoreStage::Rendering,
+                RetroTextStage,
+                SystemStage::single(font_rendering.system()),
+            );
     }
 }

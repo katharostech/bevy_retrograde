@@ -22,6 +22,7 @@ pub trait AssetServerExt {
     /// If the asset that has previously been cached is being loaded and it has been manually
     /// removed from the asset store, the handle returned by this function will point to an
     /// un-loaded asset and the asset must be re-loaded with the normal `load` function.
+    // TODO: Create a system that will prune the asset cache by listening for asset removed events
     fn load_cached<'a, T, P>(&self, path: P) -> Handle<T>
     where
         P: Into<AssetPath<'a>>,

@@ -39,7 +39,7 @@ use std::{
 /// Single-threaded `Arc`.
 /// Wrapper for `Arc` that allows you to `Send` it even if `T: !Sync`.
 /// Yet internal data cannot be accessed outside of the thread where it was created.
-pub(crate) struct Starc<T: ?Sized> {
+pub struct Starc<T: ?Sized> {
     arc: Arc<T>,
     thread: thread::ThreadId,
 }
@@ -107,7 +107,7 @@ impl<T: ?Sized> std::ops::Deref for Starc<T> {
 /// Single-threaded `Weak`.
 /// Wrapper for `Weak` that allows you to `Send` it even if `T: !Sync`.
 /// Yet internal data cannot be accessed outside of the thread where it was created.
-pub(crate) struct Wstarc<T: ?Sized> {
+pub struct Wstarc<T: ?Sized> {
     weak: Weak<T>,
     thread: thread::ThreadId,
 }

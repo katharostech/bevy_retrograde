@@ -4,6 +4,11 @@ version = "0.1.0"
 authors = ["Zicklag <zicklag@katharostech.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
+bevy = { version = "0.5", features = ["bevy_winit"], default-features = false }
+bevy_retro_core = { path = "../bevy_retro_core" }
+bevy_retro_text = { path = "../bevy_retro_text" }
+bevy_retro_macros = { path = "../bevy_retro_macros" }
+
+raui = "0.33.0"
+raui-tesselate-renderer = "0.33.0"

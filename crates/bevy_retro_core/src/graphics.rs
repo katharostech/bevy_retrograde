@@ -1,12 +1,17 @@
 //! Graphics types and utilities
 
-use bevy::prelude::*;
-use luminance::{self, texture::Dim2};
+use bevy::{prelude::*, utils::HashMap};
+use luminance::{self, pixel::NormRGBA8UI, texture::Dim2};
 use luminance_glow::Glow;
 
 pub(crate) mod hooks;
 
+use crate::prelude::Image;
 pub use crate::renderer::Surface;
+
+mod starc;
+pub use starc::*;
+
 /// A [`luminance`] framebuffer using Bevy Retro's backend
 pub type Framebuffer<D, CS, DS> = luminance::framebuffer::Framebuffer<Glow, D, CS, DS>;
 /// A [`luminance`] program using Bevy Retro's backend
@@ -16,6 +21,11 @@ pub type Tess<V, I = (), W = (), S = luminance::tess::Interleaved> =
     luminance::tess::Tess<Glow, V, I, W, S>;
 /// A [`luminance`] texturre using Bevy Retro's backend
 pub type Texture<D, P> = luminance::texture::Texture<Glow, D, P>;
+/// A cache mapping [`Handle<Image>`]s to luminance textures uploaded to the GPU
+///
+/// This can be used to get the GPU texture so that you can set a uniform to the value of the
+/// texture based on the associated image handle.
+pub type TextureCache = HashMap<Handle<Image>, Texture<Dim2, NormRGBA8UI>>;
 
 #[cfg(not(wasm))]
 /// A [`luminance`] that is used as the render target for the Bevy Retro scene at the low-res camera
@@ -44,6 +54,11 @@ pub trait RenderHook {
     where
         Self: Sized;
 
+    /// Returns the priority of this render hook relative to the other render hooks
+    fn priority(&self) -> i32 {
+        0
+    }
+
     /// This function is called before rendering to the retro-resolution framebuffer and is expected
     /// to return a vector of [`RenderHookRenderableHandle`]'s, one for each item that will be
     /// rendered by this hook. The [`RenderHookRenderableHandle`] indicates the depth of the object
@@ -52,6 +67,7 @@ pub trait RenderHook {
     fn prepare_low_res(
         &mut self,
         world: &mut World,
+        texture_cache: &mut TextureCache,
         surface: &mut Surface,
     ) -> Vec<RenderHookRenderableHandle> {
         vec![]
@@ -66,6 +82,7 @@ pub trait RenderHook {
         &mut self,
         world: &mut World,
         surface: &mut Surface,
+        texture_cache: &mut TextureCache,
         target_framebuffer: &SceneFramebuffer,
         renderables: &[RenderHookRenderableHandle],
     ) {

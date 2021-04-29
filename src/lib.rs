@@ -193,6 +193,9 @@ impl bevy::app::PluginGroup for RetroPlugins {
 
         #[cfg(feature = "text")]
         group.add(text::RetroTextPlugin);
+
+        #[cfg(feature = "ui")]
+        group.add(ui::RetroUiPlugin);
     }
 }
 
@@ -207,10 +210,13 @@ pub mod prelude {
     pub use bevy_retro_audio::*;
 
     #[cfg(feature = "text")]
-    pub use bevy_retro_text::*;
+    pub use bevy_retro_text::prelude::*;
 
     #[cfg(feature = "ldtk")]
     pub use bevy_retro_ldtk::*;
+
+    #[cfg(feature = "ui")]
+    pub use bevy_retro_ui::*;
 }
 
 #[doc(inline)]
@@ -225,3 +231,7 @@ pub use bevy_retro_audio as audio;
 #[cfg(feature = "text")]
 #[doc(inline)]
 pub use bevy_retro_text as text;
+
+#[cfg(feature = "ui")]
+#[doc(inline)]
+pub use bevy_retro_ui as ui;

@@ -1,24 +1,14 @@
-use bevy::{
-    app::{Events, ManualEventReader},
-    utils::HashMap,
-};
 use luminance::{
     blending::{Blending, Equation, Factor},
     context::GraphicsContext,
     pipeline::{PipelineState, TextureBinding},
-    pixel::{NormRGBA8UI, NormUnsigned},
+    pixel::NormUnsigned,
     render_state::RenderState,
     shader::Uniform,
-    texture::GenMipmaps,
     UniformInterface, Vertex,
 };
-use parking_lot::Mutex;
 
-use crate::{
-    graphics::*,
-    prelude::*,
-    renderer::{backend::*, starc::Starc},
-};
+use crate::{graphics::*, prelude::*, renderer::backend::*};
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, PartialEq, Vertex)]
@@ -55,80 +45,7 @@ struct SpriteUniformInterface {
 pub(crate) struct SpriteHook {
     sprite_program: Program<(), (), SpriteUniformInterface>,
     sprite_tess: Tess<SpriteVert>,
-    texture_cache: HashMap<Handle<Image>, Starc<Mutex<Texture<Dim2, NormRGBA8UI>>>>,
-    image_asset_event_reader: ManualEventReader<AssetEvent<Image>>,
-    pending_textures: Vec<Handle<Image>>,
     current_sprite_batch: Option<Vec<Entity>>,
-}
-
-impl SpriteHook {
-    #[tracing::instrument(skip(self, world, surface))]
-    pub(crate) fn handle_image_asset_event(&mut self, world: &mut World, surface: &mut Surface) {
-        let Self {
-            pending_textures,
-            texture_cache,
-            image_asset_event_reader,
-            ..
-        } = self;
-
-        let image_asset_events = world.get_resource::<Events<AssetEvent<Image>>>().unwrap();
-        let image_assets = world.get_resource::<Assets<Image>>().unwrap();
-
-        let mut upload_texture = |image: &Image| {
-            // Get the sprite image info
-            let (sprite_width, sprite_height) = image.dimensions();
-            let sprite_size = [sprite_width, sprite_height];
-            let pixels = image.as_raw();
-
-            // Upload the sprite to the GPU
-            let mut texture = surface
-                .new_texture::<Dim2, NormRGBA8UI>(sprite_size, 0, PIXELATED_SAMPLER)
-                .unwrap();
-            texture.upload_raw(GenMipmaps::No, pixels).unwrap();
-
-            texture
-        };
-
-        // Attempt to load pending textures
-        let mut new_pending_textures = Vec::new();
-        for handle in &*pending_textures {
-            if let Some(image) = image_assets.get(handle) {
-                upload_texture(image);
-            } else {
-                new_pending_textures.push(handle.clone());
-            }
-        }
-        *pending_textures = new_pending_textures;
-
-        // for every image asset event
-        for event in image_asset_event_reader.iter(&image_asset_events) {
-            match event {
-                AssetEvent::Created { handle } => {
-                    if let Some(image) = image_assets.get(handle) {
-                        texture_cache.insert(
-                            handle.clone(),
-                            Starc::new(Mutex::new(upload_texture(image))),
-                        );
-                    } else {
-                        pending_textures.push(handle.clone());
-                    }
-                }
-                AssetEvent::Modified { handle } => {
-                    if let Some(image) = image_assets.get(handle) {
-                        texture_cache.insert(
-                            handle.clone(),
-                            Starc::new(Mutex::new(upload_texture(image))),
-                        );
-                    } else {
-                        pending_textures.push(handle.clone());
-                    }
-                }
-                AssetEvent::Removed { handle } => {
-                    texture_cache.remove(handle);
-                }
-            }
-        }
-    }
 }
 
 impl RenderHook for SpriteHook {
@@ -173,9 +90,6 @@ impl RenderHook for SpriteHook {
         Box::new(Self {
             sprite_program: built_sprite_program.program,
             sprite_tess,
-            texture_cache: Default::default(),
-            image_asset_event_reader: Default::default(),
-            pending_textures: Default::default(),
             current_sprite_batch: None,
         }) as Box<dyn RenderHook>
     }
@@ -183,10 +97,10 @@ impl RenderHook for SpriteHook {
     fn prepare_low_res(
         &mut self,
         world: &mut World,
-        surface: &mut Surface,
+        _texture_cache: &mut TextureCache,
+        _surface: &mut Surface,
     ) -> Vec<RenderHookRenderableHandle> {
-        // Upload any textures that have been created to the GPU
-        self.handle_image_asset_event(world, surface);
+        self.current_sprite_batch = None;
 
         // Create the sprite query
         let mut sprites = world
@@ -197,6 +111,7 @@ impl RenderHook for SpriteHook {
         let mut sprite_entities = Vec::new();
         let mut renderables = Vec::new();
         for (ent, visible, pos) in sprite_iter {
+            dbg!(ent);
             // Skip invisible sprites
             if !**visible {
                 continue;
@@ -221,13 +136,13 @@ impl RenderHook for SpriteHook {
         &mut self,
         world: &mut World,
         surface: &mut Surface,
+        texture_cache: &mut TextureCache,
         target_framebuffer: &SceneFramebuffer,
         renderables: &[RenderHookRenderableHandle],
     ) {
         let Self {
             sprite_program,
             sprite_tess,
-            texture_cache,
             current_sprite_batch,
             ..
         } = self;
@@ -283,16 +198,28 @@ impl RenderHook for SpriteHook {
                         |mut interface, uniforms, mut render_gate| {
                             // Set the camera uniforms
                             interface.set(&uniforms.camera_position, [camera_pos.x, camera_pos.y]);
-                            interface.set(&uniforms.camera_size, [target_size[0] as i32, target_size[1] as i32]);
-                            interface.set(&uniforms.camera_centered, if camera.centered { 1 } else { 0 });
+                            interface.set(
+                                &uniforms.camera_size,
+                                [target_size[0] as i32, target_size[1] as i32],
+                            );
+                            interface.set(
+                                &uniforms.camera_centered,
+                                if camera.centered { 1 } else { 0 },
+                            );
 
-                            for renderable in
-                                renderables
-                            {
-                                let sprite_entity = current_sprite_batch.as_ref().unwrap().get(renderable.identifier).unwrap();
-                                let (image_handle, sprite, sprite_sheet_handle, world_position) = sprites.get(world, *sprite_entity).unwrap();
+                            for renderable in renderables {
+                                let sprite_entity = current_sprite_batch
+                                    .as_ref()
+                                    .expect("Missing sprite batch!")
+                                    .get(renderable.identifier)
+                                    .expect("Tried to render non-existent renderable");
 
-                                let sprite_sheet = sprite_sheet_handle.map(|x| sprite_sheet_assets.get(x)).flatten();
+                                let (image_handle, sprite, sprite_sheet_handle, world_position) =
+                                    sprites.get(world, *sprite_entity).unwrap();
+
+                                let sprite_sheet = sprite_sheet_handle
+                                    .map(|x| sprite_sheet_assets.get(x))
+                                    .flatten();
 
                                 // Get the texture using the image handle
                                 let texture =
@@ -304,8 +231,7 @@ impl RenderHook for SpriteHook {
                                     };
 
                                 // Bind our texture
-                                let mut texture = texture.lock();
-                                let bound_texture = pipeline.bind_texture(&mut *texture).unwrap();
+                                let bound_texture = pipeline.bind_texture(texture).unwrap();
 
                                 // Set the texture uniform
                                 interface.set(&uniforms.sprite_texture, bound_texture.binding());
@@ -321,17 +247,16 @@ impl RenderHook for SpriteHook {
                                     if sprite.flip_x { 0b01 } else { 0 } as i32
                                         | if sprite.flip_y { 0b10 } else { 0 } as i32,
                                 );
-                                interface.set(&uniforms.sprite_centered, if sprite.centered { 1 } else { 0 });
+                                interface.set(
+                                    &uniforms.sprite_centered,
+                                    if sprite.centered { 1 } else { 0 },
+                                );
 
                                 // Set the sprite tileset uniforms
-                                let grid_size =
-                                    sprite_sheet
-                                        .map(|x| [x.grid_size.x as i32, x.grid_size.y as i32])
-                                        .unwrap_or([0; 2]);
-                                interface.set(
-                                    &uniforms.sprite_tileset_grid_size,
-                                    grid_size
-                                );
+                                let grid_size = sprite_sheet
+                                    .map(|x| [x.grid_size.x as i32, x.grid_size.y as i32])
+                                    .unwrap_or([0; 2]);
+                                interface.set(&uniforms.sprite_tileset_grid_size, grid_size);
                                 interface.set(
                                     &uniforms.sprite_tileset_index,
                                     sprite_sheet.map(|x| x.tile_index as i32).unwrap_or(0),
@@ -340,8 +265,8 @@ impl RenderHook for SpriteHook {
                                 // Set sprite position and offset
                                 debug_assert!(
                                     -1024 < world_position.z && world_position.z <= 1024,
-                                    "Sprite world Z position must be between -1024 and 1024. Please \
-                                    open an issue if this is a problem for you: \
+                                    "Sprite world Z position must be between -1024 and 1024. \
+                                    Please open an issue if this is a problem for you: \
                                     https://github.com/katharostech/bevy_retro/issues"
                                 );
                                 interface.set(
@@ -367,7 +292,5 @@ impl RenderHook for SpriteHook {
             .assume()
             .into_result()
             .expect("Could not render");
-
-        self.current_sprite_batch = None;
     }
 }

@@ -11,10 +11,12 @@ members = ["crates/*"]
 default = [
     "audio",
     "text",
+    "ui",
 ]
 audio = ["bevy_retro_audio"]
 ldtk = ["bevy_retro_ldtk"]
 text = ["bevy_retro_text"]
+ui = ["bevy_retro_ui"]
 
 [dependencies]
 bevy = { version = "0.5", default-features = false }
@@ -23,6 +25,7 @@ bevy_retro_core = { path = "crates/bevy_retro_core" }
 bevy_retro_audio = { path = "crates/bevy_retro_audio", optional = true }
 bevy_retro_ldtk = { path = "crates/bevy_retro_ldtk", optional = true }
 bevy_retro_text = { path = "crates/bevy_retro_text", optional = true }
+bevy_retro_ui = { path = "crates/bevy_retro_ui", optional = true }
 
 [dev-dependencies]
 hex = "0.4.3"

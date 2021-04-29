@@ -106,6 +106,9 @@ impl RenderHook for TriangleRenderHook {
     fn prepare_low_res(
         &mut self,
         world: &mut World,
+        // This is a hash map that maps [`Handle<Image>`] to luminance GPU textures that can be
+        // added to shader uniforms
+        _texture_cache: &mut TextureCache,
         _surface: &mut Surface,
     ) -> Vec<RenderHookRenderableHandle> {
         // We create a query for all of our triangles in our scene
@@ -147,6 +150,7 @@ impl RenderHook for TriangleRenderHook {
         &mut self,
         world: &mut World,
         surface: &mut Surface,
+        _texture_cache: &mut TextureCache,
         // This is the framebuffer that we should render to
         target_framebuffer: &SceneFramebuffer,
         // This is the list of renderables that we should render

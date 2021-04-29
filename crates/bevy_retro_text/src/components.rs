@@ -1,6 +1,7 @@
+use bevy::prelude::*;
 use bevy_retro_core::prelude::*;
 
-use crate::*;
+use crate::prelude::*;
 
 /// Marker component indicating that a text entity needs to be updated but hasn't yet because it's
 /// assets are not loaded.

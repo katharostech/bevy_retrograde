@@ -8,7 +8,6 @@ use bevy::{
 };
 
 pub(crate) mod backend;
-pub(crate) mod starc;
 
 use self::backend::Renderer;
 
