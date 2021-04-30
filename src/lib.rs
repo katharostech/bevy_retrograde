@@ -62,16 +62,16 @@
 //! Check out the [examples] folder for more examples, but here's a quick look at using Bevy Retro:
 //!
 //! [examples]: https://github.com/katharostech/bevy_retro/tree/master/examples
-//! 
+//!
 //! **`Cargo.toml`:**
-//! 
+//!
 //! ```toml
 //! # Be sure to turn off the default features of Bevy to avoid conflicts with the
 //! # Bevy Retro renderer types.
 //! bevy = { version = "0.5", default-features = false }
 //! bevy_reto = { git = "https://github.com/katharostech/bevy_retro.git" }
 //! ```
-//! 
+//!
 //! **`main.rs`:**
 //!
 //! ```no_run
@@ -202,6 +202,9 @@ impl bevy::app::PluginGroup for RetroPlugins {
         #[cfg(feature = "audio")]
         group.add(audio::RetroAudioPlugin);
 
+        #[cfg(feature = "ldtk")]
+        group.add(ldtk::LdtkPlugin);
+
         #[cfg(feature = "text")]
         group.add(text::RetroTextPlugin);
 
@@ -242,6 +245,9 @@ pub use bevy_retro_audio as audio;
 #[cfg(feature = "text")]
 #[doc(inline)]
 pub use bevy_retro_text as text;
+
+#[cfg(feature = "ldtk")]
+pub use bevy_retro_ldtk as ldtk;
 
 #[cfg(feature = "ui")]
 #[doc(inline)]

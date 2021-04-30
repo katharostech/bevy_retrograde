@@ -11,7 +11,6 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(RetroPlugins)
-        .add_plugin(LdtkPlugin)
         .add_startup_system(setup.system())
         .add_stage(
             GameStage,
