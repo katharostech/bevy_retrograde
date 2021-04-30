@@ -111,7 +111,6 @@ impl RenderHook for SpriteHook {
         let mut sprite_entities = Vec::new();
         let mut renderables = Vec::new();
         for (ent, visible, pos) in sprite_iter {
-            dbg!(ent);
             // Skip invisible sprites
             if !**visible {
                 continue;
