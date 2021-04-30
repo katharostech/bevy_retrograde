@@ -78,6 +78,17 @@ Check out the [examples] folder for more examples, but here's a quick look at us
 
 [examples]: https://github.com/katharostech/bevy_retro/tree/master/examples
 
+**`Cargo.toml`:**
+
+```toml
+# Be sure to turn off the default features of Bevy to avoid conflicts with the
+# Bevy Retro renderer types.
+bevy = { version = "0.5", default-features = false }
+bevy_reto = { git = "https://github.com/katharostech/bevy_retro.git" }
+```
+
+**`main.rs`:**
+
 ```rust
 use bevy::prelude::*;
 use bevy_retro::prelude::*;
