@@ -27,10 +27,9 @@ use bevy_retro_core::{
     prelude::{Camera, Color, Image},
 };
 use bevy_retro_text::{prelude::*, rasterize_text_block};
-use raui::prelude::{CoordsMapping, DefaultLayoutEngine, Rect, Renderer};
-use raui_tesselate_renderer::{
-    renderer::TesselateRenderer,
-    tesselation::{Batch, Tesselation, TesselationVerticesFormat},
+use raui::{
+    prelude::{CoordsMapping, DefaultLayoutEngine, Rect, Renderer, TesselateRenderer},
+    renderer::tesselate::tesselation::{Batch, Tesselation, TesselationVerticesFormat},
 };
 
 use crate::UiApplication;
@@ -60,6 +59,7 @@ pub struct UiRenderHook {
     shader_program: Program<(), (), UiUniformInterface>,
     /// Cache of image handles that the UI is using
     image_cache: Vec<Handle<Image>>,
+    handle_to_path: HashMap<HandleId, String>,
     /// Cache of fonts that the UI is using
     font_cache: Vec<Handle<Font>>,
 }
@@ -92,6 +92,7 @@ impl RenderHook for UiRenderHook {
             // Font & Image handle cache
             font_cache: Default::default(),
             image_cache: Default::default(),
+            handle_to_path: Default::default(),
         })
     }
 
@@ -120,7 +121,6 @@ impl RenderHook for UiRenderHook {
             let bevy_window = bevy_windows.get(self.window_id).unwrap();
             let time = world_cell.get_resource::<Time>().unwrap();
             let mut app = world_cell.get_resource_mut::<UiApplication>().unwrap();
-            let asset_server = world_cell.get_resource::<AssetServer>().unwrap();
 
             // Process the UI application
             app.animations_delta_time = time.delta_seconds();
@@ -134,10 +134,10 @@ impl RenderHook for UiRenderHook {
             let image_sizes = texture_cache
                 .iter()
                 .filter_map(|(handle, texture)| {
-                    let asset_path = asset_server.get_handle_path(handle)?;
+                    let asset_path = self.handle_to_path.get(&handle.id)?;
                     let size = texture.size();
                     Some((
-                        asset_path.format_as_load_path(),
+                        asset_path.clone(),
                         raui::prelude::Vec2 {
                             x: size[0] as f32,
                             y: size[1] as f32,
@@ -199,6 +199,7 @@ impl RenderHook for UiRenderHook {
             shader_program,
             font_cache,
             image_cache,
+            handle_to_path,
             text_tess,
             ..
         } = self;
@@ -262,6 +263,14 @@ impl RenderHook for UiRenderHook {
             // Get the texture handle
             let texture_handle: Handle<Image> =
                 asset_server.get_handle(HandleId::from(AssetPath::from(image_path.as_str())));
+
+            // Map the handle ID to the handle path if necessary
+            //
+            // TODO: This is just waiting on this Bevy PR to be merged:
+            // https://github.com/bevyengine/bevy/pull/1290
+            handle_to_path
+                .entry(texture_handle.id)
+                .or_insert(image_path.clone());
 
             // Load the texture if loading has not started yet
             match asset_server.get_load_state(&texture_handle) {

@@ -10,5 +10,4 @@ bevy_retro_core = { path = "../bevy_retro_core" }
 bevy_retro_text = { path = "../bevy_retro_text" }
 bevy_retro_macros = { path = "../bevy_retro_macros" }
 
-raui = "0.33.0"
-raui-tesselate-renderer = "0.33.0"
+raui = { git = "https://github.com/katharostech/raui", branch = "add-material-to-prelude", features = ["material", "tesselate"] }
