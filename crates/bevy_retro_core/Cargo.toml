@@ -29,7 +29,7 @@ bmp = ["image/bmp"]
 bevy = { version = "0.5", default-features = false, features = ["bevy_winit", "x11"] }
 bevy_retro_macros = { path = "../bevy_retro_macros" }
 luminance = { version = "0.43.2", features = ["derive"] }
-luminance-glow = { git = "https://github.com/katharostech/luminance-glow", branch = "master" }
+luminance-glow = "0.1.0"
 winit = { version = "0.24", features = ["web-sys"] }
 image = { version = "0.23.14", default-features = false }
 thiserror = "1.0.24"
@@ -45,7 +45,7 @@ lazy_static = "1.4.0"
 dashmap = "4.0.2"
 
 [target.'cfg(not(any(target_arch = "wasm32")))'.dependencies]
-luminance-surfman = { git = "https://github.com/katharostech/luminance-surfman", branch = "master" }
+luminance-surfman = "0.1.0"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 web-sys = { version = "0.3", features=["HtmlCanvasElement", "WebGl2RenderingContext", "Window", "console"] }
