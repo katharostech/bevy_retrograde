@@ -1,8 +1,14 @@
 use std::collections::HashMap;
 
 use bevy::{
+    app::ManualEventReader,
     asset::{AssetPath, HandleId},
     core::Time,
+    input::{
+        keyboard::KeyboardInput,
+        mouse::{MouseButtonInput, MouseMotion, MouseWheel},
+    },
+    math::{Mat4, Vec3},
     prelude::{AssetServer, Assets, Handle, World},
     window::Windows,
 };
@@ -19,6 +25,7 @@ use bevy_retro_core::{
         pipeline::{PipelineState, TextureBinding},
         pixel::{NormRGBA8UI, NormUnsigned},
         render_state::RenderState,
+        scissor::ScissorRegion,
         shader::Uniform,
         tess::View,
         texture::{Dim2, GenMipmaps, MagFilter, MinFilter, Sampler, Wrap},
@@ -28,7 +35,10 @@ use bevy_retro_core::{
 };
 use bevy_retro_text::{prelude::*, rasterize_text_block};
 use raui::{
-    prelude::{CoordsMapping, DefaultLayoutEngine, Rect, Renderer, TesselateRenderer},
+    prelude::{
+        CoordsMapping, DefaultInteractionsEngine, DefaultInteractionsEngineResult,
+        DefaultLayoutEngine, InteractionsEngine, Rect, Renderer, TesselateRenderer,
+    },
     renderer::tesselate::tesselation::{Batch, Tesselation, TesselationVerticesFormat},
 };
 
@@ -62,6 +72,8 @@ pub struct UiRenderHook {
     handle_to_path: HashMap<HandleId, String>,
     /// Cache of fonts that the UI is using
     font_cache: Vec<Handle<Font>>,
+    interactions: BevyInteractionsEngine,
+    has_shown_clipping_warning: bool,
 }
 
 impl RenderHook for UiRenderHook {
@@ -93,6 +105,8 @@ impl RenderHook for UiRenderHook {
             font_cache: Default::default(),
             image_cache: Default::default(),
             handle_to_path: Default::default(),
+            interactions: Default::default(),
+            has_shown_clipping_warning: false,
         })
     }
 
@@ -115,6 +129,9 @@ impl RenderHook for UiRenderHook {
 
         // Scope the borrow of the world and its resources
         let ui_tesselation = {
+            // Update interactions
+            self.interactions.update(world);
+
             // Get our bevy resources from the world
             let world_cell = world.cell();
             let bevy_windows = world_cell.get_resource::<Windows>().unwrap();
@@ -125,6 +142,8 @@ impl RenderHook for UiRenderHook {
             // Process the UI application
             app.animations_delta_time = time.delta_seconds();
             app.process();
+            app.interact(&mut self.interactions)
+                .expect("Couldn't run UI interactions");
             app.consume_signals();
 
             // For now we don't do image atlasses
@@ -201,6 +220,7 @@ impl RenderHook for UiRenderHook {
             image_cache,
             handle_to_path,
             text_tess,
+            has_shown_clipping_warning,
             ..
         } = self;
 
@@ -218,7 +238,7 @@ impl RenderHook for UiRenderHook {
             .unwrap()
             .iter()
             .map(|(pos, uv, color)| UiVert {
-                pos: VertexPosition::new([pos.0, pos.1]),
+                pos: VertexPosition::new([pos.0.floor(), pos.1.floor()]),
                 uv: VertexUv::new([uv.0, uv.1]),
                 color: VertexColor::new([color.0, color.1, color.2, color.3]),
             })
@@ -235,7 +255,7 @@ impl RenderHook for UiRenderHook {
         let batches = ui_tesselation.batches;
 
         // Create the render state
-        let render_state = &RenderState::default()
+        let mut render_state = RenderState::default()
             .set_blending_separate(
                 Blending {
                     equation: Equation::Additive,
@@ -334,7 +354,12 @@ impl RenderHook for UiRenderHook {
                 },
             };
             let text_block = TextBlock {
-                max_width: batch.box_size.0.round() as u32,
+                width: batch.box_size.0.round() as u32,
+                align: match batch.alignment {
+                    raui::prelude::TextBoxAlignment::Left => TextAlign::Left,
+                    raui::prelude::TextBoxAlignment::Center => TextAlign::Center,
+                    raui::prelude::TextBoxAlignment::Right => TextAlign::Right,
+                },
             };
 
             // Rasterize the text block
@@ -430,9 +455,9 @@ impl RenderHook for UiRenderHook {
                                         interface.set(
                                             &uniforms.text_box_transform,
                                             [
-                                                [m[0], m[4], m[8], m[12]],
-                                                [m[1], m[5], m[9], m[13]],
-                                                [m[2], m[6], m[10], m[14]],
+                                                [m[0], m[4], m[8], m[12].round()],
+                                                [m[1], m[5], m[9], m[13].round()],
+                                                [m[2], m[6], m[10], m[14].round()],
                                                 [m[3], m[7], m[11], m[15]],
                                             ],
                                         );
@@ -450,8 +475,62 @@ impl RenderHook for UiRenderHook {
                                             tess_gate.render(&*text_tess)
                                         })?;
                                     }
+                                    Batch::FontTriangles(_, _, _) => {
+                                        unimplemented!("Tesselated font rendering not implemented")
+                                    }
+                                    Batch::ClipPush(clip) => {
+                                        // Calculate clipping rectangle x and y
+                                        let matrix = Mat4::from_cols_array(&clip.matrix);
+
+                                        // tl, tr, bl, br == top_left, top_right, bottom_left, bottom_right
+                                        let tl = matrix.project_point3(Vec3::new(0.0, 0.0, 0.0));
+                                        let tr = matrix.project_point3(Vec3::new(
+                                            clip.box_size.0,
+                                            0.0,
+                                            0.0,
+                                        ));
+                                        let br = matrix.project_point3(Vec3::new(
+                                            clip.box_size.0,
+                                            clip.box_size.1,
+                                            0.0,
+                                        ));
+                                        let bl = matrix.project_point3(Vec3::new(
+                                            0.0,
+                                            clip.box_size.1,
+                                            0.0,
+                                        ));
+                                        let x1 = tl.x.min(tr.x).min(br.x).min(bl.x).round();
+                                        let y1 = tl.y.min(tr.y).min(br.y).min(bl.y).round();
+                                        let x2 = tl.x.max(tr.x).max(br.x).max(bl.x).round();
+                                        let y2 = tl.y.max(tr.y).max(br.y).max(bl.y).round();
+                                        let width = x2 - x1;
+                                        let height = y2 - y1;
+
+                                        // Set the clipping section for future renders
+                                        if !*has_shown_clipping_warning {
+                                            bevy::log::warn!(
+                                            "Detected UI elements that use clipping, there are \
+                                            some bugs in either RAUI or Bevy Retro under \
+                                            certain circumstances where the clipping region \
+                                            is incorrect. You may want to disable clipping if \
+                                            the UI element fails to render correctly"
+                                            );
+
+                                            *has_shown_clipping_warning = true;
+                                        }
+                                        render_state =
+                                            render_state.set_scissor(Some(ScissorRegion {
+                                                x: x1 as u32,
+                                                y: y1 as u32,
+                                                width: width as u32,
+                                                height: height as u32,
+                                            }));
+                                    }
+                                    Batch::ClipPop => {
+                                        // Clear the render clipping area
+                                        render_state = render_state.set_scissor(None);
+                                    }
                                     Batch::None => (),
-                                    Batch::FontTriangles(_, _, _) => unimplemented!(),
                                 }
                             }
 
@@ -539,3 +618,26 @@ const QUAD_VERTS: [UiVert; 4] = [
         VertexColor::new([1., 1., 1., 1.]),
     ),
 ];
+
+#[derive(Default)]
+struct BevyInteractionsEngine {
+    engine: DefaultInteractionsEngine,
+    _keyboard_event_reader: ManualEventReader<KeyboardInput>,
+    _cursor_moved_event_reader: ManualEventReader<MouseMotion>,
+    _mouse_motion_event_reader: ManualEventReader<MouseMotion>,
+    _mouse_button_event_reader: ManualEventReader<MouseButtonInput>,
+    _mouse_scroll_event_reader: ManualEventReader<MouseWheel>,
+}
+
+impl BevyInteractionsEngine {
+    fn update(&mut self, _world: &mut World) {}
+}
+
+impl InteractionsEngine<DefaultInteractionsEngineResult, ()> for BevyInteractionsEngine {
+    fn perform_interactions(
+        &mut self,
+        app: &mut raui::prelude::Application,
+    ) -> Result<DefaultInteractionsEngineResult, ()> {
+        self.engine.perform_interactions(app)
+    }
+}

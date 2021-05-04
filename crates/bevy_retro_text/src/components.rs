@@ -36,5 +36,14 @@ impl Default for Text {
 /// The configuration for a text block
 #[derive(Debug, Clone)]
 pub struct TextBlock {
-    pub max_width: u32,
+    pub width: u32,
+    pub align: TextAlign,
+}
+
+/// The alignment of text
+#[derive(Debug, Clone)]
+pub enum TextAlign {
+    Left,
+    Center,
+    Right,
 }

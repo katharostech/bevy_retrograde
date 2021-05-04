@@ -1,7 +1,6 @@
 //! The Bevy Retro text rendering plugin
 
-use bevy::{ecs::component::ComponentDescriptor, prelude::*};
-use bevy_retro_core::RetroCoreStage;
+use bevy::{asset::AssetStage, ecs::component::ComponentDescriptor, prelude::*};
 
 #[doc(hidden)]
 pub mod prelude {
@@ -40,7 +39,8 @@ impl Plugin for RetroTextPlugin {
             .add_asset_loader(FontLoader)
             // Add our font rendering system
             .add_stage_before(
-                RetroCoreStage::Rendering,
+                // We have to run before assets are uploaded to prevent frame delays on text updates
+                AssetStage::LoadAssets,
                 RetroTextStage,
                 SystemStage::single(font_rendering.system()),
             );

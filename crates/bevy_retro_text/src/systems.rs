@@ -112,7 +112,7 @@ pub fn rasterize_text_block(
         current_line.push(glyph.clone());
 
         // Wrap the line if necessary
-        if let Some(max_width) = text_block.map(|x| x.max_width) {
+        if let Some(max_width) = text_block.map(|x| x.width) {
             // Calculate the new x position of the line after adding this glyph
             line_x += glyph.real_width();
 
@@ -176,6 +176,10 @@ pub fn rasterize_text_block(
             width
         }
     }) as u32;
+    // Make sure image is at least as wide as the specified text block width
+    let image_width = text_block
+        .map(|x| x.width.max(image_width))
+        .unwrap_or(image_width);
 
     // Create a new image the size of the text box
     let mut image: RgbaImage = RgbaImage::new(image_width, image_height);
@@ -185,6 +189,25 @@ pub fn rasterize_text_block(
         let line_y = line_i as u32 * line_height;
         let mut line_x = 0u32;
 
+        // Calculate the x offset to account for text alignment
+        let x_offset = text_block
+            .map(|block| match &block.align {
+                TextAlign::Left => 0,
+                other => {
+                    // Get the full width of the characters in this line
+                    let chars_width = line
+                        .iter()
+                        .fold(0, |width, glyph| width + glyph.real_width());
+
+                    match other {
+                        TextAlign::Center => (image_width - chars_width.min(image_width)) / 2,
+                        TextAlign::Right => image_width - chars_width.min(image_width),
+                        _ => 0, // unreachable, but this works, too
+                    }
+                }
+            })
+            .unwrap_or(0);
+
         // Loop through all the glyphs in each line
         for glyph in line {
             // Get bounds
@@ -193,7 +216,8 @@ pub fn rasterize_text_block(
             // Skip rasterizing whitespace chars
             if !glyph.codepoint().is_whitespace() {
                 // Create a sub-image of the text block for the area occupied by the glyph
-                let mut sub_img = image.sub_image(line_x, line_y, bounds.width, bounds.height);
+                let mut sub_img =
+                    image.sub_image(line_x + x_offset, line_y, bounds.width, bounds.height);
 
                 for x in 0..bounds.width {
                     for y in 0..bounds.height {

@@ -1,7 +1,6 @@
 .vscode
 
 /target
-Cargo.lock
 .cargo
 
 *gitignore*

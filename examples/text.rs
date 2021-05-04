@@ -62,7 +62,10 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             font: font.clone(),
             ..Default::default()
         })
-        .insert(TextBlock { max_width: 120 });
+        .insert(TextBlock {
+            width: 120,
+            align: TextAlign::Center,
+        });
 
     // Text will spawn similar to sprites with the center of the text box at the entities position
     // but this can be changed in the same way as sprites, by turning off centering in the Sprite

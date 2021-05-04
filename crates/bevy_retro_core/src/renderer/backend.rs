@@ -250,19 +250,6 @@ impl Renderer {
             }
         }
 
-        // Handle any images that have been created during render hook preparation
-        //
-        // TODO(zicklag): I feel like this is kind of weird like there's a better way to do this,
-        // but I'm not sure. The issue is that the text render hook rasterizes text block images
-        // that must be uploaded here.
-        Self::handle_image_asset_event(
-            pending_textures,
-            texture_cache,
-            image_asset_event_reader,
-            surface,
-            world,
-        );
-
         // Sort renderables before rendering
         renderables.sort();
 
