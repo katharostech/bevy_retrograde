@@ -2502,7 +2502,7 @@ dependencies = [
 [[package]]
 name = "raui"
 version = "0.34.0"
-source = "git+https://github.com/katharostech/raui?branch=vertical-text-align#dc43ec58a94a3a908aeec40f7b4ea8996bb71847"
+source = "git+https://github.com/PsichiX/raui?branch=next#4e3dc329858ce671a526c259ff23b265c40eccd2"
 dependencies = [
  "raui-core",
  "raui-material",
@@ -2512,7 +2512,7 @@ dependencies = [
 [[package]]
 name = "raui-core"
 version = "0.34.0"
-source = "git+https://github.com/katharostech/raui?branch=vertical-text-align#dc43ec58a94a3a908aeec40f7b4ea8996bb71847"
+source = "git+https://github.com/PsichiX/raui?branch=next#4e3dc329858ce671a526c259ff23b265c40eccd2"
 dependencies = [
  "raui-derive",
  "serde",
@@ -2522,7 +2522,7 @@ dependencies = [
 [[package]]
 name = "raui-derive"
 version = "0.34.0"
-source = "git+https://github.com/katharostech/raui?branch=vertical-text-align#dc43ec58a94a3a908aeec40f7b4ea8996bb71847"
+source = "git+https://github.com/PsichiX/raui?branch=next#4e3dc329858ce671a526c259ff23b265c40eccd2"
 dependencies = [
  "quote",
  "syn",
@@ -2531,7 +2531,7 @@ dependencies = [
 [[package]]
 name = "raui-material"
 version = "0.34.0"
-source = "git+https://github.com/katharostech/raui?branch=vertical-text-align#dc43ec58a94a3a908aeec40f7b4ea8996bb71847"
+source = "git+https://github.com/PsichiX/raui?branch=next#4e3dc329858ce671a526c259ff23b265c40eccd2"
 dependencies = [
  "raui-core",
  "serde",
@@ -2540,7 +2540,7 @@ dependencies = [
 [[package]]
 name = "raui-tesselate-renderer"
 version = "0.34.0"
-source = "git+https://github.com/katharostech/raui?branch=vertical-text-align#dc43ec58a94a3a908aeec40f7b4ea8996bb71847"
+source = "git+https://github.com/PsichiX/raui?branch=next#4e3dc329858ce671a526c259ff23b265c40eccd2"
 dependencies = [
  "raui-core",
  "serde",
