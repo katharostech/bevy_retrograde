@@ -121,6 +121,8 @@ pub fn rasterize_text_block(
                 .iter()
                 .find(|(i, op)| i == &(char_i + 1) && op == &BreakOpportunity::Mandatory)
                 .is_some()
+                // The last character always breaks, but we want to ignore that one
+                && char_i != text.text.len() - 1
             {
                 // Add this line to the lines list
                 lines.push(current_line);
@@ -163,8 +165,11 @@ pub fn rasterize_text_block(
     }
     lines.push(current_line);
 
+    // Get the height of the lines of the text block
+    let lines_height = line_height * lines.len() as u32;
+
     // Calculate the height and width of the text block image
-    let image_height = line_height * lines.len() as u32;
+    let image_height = lines_height.max(text_block.map(|x| x.height).flatten().unwrap_or(0));
     let image_width = lines.iter().fold(0, |width, line| {
         let line_width = line
             .iter()
@@ -184,6 +189,16 @@ pub fn rasterize_text_block(
     // Create a new image the size of the text box
     let mut image: RgbaImage = RgbaImage::new(image_width, image_height);
 
+    // Calculate the y offset to account for vertical alignment
+    let y_offset = text_block
+        .map(|block| match (block.height, &block.vertical_align) {
+            (None, _) => 0,
+            (_, TextVerticalAlign::Top) => 0,
+            (Some(_), TextVerticalAlign::Middle) => (image_height - lines_height) / 2,
+            (Some(_), TextVerticalAlign::Bottom) => image_height - lines_height,
+        })
+        .unwrap_or(0);
+
     // Loop through all the lines
     for (line_i, line) in lines.iter().enumerate() {
         let line_y = line_i as u32 * line_height;
@@ -191,8 +206,8 @@ pub fn rasterize_text_block(
 
         // Calculate the x offset to account for text alignment
         let x_offset = text_block
-            .map(|block| match &block.align {
-                TextAlign::Left => 0,
+            .map(|block| match &block.horizontal_align {
+                TextHorizontalAlign::Left => 0,
                 other => {
                     // Get the full width of the characters in this line
                     let chars_width = line
@@ -200,8 +215,10 @@ pub fn rasterize_text_block(
                         .fold(0, |width, glyph| width + glyph.real_width());
 
                     match other {
-                        TextAlign::Center => (image_width - chars_width.min(image_width)) / 2,
-                        TextAlign::Right => image_width - chars_width.min(image_width),
+                        TextHorizontalAlign::Center => {
+                            (image_width - chars_width.min(image_width)) / 2
+                        }
+                        TextHorizontalAlign::Right => image_width - chars_width.min(image_width),
                         _ => 0, // unreachable, but this works, too
                     }
                 }
@@ -216,8 +233,12 @@ pub fn rasterize_text_block(
             // Skip rasterizing whitespace chars
             if !glyph.codepoint().is_whitespace() {
                 // Create a sub-image of the text block for the area occupied by the glyph
-                let mut sub_img =
-                    image.sub_image(line_x + x_offset, line_y, bounds.width, bounds.height);
+                let mut sub_img = image.sub_image(
+                    line_x + x_offset,
+                    line_y + y_offset,
+                    bounds.width,
+                    bounds.height,
+                );
 
                 for x in 0..bounds.width {
                     for y in 0..bounds.height {

@@ -37,13 +37,34 @@ impl Default for Text {
 #[derive(Debug, Clone)]
 pub struct TextBlock {
     pub width: u32,
-    pub align: TextAlign,
+    pub horizontal_align: TextHorizontalAlign,
+    pub height: Option<u32>,
+    pub vertical_align: TextVerticalAlign,
 }
 
-/// The alignment of text
+impl Default for TextBlock {
+    fn default() -> Self {
+        TextBlock {
+            width: 100,
+            horizontal_align: TextHorizontalAlign::Left,
+            height: None,
+            vertical_align: TextVerticalAlign::Top,
+        }
+    }
+}
+
+/// The alignment of text horizontally
 #[derive(Debug, Clone)]
-pub enum TextAlign {
+pub enum TextHorizontalAlign {
     Left,
     Center,
     Right,
+}
+
+/// The alignment of text vertically
+#[derive(Debug, Clone)]
+pub enum TextVerticalAlign {
+    Top,
+    Middle,
+    Bottom,
 }

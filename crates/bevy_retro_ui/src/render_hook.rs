@@ -355,11 +355,17 @@ impl RenderHook for UiRenderHook {
             };
             let text_block = TextBlock {
                 width: batch.box_size.0.round() as u32,
-                align: match batch.alignment {
-                    raui::prelude::TextBoxAlignment::Left => TextAlign::Left,
-                    raui::prelude::TextBoxAlignment::Center => TextAlign::Center,
-                    raui::prelude::TextBoxAlignment::Right => TextAlign::Right,
+                horizontal_align: match batch.horizontal_align {
+                    raui::prelude::TextBoxHorizontalAlign::Left => TextHorizontalAlign::Left,
+                    raui::prelude::TextBoxHorizontalAlign::Center => TextHorizontalAlign::Center,
+                    raui::prelude::TextBoxHorizontalAlign::Right => TextHorizontalAlign::Right,
                 },
+                vertical_align: match batch.vertical_align {
+                    raui::prelude::TextBoxVerticalAlign::Top => TextVerticalAlign::Top,
+                    raui::prelude::TextBoxVerticalAlign::Middle => TextVerticalAlign::Middle,
+                    raui::prelude::TextBoxVerticalAlign::Bottom => TextVerticalAlign::Bottom,
+                },
+                height: Some(batch.box_size.1.round() as u32),
             };
 
             // Rasterize the text block

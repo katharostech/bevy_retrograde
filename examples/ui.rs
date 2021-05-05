@@ -108,13 +108,13 @@ mod ui {
             ..Default::default()
         });
         let text_props = Props::new(TextBoxProps {
-            text: "Manage Inventory".into(),
+            text: "The Red Radish".into(),
             font: TextBoxFont {
                 name: "cozette.bdf".into(),
                 size: 1.,
             },
             width: TextBoxSizeValue::Fill,
-            alignment: TextBoxAlignment::Center,
+            horizontal_align: TextBoxHorizontalAlign::Center,
             ..Default::default()
         })
         .with(FlexBoxItemLayout {
@@ -140,25 +140,26 @@ mod ui {
             fill: 1.0,
             align: 0.5,
             margin: Rect {
-                top: 40.,
+                top: 30.,
                 ..Default::default()
             },
             ..Default::default()
         });
 
-        // let button_props = Props::new(FlexBoxItemLayout {
-        //     margin: Rect {
-        //         top: 50.,
-        //         ..Default::default()
-        //     },
-        //     ..Default::default()
-        // });
+        let button_props = Props::new(FlexBoxItemLayout {
+            align: 0.5,
+            margin: Rect {
+                top: 50.,
+                ..Default::default()
+            },
+            ..Default::default()
+        });
 
         widget! {
             (vertical_paper: {panel_props} [
                 (text_box: {text_props})
                 (image_box: {image_props})
-                // (start_button: {button_props})
+                (start_button: {button_props})
             ])
         }
     }
@@ -176,12 +177,11 @@ mod ui {
             ..
         } = ctx.state.read_cloned_or_default();
 
-        let button_props = Props::new(NavItemActive)
-            .with(ButtonNotifyProps(ctx.id.to_owned().into()))
-            .with(FlexBoxItemLayout {
-                basis: Some(100.),
-                ..Default::default()
-            });
+        let button_props = ctx
+            .props
+            .clone()
+            .with(NavItemActive)
+            .with(ButtonNotifyProps(ctx.id.to_owned().into()));
 
         let button_panel_props = ctx.props.clone().with(PaperProps {
             frame: None,
@@ -195,44 +195,28 @@ mod ui {
             } else if trigger {
                 "Clicked!".into()
             } else {
-                "Button Test".into()
+                "Start Game".into()
             },
-            use_main_color: true,
-            width: TextBoxSizeValue::Exact(80.),
-            ..Default::default()
-        })
-        .with(FlexBoxItemLayout {
-            grow: 1.0,
-            shrink: 1.0,
-            fill: 1.0,
-            align: 0.5,
+            width: TextBoxSizeValue::Fill,
+            height: TextBoxSizeValue::Fill,
+            horizontal_align_override: Some(TextBoxHorizontalAlign::Center),
+            vertical_align_override: Some(TextBoxVerticalAlign::Middle),
             ..Default::default()
         });
 
         let size_box_props = Props::new(SizeBoxProps {
-            height: SizeBoxSizeValue::Exact(30.),
-            width: SizeBoxSizeValue::Content,
-            ..Default::default()
-        })
-        .with(FlexBoxItemLayout {
-            grow: 1.0,
-            shrink: 1.0,
-            fill: 1.0,
-            align: 0.5,
+            width: SizeBoxSizeValue::Exact(85.),
+            height: SizeBoxSizeValue::Exact(25.),
             ..Default::default()
         });
 
         widget! {
             (#{ctx.key} button: {button_props} {
-                content = (vertical_box [
-                    (size_box: {size_box_props} {
-                        content = (paper: {button_panel_props} [
-                            (vertical_box [
-                                (text_paper: {label_props})
-                            ])
-                        ])
-                    })
-                ])
+                content = (size_box: {size_box_props} {
+                    content = (horizontal_paper: {button_panel_props} [
+                        (text_paper: {label_props})
+                    ])
+                })
             })
         }
     }
