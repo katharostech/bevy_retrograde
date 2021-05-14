@@ -39,6 +39,11 @@ fn setup(mut commands: Commands, mut ui_tree: ResMut<UiTree>, asset_server: Res<
     });
 }
 
+// It's recommended to put your UI widgets in a separate module so that the imports of the RAUI
+// types such as `Vec2` don't get mixed up with the Bevy types.
+//
+// Also, be sure to checkout the RAUI website to learn more about how to make UI's with RAUI:
+// https://raui-labs.github.io/raui/
 mod ui {
     use bevy_retro::ui::raui::prelude::*;
 
