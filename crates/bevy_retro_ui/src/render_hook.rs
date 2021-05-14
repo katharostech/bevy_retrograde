@@ -1,16 +1,17 @@
 use std::collections::HashMap;
 
 use bevy::{
-    app::ManualEventReader,
+    app::{Events, ManualEventReader},
     asset::{AssetPath, HandleId},
     core::Time,
     input::{
         keyboard::KeyboardInput,
-        mouse::{MouseButtonInput, MouseMotion, MouseWheel},
+        mouse::{MouseButtonInput, MouseWheel},
+        Input,
     },
     math::{Mat4, Vec3},
-    prelude::{AssetServer, Assets, Handle, World},
-    window::Windows,
+    prelude::{AssetServer, Assets, Handle, KeyCode, World},
+    window::{CursorMoved, ReceivedCharacter, Windows},
 };
 use bevy_retro_core::{
     graphics::{
@@ -126,16 +127,17 @@ impl RenderHook for UiRenderHook {
         // Get the camera
         let mut cameras_query = world.query::<&Camera>();
         let camera = cameras_query.iter(world).next().unwrap().clone();
+        let bevy_windows = world.get_resource::<Windows>().unwrap();
+        let bevy_window = bevy_windows.get(self.window_id).unwrap();
+        let target_size = camera.get_target_size(bevy_window);
 
         // Scope the borrow of the world and its resources
         let ui_tesselation = {
             // Update interactions
-            self.interactions.update(world);
+            self.interactions.update(world, target_size);
 
             // Get our bevy resources from the world
             let world_cell = world.cell();
-            let bevy_windows = world_cell.get_resource::<Windows>().unwrap();
-            let bevy_window = bevy_windows.get(self.window_id).unwrap();
             let time = world_cell.get_resource::<Time>().unwrap();
             let mut app = world_cell.get_resource_mut::<UiApplication>().unwrap();
 
@@ -166,7 +168,6 @@ impl RenderHook for UiRenderHook {
                 .collect();
 
             // Get the coordinate mapping based on the size of the screen
-            let target_size = camera.get_target_size(bevy_window);
             let coords_mapping = CoordsMapping::new(Rect {
                 left: 0.,
                 top: 0.,
@@ -628,15 +629,213 @@ const QUAD_VERTS: [UiVert; 4] = [
 #[derive(Default)]
 struct BevyInteractionsEngine {
     engine: DefaultInteractionsEngine,
-    _keyboard_event_reader: ManualEventReader<KeyboardInput>,
-    _cursor_moved_event_reader: ManualEventReader<MouseMotion>,
-    _mouse_motion_event_reader: ManualEventReader<MouseMotion>,
-    _mouse_button_event_reader: ManualEventReader<MouseButtonInput>,
-    _mouse_scroll_event_reader: ManualEventReader<MouseWheel>,
+    mouse_position: raui::prelude::Vec2,
+    keyboard_event_reader: ManualEventReader<KeyboardInput>,
+    cursor_moved_event_reader: ManualEventReader<CursorMoved>,
+    mouse_button_event_reader: ManualEventReader<MouseButtonInput>,
+    mouse_scroll_event_reader: ManualEventReader<MouseWheel>,
+    character_input_event_reader: ManualEventReader<ReceivedCharacter>,
 }
 
 impl BevyInteractionsEngine {
-    fn update(&mut self, _world: &mut World) {}
+    fn update(&mut self, world: &mut World, target_size: bevy::math::UVec2) {
+        use crate::raui::prelude::*;
+
+        let windows = world.get_resource::<bevy::window::Windows>().unwrap();
+        let keyboard_state = world.get_resource::<Input<KeyCode>>().unwrap();
+
+        // Process cursor move events
+        let cursor_moved_events = world.get_resource::<Events<CursorMoved>>().unwrap();
+        for event in self.cursor_moved_event_reader.iter(&cursor_moved_events) {
+            let window = windows.get(event.id).unwrap();
+            let coords_mapping = CoordsMapping::new_scaling(
+                Rect {
+                    left: 0.,
+                    right: window.width(),
+                    top: 0.,
+                    bottom: window.height(),
+                },
+                CoordsMappingScaling::Fit(Vec2 {
+                    x: target_size.x as f32,
+                    y: target_size.y as f32,
+                }),
+            );
+
+            self.mouse_position = coords_mapping.real_to_virtual_vec2(Vec2 {
+                x: event.position.x,
+                y: window.height() - event.position.y,
+            });
+
+            self.engine
+                .interact(Interaction::PointerMove(self.mouse_position));
+        }
+
+        // Process mouse button events
+        let mouse_button_events = world.get_resource::<Events<MouseButtonInput>>().unwrap();
+        for event in self.mouse_button_event_reader.iter(&mouse_button_events) {
+            let button = match event.button {
+                bevy::prelude::MouseButton::Left => raui::prelude::PointerButton::Trigger,
+                bevy::prelude::MouseButton::Right => raui::prelude::PointerButton::Context,
+                _ => continue,
+            };
+
+            self.engine.interact(match event.state {
+                bevy::input::ElementState::Pressed => {
+                    Interaction::PointerDown(button, self.mouse_position)
+                }
+                bevy::input::ElementState::Released => {
+                    Interaction::PointerUp(button, self.mouse_position)
+                }
+            });
+        }
+
+        // Process mouse scroll events
+        let mouse_scroll_events = world.get_resource::<Events<MouseWheel>>().unwrap();
+        for event in self.mouse_scroll_event_reader.iter(&mouse_scroll_events) {
+            let multiplier = match event.unit {
+                bevy::input::mouse::MouseScrollUnit::Line => 10.,
+                bevy::input::mouse::MouseScrollUnit::Pixel => 1.,
+            };
+
+            let value = Vec2 {
+                x: multiplier * event.x,
+                y: multiplier * event.y,
+            };
+
+            self.engine
+                .interact(Interaction::Navigate(NavSignal::Jump(NavJump::Scroll(
+                    NavScroll::Units(value, true),
+                ))));
+        }
+
+        // Process character input events
+        let character_input_events = world.get_resource::<Events<ReceivedCharacter>>().unwrap();
+        for event in self
+            .character_input_event_reader
+            .iter(&character_input_events)
+        {
+            if self.engine.focused_text_input().is_some() {
+                self.engine
+                    .interact(Interaction::Navigate(NavSignal::TextChange(
+                        NavTextChange::InsertCharacter(event.char),
+                    )));
+            }
+        }
+
+        // Process keyboard events
+        let keyboard_events = world.get_resource::<Events<KeyboardInput>>().unwrap();
+        for event in self.keyboard_event_reader.iter(&keyboard_events) {
+            match event.state {
+                bevy::input::ElementState::Pressed => {
+                    if self.engine.focused_text_input().is_some() {
+                        match event.key_code {
+                            Some(KeyCode::Left) => {
+                                self.engine
+                                    .interact(Interaction::Navigate(NavSignal::TextChange(
+                                        NavTextChange::MoveCursorLeft,
+                                    )))
+                            }
+                            Some(KeyCode::Right) => {
+                                self.engine
+                                    .interact(Interaction::Navigate(NavSignal::TextChange(
+                                        NavTextChange::MoveCursorRight,
+                                    )))
+                            }
+                            Some(KeyCode::Home) => {
+                                self.engine
+                                    .interact(Interaction::Navigate(NavSignal::TextChange(
+                                        NavTextChange::MoveCursorStart,
+                                    )))
+                            }
+                            Some(KeyCode::End) => {
+                                self.engine
+                                    .interact(Interaction::Navigate(NavSignal::TextChange(
+                                        NavTextChange::MoveCursorEnd,
+                                    )))
+                            }
+                            Some(KeyCode::Back) => {
+                                self.engine
+                                    .interact(Interaction::Navigate(NavSignal::TextChange(
+                                        NavTextChange::DeleteLeft,
+                                    )))
+                            }
+                            Some(KeyCode::Delete) => {
+                                self.engine
+                                    .interact(Interaction::Navigate(NavSignal::TextChange(
+                                        NavTextChange::DeleteRight,
+                                    )))
+                            }
+                            Some(KeyCode::Return) | Some(KeyCode::NumpadEnter) => self
+                                .engine
+                                .interact(Interaction::Navigate(NavSignal::TextChange(
+                                    NavTextChange::NewLine,
+                                ))),
+                            Some(KeyCode::Escape) => {
+                                self.engine.interact(Interaction::Navigate(
+                                    NavSignal::FocusTextInput(().into()),
+                                ));
+                            }
+                            _ => {}
+                        }
+                    } else {
+                        let shift_pressed = keyboard_state.pressed(KeyCode::LShift)
+                            | keyboard_state.pressed(KeyCode::RShift);
+                        match event.key_code {
+                            Some(KeyCode::Up) | Some(KeyCode::W) => {
+                                self.engine.interact(Interaction::Navigate(NavSignal::Up))
+                            }
+                            Some(KeyCode::Down) | Some(KeyCode::S) => {
+                                self.engine.interact(Interaction::Navigate(NavSignal::Down))
+                            }
+                            Some(KeyCode::Left) | Some(KeyCode::A) => {
+                                if shift_pressed {
+                                    self.engine.interact(Interaction::Navigate(NavSignal::Prev));
+                                } else {
+                                    self.engine.interact(Interaction::Navigate(NavSignal::Left));
+                                }
+                            }
+                            Some(KeyCode::Right) | Some(KeyCode::D) => {
+                                if shift_pressed {
+                                    self.engine.interact(Interaction::Navigate(NavSignal::Next));
+                                } else {
+                                    self.engine
+                                        .interact(Interaction::Navigate(NavSignal::Right));
+                                }
+                            }
+                            Some(KeyCode::Return)
+                            | Some(KeyCode::NumpadEnter)
+                            | Some(KeyCode::Space) => {
+                                self.engine
+                                    .interact(Interaction::Navigate(NavSignal::Accept(true)));
+                            }
+                            Some(KeyCode::Escape) => {
+                                self.engine
+                                    .interact(Interaction::Navigate(NavSignal::Cancel(true)));
+                            }
+                            _ => (),
+                        }
+                    }
+                }
+                bevy::input::ElementState::Released => {
+                    if self.engine.focused_text_input().is_none() {
+                        match event.key_code {
+                            Some(KeyCode::Return)
+                            | Some(KeyCode::NumpadEnter)
+                            | Some(KeyCode::Space) => {
+                                self.engine
+                                    .interact(Interaction::Navigate(NavSignal::Accept(false)));
+                            }
+                            Some(KeyCode::Escape) => {
+                                self.engine
+                                    .interact(Interaction::Navigate(NavSignal::Cancel(false)));
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 impl InteractionsEngine<DefaultInteractionsEngineResult, ()> for BevyInteractionsEngine {
