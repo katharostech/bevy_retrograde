@@ -68,6 +68,15 @@ mod ui {
                     }),
                 );
 
+                theme.content_backgrounds.insert(
+                    String::from("button-down"),
+                    ThemedImageMaterial::Image(ImageBoxImage {
+                        id: "ui/button-down.png".to_owned(),
+                        scaling: ImageBoxImageScaling::Frame((8.0, false).into()),
+                        ..Default::default()
+                    }),
+                );
+
                 theme.text_variants.insert(
                     String::new(),
                     ThemedTextMaterial {
@@ -96,7 +105,7 @@ mod ui {
         });
 
         widget! {
-            (content_box | {shared_props} [
+            (nav_content_box | {shared_props} [
                 (popup: {popup_props})
             ])
         }
@@ -156,7 +165,7 @@ mod ui {
         });
 
         widget! {
-            (vertical_paper: {panel_props} [
+            (nav_vertical_paper: {panel_props} [
                 (text_box: {text_props})
                 (image_box: {image_props})
                 (start_button: {button_props})
@@ -171,10 +180,7 @@ mod ui {
     )]
     fn start_button(mut ctx: WidgetContext) -> WidgetNode {
         let ButtonProps {
-            context,
-            selected,
-            trigger,
-            ..
+            selected, trigger, ..
         } = ctx.state.read_cloned_or_default();
 
         let button_props = ctx
@@ -185,33 +191,44 @@ mod ui {
 
         let button_panel_props = ctx.props.clone().with(PaperProps {
             frame: None,
-            variant: String::from("button-up"),
+            variant: if trigger {
+                String::from("button-down")
+            } else {
+                String::from("button-up")
+            },
             ..Default::default()
         });
 
         let label_props = Props::new(TextPaperProps {
-            text: if context || selected {
-                "Hovered!".into()
-            } else if trigger {
-                "Clicked!".into()
-            } else {
-                "Start Game".into()
-            },
+            text: "Start Game".to_owned(),
             width: TextBoxSizeValue::Fill,
             height: TextBoxSizeValue::Fill,
             horizontal_align_override: Some(TextBoxHorizontalAlign::Center),
             vertical_align_override: Some(TextBoxVerticalAlign::Middle),
+            transform: Transform {
+                translation: Vec2 {
+                    x: 0.,
+                    y: if trigger {
+                        2.
+                    } else {
+                        0.
+                    },
+                },
+                ..Default::default()
+            },
             ..Default::default()
         });
 
+        let scale = if selected { 1.05 } else { 1. };
+
         let size_box_props = Props::new(SizeBoxProps {
-            width: SizeBoxSizeValue::Exact(85.),
-            height: SizeBoxSizeValue::Exact(25.),
+            width: SizeBoxSizeValue::Exact(85. * scale),
+            height: SizeBoxSizeValue::Exact(25. * scale),
             ..Default::default()
         });
 
         widget! {
-            (#{ctx.key} button: {button_props} {
+            (button: {button_props} {
                 content = (size_box: {size_box_props} {
                     content = (horizontal_paper: {button_panel_props} [
                         (text_paper: {label_props})
