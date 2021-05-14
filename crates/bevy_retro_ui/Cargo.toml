@@ -10,4 +10,4 @@ bevy_retro_core = { path = "../bevy_retro_core" }
 bevy_retro_text = { path = "../bevy_retro_text" }
 bevy_retro_macros = { path = "../bevy_retro_macros" }
 
-raui = { version = "0.34", features = ["material", "tesselate"] }
+raui = { version = "0.35", features = ["material", "tesselate"] }

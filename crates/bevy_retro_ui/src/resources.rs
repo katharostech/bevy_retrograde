@@ -12,6 +12,7 @@ impl Default for UiApplication {
     fn default() -> Self {
         let mut app = Application::new();
         app.setup(raui::core::widget::setup);
+        app.setup(raui::renderer::material::setup);
 
         Self(app)
     }

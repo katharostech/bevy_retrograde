@@ -435,6 +435,7 @@ dependencies = [
  "bevy_retro_ui",
  "hex",
  "rand",
+ "serde",
 ]
 
 [[package]]
@@ -2501,8 +2502,9 @@ dependencies = [
 
 [[package]]
 name = "raui"
-version = "0.34.0"
-source = "git+https://github.com/PsichiX/raui?branch=next#4e3dc329858ce671a526c259ff23b265c40eccd2"
+version = "0.35.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "07d18a1317c431954958f108b6a6f7cebb464a8bf7445cc01c1d66698fbc3072"
 dependencies = [
  "raui-core",
  "raui-material",
@@ -2511,8 +2513,9 @@ dependencies = [
 
 [[package]]
 name = "raui-core"
-version = "0.34.0"
-source = "git+https://github.com/PsichiX/raui?branch=next#4e3dc329858ce671a526c259ff23b265c40eccd2"
+version = "0.35.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aaccf2678871e7422aa2a1afcba6322eb0a14208b8c06cfbdd953fc5cae22dd6"
 dependencies = [
  "raui-derive",
  "serde",
@@ -2521,8 +2524,9 @@ dependencies = [
 
 [[package]]
 name = "raui-derive"
-version = "0.34.0"
-source = "git+https://github.com/PsichiX/raui?branch=next#4e3dc329858ce671a526c259ff23b265c40eccd2"
+version = "0.35.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ba7afb39cb3630b1834041a0f24cfc03112d0866b0354e7e62734f7a420e2e4f"
 dependencies = [
  "quote",
  "syn",
@@ -2530,8 +2534,9 @@ dependencies = [
 
 [[package]]
 name = "raui-material"
-version = "0.34.0"
-source = "git+https://github.com/PsichiX/raui?branch=next#4e3dc329858ce671a526c259ff23b265c40eccd2"
+version = "0.35.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "30f6f06cb4a98c588c04c4d6e0534bb3c2c77809d7d5c714787194f7bde21d3c"
 dependencies = [
  "raui-core",
  "serde",
@@ -2539,8 +2544,9 @@ dependencies = [
 
 [[package]]
 name = "raui-tesselate-renderer"
-version = "0.34.0"
-source = "git+https://github.com/PsichiX/raui?branch=next#4e3dc329858ce671a526c259ff23b265c40eccd2"
+version = "0.35.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8926142e68916030e7e56c674e27e741a287d7b66ef2e707adafb5a7934cde4"
 dependencies = [
  "raui-core",
  "serde",

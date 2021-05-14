@@ -38,9 +38,12 @@ use bevy_retro_text::{prelude::*, rasterize_text_block};
 use raui::{
     prelude::{
         CoordsMapping, DefaultInteractionsEngine, DefaultInteractionsEngineResult,
-        DefaultLayoutEngine, InteractionsEngine, Rect, Renderer, TesselateRenderer,
+        DefaultLayoutEngine, InteractionsEngine, Rect, Renderer,
     },
-    renderer::tesselate::tesselation::{Batch, Tesselation, TesselationVerticesFormat},
+    renderer::tesselate::{
+        prelude::TesselateRenderer,
+        tesselation::{Batch, Tesselation, TesselationVerticesFormat},
+    },
 };
 
 use crate::UiApplication;
@@ -520,10 +523,10 @@ impl RenderHook for UiRenderHook {
                                         if !*has_shown_clipping_warning {
                                             bevy::log::warn!(
                                             "Detected UI elements that use clipping, there are \
-                                            some bugs in either RAUI or Bevy Retro under \
-                                            certain circumstances where the clipping region \
-                                            is incorrect. You may want to disable clipping if \
-                                            the UI element fails to render correctly"
+                                            some bugs under certain circumstances where the \
+                                            clipping region is incorrect. You may want to \
+                                            disable clipping if the UI element fails to \
+                                            render correctly"
                                             );
 
                                             *has_shown_clipping_warning = true;
