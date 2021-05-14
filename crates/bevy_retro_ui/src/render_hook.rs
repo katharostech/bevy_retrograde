@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 
 use bevy::{
-    asset::{AssetPath, HandleId},
+    asset::{AssetPath, HandleId, LoadState},
     core::Time,
     math::{Mat4, Vec3},
     prelude::{AssetServer, Assets, Handle, World},
+    utils::HashSet,
     window::Windows,
 };
 use bevy_retro_core::{
@@ -63,7 +64,10 @@ pub struct UiRenderHook {
     text_tess: Tess<UiVert>,
     shader_program: Program<(), (), UiUniformInterface>,
     /// Cache of image handles that the UI is using
-    image_cache: Vec<Handle<Image>>,
+    ///
+    /// This cache makes sure that the ref-count on the image assets doesn't drop to zero and cause
+    /// the image to be un-loaded while the UI id depending on it
+    image_cache: HashSet<Handle<Image>>,
     handle_to_path: HashMap<HandleId, String>,
     /// Cache of fonts that the UI is using
     font_cache: Vec<Handle<Font>>,
@@ -142,7 +146,7 @@ impl RenderHook for UiRenderHook {
                 .expect("Couldn't run UI interactions");
             app.consume_signals();
 
-            // For now we don't do image atlasses
+            // For now we don't do image atlases
             let atlases = HashMap::default();
 
             // Collect image sizes from the textures in the texture cache
@@ -270,7 +274,6 @@ impl RenderHook for UiRenderHook {
             .set_depth_test(None); // Disable depth test so the UI always renders on top
 
         // Get list of image handles used by the UI
-        let mut image_handles = Vec::new();
         for image_path in batches.iter().filter_map(|x| match x {
             Batch::ImageTriangles(image, _) => Some(image),
             _ => None,
@@ -288,16 +291,19 @@ impl RenderHook for UiRenderHook {
                 .or_insert(image_path.clone());
 
             // Load the texture if loading has not started yet
-            match asset_server.get_load_state(&texture_handle) {
-                bevy::asset::LoadState::NotLoaded => {
-                    image_cache.push(asset_server.load(image_path.as_str()));
-                }
-                _ => (),
+            if let LoadState::NotLoaded = asset_server.get_load_state(&texture_handle) {
+                asset_server.load::<Image, _>(image_path.as_str());
             }
-            image_handles.push(texture_handle);
+
+            // Add the image to the image cache to keep the handle from getting dropped while the
+            // UI is using it.
+            image_cache.insert(texture_handle);
+
+            // TODO: Images used by the UI aren't ever cleaned up. If the UI uses an image at some
+            // point, we assume that it might at any time want to use it again so we avoid
+            // re-loading the image by just not un-loading the image. This could be a problem for
+            // some UIs. We should find a way to make this configurable somehow.
         }
-        // Update the image cache with the new handle list
-        *image_cache = image_handles;
 
         // Get list of font handles used by the UI
         let mut font_handles = Vec::new();
@@ -311,7 +317,7 @@ impl RenderHook for UiRenderHook {
 
             // Load the font if loading has not started yet
             match asset_server.get_load_state(&font_handle) {
-                bevy::asset::LoadState::NotLoaded => {
+                LoadState::NotLoaded => {
                     font_cache.push(asset_server.load(font_path.as_str()));
                 }
                 _ => (),
@@ -321,7 +327,7 @@ impl RenderHook for UiRenderHook {
         // Update the image cache with the new handle list
         *font_cache = font_handles;
 
-        // Raterize text blocks to textures
+        // Rasterize text blocks to textures
         // TODO: Cache text block rasterizations and reuse if they haven't been changed
         let mut text_block_textures = HashMap::new();
         for (widget, batch) in batches.iter().filter_map(|x| match x {
@@ -366,14 +372,14 @@ impl RenderHook for UiRenderHook {
             // Rasterize the text block
             let image = rasterize_text_block(&text, font, Some(&text_block));
 
-            // Upload the image to the GPU
+            // Get raw pixels
             let (sprite_width, sprite_height) = image.dimensions();
-            let sprite_size = [sprite_width, sprite_height];
+            let image_size = [sprite_width, sprite_height];
             let pixels = image.as_raw();
 
-            // Upload the sprite to the GPU
+            // Upload the image to the GPU
             let mut texture = surface
-                .new_texture::<Dim2, NormRGBA8UI>(sprite_size, 0, PIXELATED_SAMPLER)
+                .new_texture::<Dim2, NormRGBA8UI>(image_size, 0, PIXELATED_SAMPLER)
                 .unwrap();
             texture.upload_raw(GenMipmaps::No, pixels).unwrap();
 
