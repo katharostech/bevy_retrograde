@@ -65,12 +65,15 @@ Bevy Retro releases for each Bevy release.
 - Scaled pixel-perfect rendering with three camera modes: fixed width, fixed height, and
   letter-boxed
 - An [LDtk](https://ldtk.io) map loading [plugin](./plugins/bevy_retro_ldtk)
+- An integration with the [RAUI] UI library for building in-game user interfaces and HUD
 - Pixel-perfect collision detection
 - Text rendering of BDF fonts
 - Custom shaders for post-processing, including a built-in CRT shader
 - Render hooks allowing you to drop down into raw [Luminance] calls for custom rendering
 
 [luminance]: https://github.com/phaazon/luminance-rs
+
+[RAUI]: https://raui-labs.github.io/raui/
 
 ## Examples
 

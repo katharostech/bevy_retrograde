@@ -40,6 +40,18 @@ An example showing you how to load and display an LDtk map file.
 
 [ldtk_map]: ./ldtk_map.rs
 
+## [ui]
+
+An example demonstrating the [RAUI] UI integration.
+
+[RAUI]: https://raui-labs.github.io/raui/
+
+> 🚧 **Under Construction:** The RAUI integration is under construction. Currently UI rendering works but there is no way to communicate with the ECS world from the UI.
+
+![ui](./screenshots/ui.gif)
+
+[ui]: ./ui.rs
+
 ## [audio]
 
 An example demonstrating how to play sounds and play music on loop.
