@@ -9,6 +9,8 @@ pub use resources::*;
 mod render_hook;
 use render_hook::UiRenderHook;
 
+pub(crate) mod interaction;
+
 pub use raui;
 
 #[derive(StageLabel, Debug, Clone, Hash, PartialEq, Eq)]

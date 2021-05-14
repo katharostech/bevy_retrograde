@@ -435,7 +435,6 @@ dependencies = [
  "bevy_retro_ui",
  "hex",
  "rand",
- "serde",
 ]
 
 [[package]]

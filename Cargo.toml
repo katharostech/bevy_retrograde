@@ -30,7 +30,6 @@ bevy_retro_ui = { path = "crates/bevy_retro_ui", optional = true }
 [dev-dependencies]
 hex = "0.4.3"
 rand = "0.8.3"
-serde = { version = "1.0", features = ["derive"] }
 
 [profile.dev]
 opt-level = 3
