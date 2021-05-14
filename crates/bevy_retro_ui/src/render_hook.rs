@@ -386,6 +386,9 @@ impl RenderHook for UiRenderHook {
             text_block_textures.insert(widget.clone(), texture);
         }
 
+        // The stack of clipping regions applied by RAUI
+        let mut clip_stack = Vec::new();
+
         // Do the render
         surface
             .new_pipeline_gate()
@@ -525,17 +528,25 @@ impl RenderHook for UiRenderHook {
 
                                             *has_shown_clipping_warning = true;
                                         }
+
+                                        let scissor_region = ScissorRegion {
+                                            x: x1 as u32,
+                                            y: y1 as u32,
+                                            width: width as u32,
+                                            height: height as u32,
+                                        };
+
                                         render_state =
-                                            render_state.set_scissor(Some(ScissorRegion {
-                                                x: x1 as u32,
-                                                y: y1 as u32,
-                                                width: width as u32,
-                                                height: height as u32,
-                                            }));
+                                            render_state.set_scissor(scissor_region.clone());
+                                        clip_stack.push(scissor_region);
                                     }
                                     Batch::ClipPop => {
-                                        // Clear the render clipping area
-                                        render_state = render_state.set_scissor(None);
+                                        // Pop the last item off the clip stack and set the scissor
+                                        // to the previous one
+                                        clip_stack.pop();
+
+                                        render_state =
+                                            render_state.set_scissor(clip_stack.last().cloned());
                                     }
                                     Batch::None => (),
                                 }
