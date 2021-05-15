@@ -4,7 +4,7 @@ use bevy::{
     asset::{AssetPath, HandleId, LoadState},
     core::Time,
     math::{Mat4, Vec3},
-    prelude::{AssetServer, Assets, Handle, World},
+    prelude::{AssetServer, Assets, Handle, Mut, World},
     utils::HashSet,
     window::Windows,
 };
@@ -31,14 +31,14 @@ use bevy_retro_core::{
 };
 use bevy_retro_text::{prelude::*, rasterize_text_block};
 use raui::{
-    prelude::{CoordsMapping, DefaultLayoutEngine, Rect, Renderer},
+    prelude::{Application, CoordsMapping, DefaultLayoutEngine, ProcessContext, Rect, Renderer},
     renderer::tesselate::{
         prelude::TesselateRenderer,
         tesselation::{Batch, Tesselation, TesselationVerticesFormat},
     },
 };
 
-use crate::{interaction::BevyInteractionsEngine, UiApplication};
+use crate::{interaction::BevyInteractionsEngine, UiTree};
 
 trait AssetPathExt {
     fn format_as_load_path(&self) -> String;
@@ -60,6 +60,7 @@ impl<'a> AssetPathExt for AssetPath<'a> {
 /// The render hook responsible for rendering the UI
 pub struct UiRenderHook {
     window_id: bevy::window::WindowId,
+    app: Application,
     current_ui_tesselation: Option<Tesselation>,
     text_tess: Tess<UiVert>,
     shader_program: Program<(), (), UiUniformInterface>,
@@ -106,6 +107,13 @@ impl RenderHook for UiRenderHook {
             handle_to_path: Default::default(),
             interactions: Default::default(),
             has_shown_clipping_warning: false,
+            app: {
+                let mut app = Application::new();
+                app.setup(raui::core::widget::setup);
+                app.setup(raui::renderer::material::setup);
+
+                app
+            },
         })
     }
 
@@ -135,59 +143,80 @@ impl RenderHook for UiRenderHook {
             self.interactions.update(world, target_size);
 
             // Get our bevy resources from the world
-            let world_cell = world.cell();
-            let time = world_cell.get_resource::<Time>().unwrap();
-            let mut app = world_cell.get_resource_mut::<UiApplication>().unwrap();
+            let delta_time = world.get_resource::<Time>().unwrap().delta_seconds();
 
-            // Process the UI application
-            app.animations_delta_time = time.delta_seconds();
-            app.process();
-            app.interact(&mut self.interactions)
-                .expect("Couldn't run UI interactions");
-            app.consume_signals();
+            // Get the app from the world ( we will re-insert it when we are done processing the app )
+            world.resource_scope(|world: &mut World, ui_tree: Mut<UiTree>| {
+                // Update the widget tree if it has changed
+                if ui_tree.is_changed() {
+                    self.app.apply(ui_tree.0.clone());
+                }
 
-            // For now we don't do image atlases
-            let atlases = HashMap::default();
+                // Update delta time
+                self.app.animations_delta_time = delta_time;
 
-            // Collect image sizes from the textures in the texture cache
-            let image_sizes = texture_cache
-                .iter()
-                .filter_map(|(handle, texture)| {
-                    let asset_path = self.handle_to_path.get(&handle.id)?;
-                    let size = texture.size();
-                    Some((
-                        asset_path.clone(),
-                        raui::prelude::Vec2 {
-                            x: size[0] as f32,
-                            y: size[1] as f32,
-                        },
-                    ))
-                })
-                .collect();
+                // Run forced_process so that UI components run every frame in more of an "immediate
+                // mode" fashion.
+                //
+                // TODO: Maybe change this if it doesn't make sense
+                self.app.forced_process_with_context(
+                    // Add the Bevy world to the process context
+                    ProcessContext::new().insert_mut(world),
+                );
 
-            // Get the coordinate mapping based on the size of the screen
-            let coords_mapping = CoordsMapping::new(Rect {
-                left: 0.,
-                top: 0.,
-                right: target_size.x as f32,
-                bottom: target_size.y as f32,
-            });
+                self.app
+                    .interact(&mut self.interactions)
+                    .expect("Couldn't run UI interactions");
+                self.app.consume_signals();
 
-            // Calculate app layout
-            app.layout(&coords_mapping, &mut DefaultLayoutEngine)
-                .expect("Could not layout UI");
+                // For now we don't do image atlases
+                let atlases = HashMap::default();
 
-            // Tesselate the UI
-            let ui_tesselation = TesselateRenderer::new(
-                TesselationVerticesFormat::Interleaved,
-                (),
-                &atlases,
-                &image_sizes,
-            )
-            .render(&app.rendered_tree(), &coords_mapping, &app.layout_data())
-            .expect("Could not tesselate UI");
+                // Collect image sizes from the textures in the texture cache
+                let image_sizes = texture_cache
+                    .iter()
+                    .filter_map(|(handle, texture)| {
+                        let asset_path = self.handle_to_path.get(&handle.id)?;
+                        let size = texture.size();
+                        Some((
+                            asset_path.clone(),
+                            raui::prelude::Vec2 {
+                                x: size[0] as f32,
+                                y: size[1] as f32,
+                            },
+                        ))
+                    })
+                    .collect();
 
-            ui_tesselation
+                // Get the coordinate mapping based on the size of the screen
+                let coords_mapping = CoordsMapping::new(Rect {
+                    left: 0.,
+                    top: 0.,
+                    right: target_size.x as f32,
+                    bottom: target_size.y as f32,
+                });
+
+                // Calculate app layout
+                self.app
+                    .layout(&coords_mapping, &mut DefaultLayoutEngine)
+                    .expect("Could not layout UI");
+
+                // Tesselate the UI
+                let ui_tesselation = TesselateRenderer::new(
+                    TesselationVerticesFormat::Interleaved,
+                    (),
+                    &atlases,
+                    &image_sizes,
+                )
+                .render(
+                    &self.app.rendered_tree(),
+                    &coords_mapping,
+                    &self.app.layout_data(),
+                )
+                .expect("Could not tesselate UI");
+
+                ui_tesselation
+            })
         };
 
         // Store the UI tesselation in preparation for rendering

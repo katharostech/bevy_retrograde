@@ -1,7 +1,4 @@
-use bevy::{
-    diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
-    prelude::*,
-};
+use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*};
 use bevy_retro::prelude::*;
 use rand::{thread_rng, Rng};
 
@@ -43,18 +40,17 @@ fn main() {
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .insert_resource(RadishCounter { count: 0 })
         .init_resource::<RadishImage>()
+        .insert_resource(UiTree(raui::prelude::widget! {
+            (ui::fps_counter)
+        }))
         .add_startup_system(setup.system())
         .add_system(mouse_handler.system())
         .add_system(movement_system.system())
         .add_system(collision_system.system())
-        .add_system(fps.system())
         .run();
 }
 
-struct FpsCounterText;
-struct SpritesCounterText;
-
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup(mut commands: Commands) {
     // Spawn the camera
     commands.spawn().insert_bundle(CameraBundle {
         camera: Camera {
@@ -66,44 +62,6 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         },
         ..Default::default()
     });
-
-    let font = asset_server.load("cozette.bdf");
-
-    // Add a frames per second counter
-    commands
-        .spawn()
-        .insert_bundle(TextBundle {
-            text: Text {
-                text: "FPS: 0".into(),
-                ..Default::default()
-            },
-            sprite: Sprite {
-                centered: false,
-                ..Default::default()
-            },
-            font: font.clone(),
-            position: Position::new(-150, -150, 1024),
-            ..Default::default()
-        })
-        .insert(FpsCounterText);
-
-    // Add a sprites counter
-    commands
-        .spawn()
-        .insert_bundle(TextBundle {
-            text: Text {
-                text: "Sprites: 0".into(),
-                ..Default::default()
-            },
-            sprite: Sprite {
-                centered: false,
-                ..Default::default()
-            },
-            font,
-            position: Position::new(-150, -134, 1024),
-            ..Default::default()
-        })
-        .insert(SpritesCounterText);
 }
 
 fn mouse_handler(
@@ -153,21 +111,58 @@ fn collision_system(mut bird_query: Query<(&mut Radish, &Position)>) {
     }
 }
 
-fn fps(
-    mut fps_query: Query<&mut Text, With<FpsCounterText>>,
-    diagnostics: Res<Diagnostics>,
-    mut sprite_count_query: Query<&mut Text, (With<SpritesCounterText>, Without<FpsCounterText>)>,
-    counter: Res<RadishCounter>,
-) {
-    if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
-        for mut text in fps_query.iter_mut() {
-            if let Some(fps) = fps.average() {
-                text.text = format!("FPS: {:.0}", fps);
-            }
-        }
-    }
+mod ui {
+    use super::RadishCounter;
+    use bevy::{
+        diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
+        prelude::World,
+    };
+    use bevy_retro::ui::raui::prelude::*;
 
-    for mut text in sprite_count_query.iter_mut() {
-        text.text = format!("Sprites: {}", counter.count);
+    pub fn fps_counter(ctx: WidgetContext) -> WidgetNode {
+        let world = ctx.process_context.get_mut::<World>().unwrap();
+
+        let fps = {
+            let diagnostics = world.get_resource::<Diagnostics>().unwrap();
+            diagnostics
+                .get(FrameTimeDiagnosticsPlugin::FPS)
+                .map(|x| x.average())
+                .flatten()
+                .unwrap_or(0f64)
+        };
+        let count = world.get_resource::<RadishCounter>().unwrap().count;
+
+        let text = format!(
+            "FPS:   {:.0} \n\
+             Count: {}",
+            fps, count
+        );
+
+        let text_box_props = Props::new(TextBoxProps {
+            text,
+            font: TextBoxFont {
+                name: "cozette.bdf".into(),
+                size: 1.,
+            },
+            width: TextBoxSizeValue::Exact(80.),
+            ..Default::default()
+        }).with(ContentBoxItemLayout {
+            margin: Rect {
+                top: 10.,
+                left: 10.,
+                ..Default::default()
+            },
+            align: Vec2 {
+                x: 1.0,
+                y: 0.0,
+            },
+            ..Default::default()
+        });
+
+        widget! {
+            (content_box [
+                (text_box: {text_box_props})
+            ])
+        }
     }
 }

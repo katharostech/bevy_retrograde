@@ -46,8 +46,6 @@ An example demonstrating the [RAUI] UI integration.
 
 [RAUI]: https://raui-labs.github.io/raui/
 
-> 🚧 **Under Construction:** The RAUI integration is under construction. Currently UI rendering works but there is no way to communicate with the ECS world from the UI.
-
 ![ui](./screenshots/ui.gif)
 
 [ui]: ./ui.rs
@@ -78,7 +76,7 @@ raw calls to the [Luminance] graphics API allowing you to render _any_ kind of o
 
 ## [radishmark]
 
-A bunnymark style demo that logs frame time diagnostics to the console.
+A bunnymark style benchmark that also demonstrates how to use the UI system to render frames-per-second diagnostics.
 
 ![radishmark](./screenshots/radishmark.gif)
 

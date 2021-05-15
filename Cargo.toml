@@ -42,3 +42,6 @@ lto = true
 name = "ldtk_map"
 path = "examples/ldtk_map.rs"
 required-features = ["ldtk"]
+
+[patch.crates-io]
+raui = { git = "https://github.com/katharostech/raui", branch = "feature/process-context" }
