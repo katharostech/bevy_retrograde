@@ -1,0 +1,124 @@
+name: Build & Test
+
+on:
+  push:
+    branches: [ master, staging, trying ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install alsa and udev
+        run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
+        if: runner.os == 'linux'
+
+      - name: Cargo Cache
+        uses: actions/cache@v2
+        env:
+          cache-name: cargo-cache
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            target
+          key: ${{ env.cache-name }}-${{ runner.os }}-check-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ env.cache-name }}-${{ runner.os }}-check-
+            ${{ env.cache-name }}-${{ runner.os }}-
+            ${{ env.cache-name }}-
+
+      - name: Check
+        run: cargo check --workspace --all-features
+
+  build-and-test-native:
+    needs: check
+    strategy:
+      matrix:
+        os: [ 'windows-latest', 'ubuntu-latest', 'macos-latest' ]
+        toolchain: [ 'stable', 'nightly' ]
+    continue-on-error: ${{ matrix.toolchain == 'nightly' }}
+    env:
+      # Override the Cargo.toml dev profile settings to optimize for build speed
+      CARGO_PROFILE_DEV_DEBUG: 'true'
+      CARGO_PROFILE_DEV_OPT_LEVEL: '0'
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install alsa and udev
+        run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
+        if: runner.os == 'linux'
+
+      - name: Cargo Cache
+        uses: actions/cache@v2
+        env:
+          cache-name: cargo-cache
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            target
+          key: ${{ env.cache-name }}-${{ matrix.os }}-${{ matrix.toolchain }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ env.cache-name }}-${{ matrix.os }}-${{ matrix.toolchain }}-
+            ${{ env.cache-name }}-${{ matrix.os }}-
+            ${{ env.cache-name }}-
+
+      - name: Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+
+      - name: Build
+        run: cargo build --workspace --features ldtk --verbose
+
+      - name: Test
+        run: cargo test --workspace --features ldtk --verbose
+
+  build-wasm:
+    needs: check
+    runs-on: ubuntu-latest
+    env:
+      # Override the Cargo.toml dev profile settings to optimize for build speed
+      CARGO_PROFILE_DEV_DEBUG: 'true'
+      CARGO_PROFILE_DEV_OPT_LEVEL: '0'
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cargo Cache
+        uses: actions/cache@v2
+        env:
+          cache-name: cargo-cache
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            target
+          key: ${{ env.cache-name }}-wasm-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ env.cache-name }}-${{ runner.os }}-wasm-
+            ${{ env.cache-name }}-${{ runner.os }}-
+            ${{ env.cache-name }}-
+
+      - name: Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          override: true
+
+      - name: Build
+        run: cargo build --workspace --features ldtk --verbose --target wasm32-unknown-unknown

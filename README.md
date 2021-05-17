@@ -2,6 +2,7 @@
 
 [![Crates.io](https://img.shields.io/crates/v/bevy_retro.svg)](https://crates.io/crates/bevy_retro)
 [![Docs.rs](https://docs.rs/bevy_retro/badge.svg)](https://docs.rs/bevy_retro)
+[![Build Status](https://github.com/katharostech/bevy_retro/actions/workflows/rust.yaml/badge.svg)](https://github.com/katharostech/bevy_retro/actions/workflows/rust.yaml)
 [![lines of code](https://tokei.rs/b1/github/katharostech/bevy_retro?category=code)](https://github.com/katharostech/bevy_retro)
 [![Katharos License](https://img.shields.io/badge/License-Katharos-blue)](https://github.com/katharostech/katharos-license)
 

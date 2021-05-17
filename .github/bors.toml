@@ -1,0 +1,13 @@
+status = [
+    "check",
+    "build-and-test-native (macos-latest, stable)",
+    "build-and-test-native (windows-latest, stable)",
+    "build-and-test-native (ubuntu-latest, stable)",
+    "build-wasm",
+]
+
+pr_status = [
+    "license/cla"
+]
+
+use_squash_merge = true
