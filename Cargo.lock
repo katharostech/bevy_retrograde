@@ -2502,7 +2502,7 @@ dependencies = [
 [[package]]
 name = "raui"
 version = "0.35.0"
-source = "git+https://github.com/katharostech/raui?branch=feature/process-context#dd196d08bbb5973f4f2f89041702495b8c76ae33"
+source = "git+https://github.com/katharostech/raui?branch=feature/process-context#4ba6db96278249f635d3a4e783d64705ec6eeabf"
 dependencies = [
  "raui-core",
  "raui-material",
@@ -2512,7 +2512,7 @@ dependencies = [
 [[package]]
 name = "raui-core"
 version = "0.35.0"
-source = "git+https://github.com/katharostech/raui?branch=feature/process-context#dd196d08bbb5973f4f2f89041702495b8c76ae33"
+source = "git+https://github.com/katharostech/raui?branch=feature/process-context#4ba6db96278249f635d3a4e783d64705ec6eeabf"
 dependencies = [
  "raui-derive",
  "serde",
@@ -2522,7 +2522,7 @@ dependencies = [
 [[package]]
 name = "raui-derive"
 version = "0.35.0"
-source = "git+https://github.com/katharostech/raui?branch=feature/process-context#dd196d08bbb5973f4f2f89041702495b8c76ae33"
+source = "git+https://github.com/katharostech/raui?branch=feature/process-context#4ba6db96278249f635d3a4e783d64705ec6eeabf"
 dependencies = [
  "quote",
  "syn",
@@ -2531,7 +2531,7 @@ dependencies = [
 [[package]]
 name = "raui-material"
 version = "0.35.0"
-source = "git+https://github.com/katharostech/raui?branch=feature/process-context#dd196d08bbb5973f4f2f89041702495b8c76ae33"
+source = "git+https://github.com/katharostech/raui?branch=feature/process-context#4ba6db96278249f635d3a4e783d64705ec6eeabf"
 dependencies = [
  "raui-core",
  "serde",
@@ -2540,7 +2540,7 @@ dependencies = [
 [[package]]
 name = "raui-tesselate-renderer"
 version = "0.35.0"
-source = "git+https://github.com/katharostech/raui?branch=feature/process-context#dd196d08bbb5973f4f2f89041702495b8c76ae33"
+source = "git+https://github.com/katharostech/raui?branch=feature/process-context#4ba6db96278249f635d3a4e783d64705ec6eeabf"
 dependencies = [
  "raui-core",
  "serde",
@@ -3077,9 +3077,9 @@ dependencies = [
 
 [[package]]
 name = "vek"
-version = "0.15.0"
+version = "0.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f81127863e367afd5e8e527cb193edd4bd95abdd7f0f5ddd6bfb6c6d1d10ff2b"
+checksum = "406232f6fe819cbaa5b04c5004deabb870346e83262d29e52970260fca3e5c3b"
 dependencies = [
  "approx",
  "num-integer",

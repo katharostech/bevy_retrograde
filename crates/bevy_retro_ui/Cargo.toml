@@ -10,4 +10,4 @@ bevy_retro_core = { path = "../bevy_retro_core" }
 bevy_retro_text = { path = "../bevy_retro_text" }
 bevy_retro_macros = { path = "../bevy_retro_macros" }
 
-raui = { version = "0.35", features = ["material", "tesselate"] }
+raui = { git = "https://github.com/katharostech/raui", branch = "feature/process-context", features = ["material", "tesselate"] } 
