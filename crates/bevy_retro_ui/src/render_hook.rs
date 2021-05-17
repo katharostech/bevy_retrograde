@@ -110,7 +110,7 @@ impl RenderHook for UiRenderHook {
             app: {
                 let mut app = Application::new();
                 app.setup(raui::core::widget::setup);
-                app.setup(raui::renderer::material::setup);
+                app.setup(raui::material::setup);
 
                 app
             },

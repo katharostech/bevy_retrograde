@@ -195,7 +195,7 @@ mod ui {
         let button_props = Props::new(FlexBoxItemLayout {
             align: 0.5,
             margin: Rect {
-                top: 50.,
+                top: 15.,
                 ..Default::default()
             },
             ..Default::default()
