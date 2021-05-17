@@ -28,6 +28,8 @@ An example demonstrating how to detect pixel-perfect collisions between sprites
 
 An example showing how to render text using BDF font files.
 
+> **Note:** This example shows how to render text, _without_ using the UI system, by creating text entities. This doesn't allow you to do any sort of layout other than positioning the text in the scene like you would any sprite. See the UI example below to see how to use the UI system to render text.
+
 ![text](./screenshots/text.png)
 
 [text]: ./text.rs
@@ -42,7 +44,7 @@ An example showing you how to load and display an LDtk map file.
 
 ## [ui]
 
-An example demonstrating the [RAUI] UI integration.
+An example demonstrating the [RAUI] UI integration. It shows how to create UI elements that can resize with the screen and how to create theme-able buttons and interact with the ECS world from the UI.
 
 [RAUI]: https://raui-labs.github.io/raui/
 
