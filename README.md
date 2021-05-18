@@ -54,10 +54,11 @@ Bevy Retro is in very early stages of development, but should still be somewhat 
 Potentially drastic breaking changes are a large possibility, though. Bevy Retro's design will
 mature as we use it to work on an actual game and we find out what works and what doesn't.
 
-Bevy Retro will most likely track Bevy master as it changes, but we may also be able to make
-Bevy Retro releases for each Bevy release.
+See also [Supported Bevy Version](#supported-bevy-version) below.
 
-## Features
+## Features & Examples
+
+Check out our [examples] list to see how to use each Bevy Retro feature:
 
 - Supports web and desktop out-of-the-box
 - Integer pixel coordinates
@@ -72,24 +73,39 @@ Bevy Retro releases for each Bevy release.
 - Custom shaders for post-processing, including a built-in CRT shader
 - Render hooks allowing you to drop down into raw [Luminance] calls for custom rendering
 
+[examples]: https://github.com/katharostech/bevy_retro/tree/master/examples#bevy-retro-examples
+
 [luminance]: https://github.com/phaazon/luminance-rs
 
 [RAUI]: https://raui-labs.github.io/raui/
 
-## Examples
+## Supported Bevy Version
 
-Check out the [examples] folder for more examples, but here's a quick look at using Bevy Retro:
+Bevy Retro currently works on the latest Bevy release and _may_ support Bevy master as well.
+Bevy Retro will try to follow the latest Bevy release, but if there are features introduced in
+Bevy master that we need, we may require Bevy master for a time until the next Bevy release.
 
-[examples]: https://github.com/katharostech/bevy_retro/tree/master/examples
+Because Bevy Retro is developing quickly an there are no stable releases yet, it can be
+inconvenient to have to keep your bevy dependency up-to-date with the version that Bevy Retro
+currently supports. To to make this easier you can depend on the `bevy` crate with `*` for the
+version in your `Cargo.toml`.
+
+This will make sure that if Bevy Retro changes the supported version of Bevy at any time, you
+will get the updated Bevy automatically. The downside is that you will get potentially breaking
+Bevy changes if Bevy Retro switches to using Bevy master at some point and you may have to
+update your code to fix those breakages.
 
 **`Cargo.toml`:**
 
 ```toml
 # Be sure to turn off the default features of Bevy to avoid conflicts with the
 # Bevy Retro renderer types.
-bevy = { version = "0.5", default-features = false }
+bevy = { version = "*", default-features = false }
 bevy_retro = { git = "https://github.com/katharostech/bevy_retro.git" }
 ```
+## Sample
+
+Here's a quick sample of what using Bevy Retro looks like:
 
 **`main.rs`:**
 
@@ -180,23 +196,3 @@ fn setup(
     });
 }
 ```
-### Running Examples
-
-We use the [just] for automating our development tasks and the project `justfile` includes tasks
-for running the examples for web or native:
-
-```bash
-# Run native example
-just run-example audio # or any other example name
-
-# Run web example
-just run-example-web collisions
-```
-
-When running the web examples it will try to use [`basic-http-server`] to host the example on
-port http://localhost:4000. You can install [`basic-http-server`] or you can modify the justfile
-to use whatever your favorite development http server is.
-
-[just]: https://github.com/casey/just
-
-[`basic-http-server`]: https://github.com/brson/basic-http-server
