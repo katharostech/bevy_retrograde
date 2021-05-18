@@ -14,9 +14,10 @@ default = [
     "ui",
 ]
 audio = ["bevy_retro_audio"]
-ldtk = ["bevy_retro_ldtk"]
 text = ["bevy_retro_text"]
 ui = ["bevy_retro_ui"]
+
+ldtk = ["bevy_retro_ldtk"]
 
 [dependencies]
 bevy = { version = "0.5", default-features = false }

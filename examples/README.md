@@ -1,6 +1,33 @@
 # Bevy Retro Examples
 
-## [hello_world]
+## Running Examples
+
+We use the [just] for automating our development tasks and the project `justfile` includes tasks for
+running the examples for web or native:
+
+```bash
+# Run native example
+just run-example audio # or any other example name
+
+# Run web example
+just run-example-web collisions
+
+# If you are running a native example you can also just use cargo
+# ( this will not work for web examples )
+cargo run --example ui
+```
+
+When running the web examples it will try to use [`basic-http-server`] to host the example on port
+http://localhost:4000. You can install [`basic-http-server`] or you can modify the justfile to use
+whatever your favorite development http server is.
+
+[just]: https://github.com/casey/just
+
+[`basic-http-server`]: https://github.com/brson/basic-http-server
+
+## Full List
+
+### [hello_world]
 
 A good intro into Bevy Retro that also shows how to use the hierarchy system.
 
@@ -8,7 +35,7 @@ A good intro into Bevy Retro that also shows how to use the hierarchy system.
 
 [hello_world]: ./hello_world.rs
 
-## [spritesheet]
+### [spritesheet]
 
 An example of how to use animated sprite sheets.
 
@@ -16,7 +43,7 @@ An example of how to use animated sprite sheets.
 
 [spritesheet]: ./spritesheet.rs
 
-## [collisions]
+### [collisions]
 
 An example demonstrating how to detect pixel-perfect collisions between sprites
 
@@ -24,7 +51,7 @@ An example demonstrating how to detect pixel-perfect collisions between sprites
 
 [collisions]: ./collisions.rs
 
-## [text]
+### [text]
 
 An example showing how to render text using BDF font files.
 
@@ -34,7 +61,7 @@ An example showing how to render text using BDF font files.
 
 [text]: ./text.rs
 
-## [ldtk_map]
+### [ldtk_map]
 
 An example showing you how to load and display an LDtk map file.
 
@@ -42,7 +69,7 @@ An example showing you how to load and display an LDtk map file.
 
 [ldtk_map]: ./ldtk_map.rs
 
-## [ui]
+### [ui]
 
 An example demonstrating the [RAUI] UI integration. It shows how to create UI elements that can resize with the screen and how to create theme-able buttons and interact with the ECS world from the UI.
 
@@ -52,13 +79,13 @@ An example demonstrating the [RAUI] UI integration. It shows how to create UI el
 
 [ui]: ./ui.rs
 
-## [audio]
+### [audio]
 
 An example demonstrating how to play sounds and play music on loop.
 
 [audio]: ./audio.rs
 
-## [post_processing]
+### [post_processing]
 
 An example demonstrating how to add post-processing, using either the built-in CRT or your own custom shaders.
 
@@ -66,7 +93,7 @@ An example demonstrating how to add post-processing, using either the built-in C
 
 [post_processing]: ./post_processing.rs
 
-## [custom_rendering]
+### [custom_rendering]
 
 An advanced example that shows how to do fully custom rendering of your own objects. This utilizes
 raw calls to the [Luminance] graphics API allowing you to render _any_ kind of object, even 3D if you wanted to.
@@ -76,16 +103,10 @@ raw calls to the [Luminance] graphics API allowing you to render _any_ kind of o
 [Luminance]: https://github.com/phaazon/luminance-rs
 [custom_rendering]: ./custom_rendering.rs
 
-## [radishmark]
+### [radishmark]
 
 A bunnymark style benchmark that also demonstrates how to use the UI system to render frames-per-second diagnostics.
 
 ![radishmark](./screenshots/radishmark.gif)
 
 [radishmark]: ./radishmark.rs
-
-## TODO
-
-Examples that we haven't made that we might make later:
-
-- Character controller
