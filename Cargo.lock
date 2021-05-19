@@ -2495,7 +2495,7 @@ dependencies = [
 [[package]]
 name = "raui"
 version = "0.35.0"
-source = "git+https://github.com/katharostech/raui?rev=4a1248aab62248e1a1302fffe1741522e0de1d80#4a1248aab62248e1a1302fffe1741522e0de1d80"
+source = "git+https://github.com/katharostech/raui?rev=be20812490973c23167efdf5cdad3da280589d02#be20812490973c23167efdf5cdad3da280589d02"
 dependencies = [
  "raui-core",
  "raui-material",
@@ -2505,7 +2505,7 @@ dependencies = [
 [[package]]
 name = "raui-core"
 version = "0.35.0"
-source = "git+https://github.com/katharostech/raui?rev=4a1248aab62248e1a1302fffe1741522e0de1d80#4a1248aab62248e1a1302fffe1741522e0de1d80"
+source = "git+https://github.com/katharostech/raui?rev=be20812490973c23167efdf5cdad3da280589d02#be20812490973c23167efdf5cdad3da280589d02"
 dependencies = [
  "raui-derive",
  "serde",
@@ -2515,7 +2515,7 @@ dependencies = [
 [[package]]
 name = "raui-derive"
 version = "0.35.0"
-source = "git+https://github.com/katharostech/raui?rev=4a1248aab62248e1a1302fffe1741522e0de1d80#4a1248aab62248e1a1302fffe1741522e0de1d80"
+source = "git+https://github.com/katharostech/raui?rev=be20812490973c23167efdf5cdad3da280589d02#be20812490973c23167efdf5cdad3da280589d02"
 dependencies = [
  "quote",
  "syn",
@@ -2524,7 +2524,7 @@ dependencies = [
 [[package]]
 name = "raui-material"
 version = "0.35.0"
-source = "git+https://github.com/katharostech/raui?rev=4a1248aab62248e1a1302fffe1741522e0de1d80#4a1248aab62248e1a1302fffe1741522e0de1d80"
+source = "git+https://github.com/katharostech/raui?rev=be20812490973c23167efdf5cdad3da280589d02#be20812490973c23167efdf5cdad3da280589d02"
 dependencies = [
  "raui-core",
  "serde",
@@ -2533,7 +2533,7 @@ dependencies = [
 [[package]]
 name = "raui-tesselate-renderer"
 version = "0.35.0"
-source = "git+https://github.com/katharostech/raui?rev=4a1248aab62248e1a1302fffe1741522e0de1d80#4a1248aab62248e1a1302fffe1741522e0de1d80"
+source = "git+https://github.com/katharostech/raui?rev=be20812490973c23167efdf5cdad3da280589d02#be20812490973c23167efdf5cdad3da280589d02"
 dependencies = [
  "raui-core",
  "serde",

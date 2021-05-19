@@ -265,10 +265,15 @@ impl RenderHook for UiRenderHook {
             .as_interleaved()
             .unwrap()
             .iter()
-            .map(|(pos, uv, color)| UiVert {
-                pos: VertexPosition::new([pos.0.floor(), pos.1.floor()]),
-                uv: VertexUv::new([uv.0, uv.1]),
-                color: VertexColor::new([color.0, color.1, color.2, color.3]),
+            .map(|vertice| UiVert {
+                pos: VertexPosition::new([vertice.position.x.floor(), vertice.position.y.floor()]),
+                uv: VertexUv::new([vertice.tex_coord.x, vertice.tex_coord.y]),
+                color: VertexColor::new([
+                    vertice.color.r,
+                    vertice.color.g,
+                    vertice.color.b,
+                    vertice.color.a,
+                ]),
             })
             .collect::<Vec<_>>();
 
@@ -377,14 +382,14 @@ impl RenderHook for UiRenderHook {
             let text = Text {
                 text: batch.text.clone(),
                 color: Color {
-                    r: batch.color.0,
-                    g: batch.color.1,
-                    b: batch.color.2,
-                    a: batch.color.3,
+                    r: batch.color.r,
+                    g: batch.color.g,
+                    b: batch.color.b,
+                    a: batch.color.a,
                 },
             };
             let text_block = TextBlock {
-                width: batch.box_size.0.round() as u32,
+                width: batch.box_size.x.round() as u32,
                 horizontal_align: match batch.horizontal_align {
                     raui::prelude::TextBoxHorizontalAlign::Left => TextHorizontalAlign::Left,
                     raui::prelude::TextBoxHorizontalAlign::Center => TextHorizontalAlign::Center,
@@ -395,7 +400,7 @@ impl RenderHook for UiRenderHook {
                     raui::prelude::TextBoxVerticalAlign::Middle => TextVerticalAlign::Middle,
                     raui::prelude::TextBoxVerticalAlign::Bottom => TextVerticalAlign::Bottom,
                 },
-                height: Some(batch.box_size.1.round() as u32),
+                height: Some(batch.box_size.y.round() as u32),
             };
 
             // Rasterize the text block
@@ -524,18 +529,18 @@ impl RenderHook for UiRenderHook {
                                         // tl, tr, bl, br == top_left, top_right, bottom_left, bottom_right
                                         let tl = matrix.project_point3(Vec3::new(0.0, 0.0, 0.0));
                                         let tr = matrix.project_point3(Vec3::new(
-                                            clip.box_size.0,
+                                            clip.box_size.x,
                                             0.0,
                                             0.0,
                                         ));
                                         let br = matrix.project_point3(Vec3::new(
-                                            clip.box_size.0,
-                                            clip.box_size.1,
+                                            clip.box_size.x,
+                                            clip.box_size.y,
                                             0.0,
                                         ));
                                         let bl = matrix.project_point3(Vec3::new(
                                             0.0,
-                                            clip.box_size.1,
+                                            clip.box_size.y,
                                             0.0,
                                         ));
                                         let x1 = tl.x.min(tr.x).min(br.x).min(bl.x).round();
