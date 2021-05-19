@@ -103,10 +103,11 @@ pub fn rasterize_text_block(
     let mut line_x = 0; // The x position in the line we are currently at
     for (char_i, char) in text.text.chars().enumerate() {
         // Get the glyph for this character
-        let glyph = font.glyphs().get(&char).or(default_glyph).expect(&format!(
-            "Font does not contain glyph for character: {:?}",
-            char
-        ));
+        let glyph = font
+            .glyphs()
+            .get(&char)
+            .or(default_glyph)
+            .unwrap_or_else(|| panic!("Font does not contain glyph for character: {:?}", char));
 
         // Add the next glyph to the current line
         current_line.push(glyph.clone());
@@ -119,8 +120,7 @@ pub fn rasterize_text_block(
             // If this character must break the line
             if line_breaks
                 .iter()
-                .find(|(i, op)| i == &(char_i + 1) && op == &BreakOpportunity::Mandatory)
-                .is_some()
+                .any(|(i, op)| i == &(char_i + 1) && op == &BreakOpportunity::Mandatory)
                 // The last character always breaks, but we want to ignore that one
                 && char_i != text.text.len() - 1
             {

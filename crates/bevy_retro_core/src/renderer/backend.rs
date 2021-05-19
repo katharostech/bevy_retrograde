@@ -1,4 +1,4 @@
-use std::usize;
+use std::{cmp::Reverse, usize};
 
 use bevy::{
     app::{Events, ManualEventReader},
@@ -258,7 +258,7 @@ impl Renderer {
         let mut current_batch_render_hook_idx = 0;
         for renderable in renderables {
             // If our current batch of renderables is empty
-            if current_batch.len() == 0 {
+            if current_batch.is_empty() {
                 // Add this renderable to the current batch
                 current_batch_render_hook_idx = renderable.hook_idx;
                 current_batch.push(renderable);
@@ -365,8 +365,7 @@ impl Renderer {
         }
 
         // Sort render hooks based on priority
-        self.render_hooks
-            .sort_unstable_by(|a, b| b.priority().cmp(&a.priority()));
+        self.render_hooks.sort_unstable_by_key(|b| Reverse(b.priority()))
     }
 
     #[tracing::instrument(skip(

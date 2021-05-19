@@ -54,8 +54,7 @@ fn process_ldtk_maps(
                     .defs
                     .tilesets
                     .iter()
-                    .filter(|x| &x.identifier == tileset_name)
-                    .next()
+                    .find(|x| &x.identifier == tileset_name)
                     .expect("Could not find tilset inside of map data");
 
                 if image_assets.get(image_handle).is_some() {
@@ -79,7 +78,7 @@ fn process_ldtk_maps(
                 {
                     // Get the information for the tileset associated to this layer
                     let tileset_handle = if let Some(uid) = layer.__tileset_def_uid {
-                        tilesets.get(&uid).expect("Missing tileset").clone()
+                        *tilesets.get(&uid).expect("Missing tileset")
 
                     // Skip this layer if there is no tileset texture for it
                     } else {
@@ -138,7 +137,10 @@ fn process_ldtk_maps(
                     }
 
                     // If the layer opacity is not 100%, adjust the transparency accordingly
-                    if layer.__opacity != 1.0 {
+                    //
+                    // Use float comparison as per:
+                    // https://rust-lang.github.io/rust-clippy/master/index.html#float_cmp
+                    if layer.__opacity > 1.0 - f32::EPSILON {
                         for pixel in layer_image.pixels_mut() {
                             pixel[3] = (layer.__opacity * 255.0 * (pixel[3] as f32 / 255.0)) as u8;
                         }
@@ -187,28 +189,24 @@ fn hot_reload_maps(
     mut image_assets: ResMut<Assets<Image>>,
 ) {
     for event in events.iter() {
-        match event {
-            // When the map asset has been modified
-            AssetEvent::Modified { handle } => {
-                // Loop through all the layers in the world, find the ones that are for this map and remove them
-                for (layer_ent, LdtkMapLayer { map, .. }, image_handle) in layers.iter() {
-                    if map == handle {
-                        // Despawn the layer
-                        commands.entity(layer_ent).despawn();
-                        // Remove the layer image
-                        image_assets.remove(image_handle);
-                    }
-                }
-
-                // Then remove the `LdtkMapHasLoaded` component from the map so that it will be
-                // reloaded by the `process_ldtk_maps` system.
-                for (map_ent, map_handle) in maps.iter() {
-                    if map_handle == handle {
-                        commands.entity(map_ent).remove::<LdtkMapHasLoaded>();
-                    }
+        if let AssetEvent::Modified { handle } = event {
+            // Loop through all the layers in the world, find the ones that are for this map and remove them
+            for (layer_ent, LdtkMapLayer { map, .. }, image_handle) in layers.iter() {
+                if map == handle {
+                    // Despawn the layer
+                    commands.entity(layer_ent).despawn();
+                    // Remove the layer image
+                    image_assets.remove(image_handle);
                 }
             }
-            _ => (),
+
+            // Then remove the `LdtkMapHasLoaded` component from the map so that it will be
+            // reloaded by the `process_ldtk_maps` system.
+            for (map_ent, map_handle) in maps.iter() {
+                if map_handle == handle {
+                    commands.entity(map_ent).remove::<LdtkMapHasLoaded>();
+                }
+            }
         }
     }
 }

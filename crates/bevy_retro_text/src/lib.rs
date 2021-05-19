@@ -1,5 +1,7 @@
 //! The Bevy Retro text rendering plugin
 
+#![allow(clippy::type_complexity)]
+
 use bevy::{asset::AssetStage, ecs::component::ComponentDescriptor, prelude::*};
 
 #[doc(hidden)]

@@ -36,7 +36,9 @@ jobs:
             ${{ env.cache-name }}-
 
       - name: Check
-        run: cargo check --workspace --all-features
+        run: cargo check --workspace --features ldtk
+      - name: Clippy
+        run: cargo clippy --workspace --features ldtk
 
   build-and-test-native:
     needs: check
