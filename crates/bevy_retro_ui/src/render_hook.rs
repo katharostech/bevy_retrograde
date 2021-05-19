@@ -53,7 +53,7 @@ impl<'a> AssetPathExt for AssetPath<'a> {
             + &self
                 .label()
                 .map(|x| format!("#{}", x))
-                .unwrap_or(String::from(""))
+                .unwrap_or_else(|| String::from(""))
     }
 }
 
@@ -322,7 +322,7 @@ impl RenderHook for UiRenderHook {
             // https://github.com/bevyengine/bevy/pull/1290
             handle_to_path
                 .entry(texture_handle.id)
-                .or_insert(image_path.clone());
+                .or_insert_with(|| image_path.clone());
 
             // Load the texture if loading has not started yet
             if let LoadState::NotLoaded = asset_server.get_load_state(&texture_handle) {
@@ -350,11 +350,8 @@ impl RenderHook for UiRenderHook {
                 asset_server.get_handle(HandleId::from(AssetPath::from(font_path.as_str())));
 
             // Load the font if loading has not started yet
-            match asset_server.get_load_state(&font_handle) {
-                LoadState::NotLoaded => {
-                    font_cache.push(asset_server.load(font_path.as_str()));
-                }
-                _ => (),
+            if let LoadState::NotLoaded = asset_server.get_load_state(&font_handle) {
+                font_cache.push(asset_server.load(font_path.as_str()));
             }
             font_handles.push(font_handle);
         }
@@ -571,7 +568,7 @@ impl RenderHook for UiRenderHook {
                                         };
 
                                         render_state =
-                                            render_state.set_scissor(scissor_region.clone());
+                                            render_state.set_scissor(scissor_region);
                                         clip_stack.push(scissor_region);
                                     }
                                     Batch::ClipPop => {
