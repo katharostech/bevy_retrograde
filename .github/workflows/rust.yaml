@@ -49,6 +49,9 @@ jobs:
       # Override the Cargo.toml dev profile settings to optimize for build speed
       CARGO_PROFILE_DEV_DEBUG: 'true'
       CARGO_PROFILE_DEV_OPT_LEVEL: '0'
+      # Disable incremental builds to hopefully reduce the cache size and avoid GitHub purging
+      # the caches so much and therefore causing cache misses
+      CARGO_INCREMENTAL: '0'
 
     runs-on: ${{ matrix.os }}
 
@@ -94,6 +97,9 @@ jobs:
       # Override the Cargo.toml dev profile settings to optimize for build speed
       CARGO_PROFILE_DEV_DEBUG: 'true'
       CARGO_PROFILE_DEV_OPT_LEVEL: '0'
+      # Disable incremental builds to hopefully reduce the cache size and avoid GitHub purging
+      # the caches so much and therefore causing cache misses
+      CARGO_INCREMENTAL: '0'
     steps:
       - uses: actions/checkout@v2
 
