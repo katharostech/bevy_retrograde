@@ -10,4 +10,4 @@ bevy_retro_core = { path = "../bevy_retro_core" }
 bevy_retro_text = { path = "../bevy_retro_text" }
 bevy_retro_macros = { path = "../bevy_retro_macros" }
 
-raui = { git = "https://github.com/RAUI-labs/raui", branch = "next", features = ["material", "tesselate"] } 
+raui = { git = "https://github.com/katharostech/raui", rev = "9e88dbb6fb7c20b8aebf0659a4282c0393c4b799", features = ["material", "tesselate"] } 
