@@ -2495,7 +2495,7 @@ dependencies = [
 [[package]]
 name = "raui"
 version = "0.35.0"
-source = "git+https://github.com/RAUI-labs/raui?branch=next#d6560b556e949bccb4d4d78fea01146a4501f28e"
+source = "git+https://github.com/katharostech/raui?rev=9e88dbb6fb7c20b8aebf0659a4282c0393c4b799#9e88dbb6fb7c20b8aebf0659a4282c0393c4b799"
 dependencies = [
  "raui-core",
  "raui-material",
@@ -2505,7 +2505,7 @@ dependencies = [
 [[package]]
 name = "raui-core"
 version = "0.35.0"
-source = "git+https://github.com/RAUI-labs/raui?branch=next#d6560b556e949bccb4d4d78fea01146a4501f28e"
+source = "git+https://github.com/katharostech/raui?rev=9e88dbb6fb7c20b8aebf0659a4282c0393c4b799#9e88dbb6fb7c20b8aebf0659a4282c0393c4b799"
 dependencies = [
  "raui-derive",
  "serde",
@@ -2515,7 +2515,7 @@ dependencies = [
 [[package]]
 name = "raui-derive"
 version = "0.35.0"
-source = "git+https://github.com/RAUI-labs/raui?branch=next#d6560b556e949bccb4d4d78fea01146a4501f28e"
+source = "git+https://github.com/katharostech/raui?rev=9e88dbb6fb7c20b8aebf0659a4282c0393c4b799#9e88dbb6fb7c20b8aebf0659a4282c0393c4b799"
 dependencies = [
  "quote",
  "syn",
@@ -2524,7 +2524,7 @@ dependencies = [
 [[package]]
 name = "raui-material"
 version = "0.35.0"
-source = "git+https://github.com/RAUI-labs/raui?branch=next#d6560b556e949bccb4d4d78fea01146a4501f28e"
+source = "git+https://github.com/katharostech/raui?rev=9e88dbb6fb7c20b8aebf0659a4282c0393c4b799#9e88dbb6fb7c20b8aebf0659a4282c0393c4b799"
 dependencies = [
  "raui-core",
  "serde",
@@ -2533,7 +2533,7 @@ dependencies = [
 [[package]]
 name = "raui-tesselate-renderer"
 version = "0.35.0"
-source = "git+https://github.com/RAUI-labs/raui?branch=next#d6560b556e949bccb4d4d78fea01146a4501f28e"
+source = "git+https://github.com/katharostech/raui?rev=9e88dbb6fb7c20b8aebf0659a4282c0393c4b799#9e88dbb6fb7c20b8aebf0659a4282c0393c4b799"
 dependencies = [
  "raui-core",
  "serde",

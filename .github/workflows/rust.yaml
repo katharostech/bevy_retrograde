@@ -19,21 +19,14 @@ jobs:
         run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
         if: runner.os == 'linux'
 
-      - name: Cargo Cache
+      - name: Cargo Registry Cache
         uses: actions/cache@v2
-        env:
-          cache-name: cargo-cache
         with:
           path: |
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
             ~/.cargo/git/db
-            target
-          key: ${{ env.cache-name }}-${{ runner.os }}-check-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ env.cache-name }}-${{ runner.os }}-check-
-            ${{ env.cache-name }}-${{ runner.os }}-
-            ${{ env.cache-name }}-
+          key: cargo-registry
 
       - name: Check
         run: cargo check --workspace --features ldtk
@@ -64,21 +57,14 @@ jobs:
         run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
         if: runner.os == 'linux'
 
-      - name: Cargo Cache
+      - name: Cargo Registry Cache
         uses: actions/cache@v2
-        env:
-          cache-name: cargo-cache
         with:
           path: |
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
             ~/.cargo/git/db
-            target
-          key: ${{ env.cache-name }}-${{ matrix.os }}-${{ matrix.toolchain }}-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ env.cache-name }}-${{ matrix.os }}-${{ matrix.toolchain }}-
-            ${{ env.cache-name }}-${{ matrix.os }}-
-            ${{ env.cache-name }}-
+          key: cargo-registry
 
       - name: Rust Toolchain
         uses: actions-rs/toolchain@v1
@@ -105,21 +91,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Cargo Cache
+      - name: Cargo Registry Cache
         uses: actions/cache@v2
-        env:
-          cache-name: cargo-cache
         with:
           path: |
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
             ~/.cargo/git/db
-            target
-          key: ${{ env.cache-name }}-wasm-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ env.cache-name }}-${{ runner.os }}-wasm-
-            ${{ env.cache-name }}-${{ runner.os }}-
-            ${{ env.cache-name }}-
+          key: cargo-registry
 
       - name: Rust Toolchain
         uses: actions-rs/toolchain@v1
