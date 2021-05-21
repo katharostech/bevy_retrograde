@@ -7,11 +7,11 @@ on:
     branches: [ master ]
 
 env:
-  # Configure Rust builds
+  # Disable debug info ( for build speed ) and deny warnings
   RUSTFLAGS: "-C debuginfo=0 -D warnings"
+  # Enable Cargo color
   CARGO_TERM_COLOR: always
-  CARGO_PROFILE_DEV_DEBUG: true
-  CARGO_PROFILE_DEV_OPT_LEVEL: 0
+  # Disable incremental builds ( because we only build once in CI )
   CARGO_INCREMENTAL: 0
 
 jobs:
@@ -35,6 +35,8 @@ jobs:
 
       - name: Rustfmt
         run: cargo fmt --all -- --check
+
+      # No need to run cargo check because clippy will check it
       - name: Clippy
         run: cargo clippy --workspace --features ldtk
 
@@ -68,15 +70,18 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           override: true
 
-      - name: Build
-        run: cargo build --workspace --features ldtk --verbose
-
+      # No need to build first because the test command will build the crate
       - name: Test
         run: cargo test --workspace --features ldtk --verbose
 
   build-wasm:
     needs: check
     runs-on: ubuntu-latest
+    env:
+      # We have overrides for the optimization levels of debug builds in
+      # our Cargo.toml. This sets them back to normal to improve build times.
+      CARGO_PROFILE_DEV_DEBUG: true
+      CARGO_PROFILE_DEV_OPT_LEVEL: 0
     steps:
       - uses: actions/checkout@v2
 
