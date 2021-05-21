@@ -72,7 +72,7 @@
 //! Because Bevy Retro is developing quickly an there are no stable releases yet, it can be
 //! inconvenient to have to keep your bevy dependency up-to-date with the version that Bevy Retro
 //! currently supports. To to make this easier you can depend on the `bevy` crate with `*` for the
-//! version in your `Cargo.toml`. 
+//! version in your `Cargo.toml`.
 //!
 //! This will make sure that if Bevy Retro changes the supported version of Bevy at any time, you
 //! will get the updated Bevy automatically. The downside is that you will get potentially breaking
