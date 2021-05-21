@@ -146,16 +146,14 @@ mod ui {
             },
             width: TextBoxSizeValue::Exact(80.),
             ..Default::default()
-        }).with(ContentBoxItemLayout {
+        })
+        .with(ContentBoxItemLayout {
             margin: Rect {
                 top: 10.,
                 left: 10.,
                 ..Default::default()
             },
-            align: Vec2 {
-                x: 1.0,
-                y: 0.0,
-            },
+            align: Vec2 { x: 1.0, y: 0.0 },
             ..Default::default()
         });
 

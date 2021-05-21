@@ -7,7 +7,12 @@ on:
     branches: [ master ]
 
 env:
+  # Configure Rust builds
+  RUSTFLAGS: "-C debuginfo=0 -D warnings"
   CARGO_TERM_COLOR: always
+  CARGO_PROFILE_DEV_DEBUG: true
+  CARGO_PROFILE_DEV_OPT_LEVEL: 0
+  CARGO_INCREMENTAL: 0
 
 jobs:
   check:
@@ -28,8 +33,8 @@ jobs:
             ~/.cargo/git/db
           key: cargo-registry
 
-      - name: Check
-        run: cargo check --workspace --features ldtk
+      - name: Rustfmt
+        run: cargo fmt --all -- --check
       - name: Clippy
         run: cargo clippy --workspace --features ldtk
 
@@ -40,16 +45,7 @@ jobs:
         os: [ 'windows-latest', 'ubuntu-latest', 'macos-latest' ]
         toolchain: [ 'stable', 'nightly' ]
     continue-on-error: ${{ matrix.toolchain == 'nightly' }}
-    env:
-      # Override the Cargo.toml dev profile settings to optimize for build speed
-      CARGO_PROFILE_DEV_DEBUG: 'true'
-      CARGO_PROFILE_DEV_OPT_LEVEL: '0'
-      # Disable incremental builds to hopefully reduce the cache size and avoid GitHub purging
-      # the caches so much and therefore causing cache misses
-      CARGO_INCREMENTAL: '0'
-
     runs-on: ${{ matrix.os }}
-
     steps:
       - uses: actions/checkout@v2
 
@@ -81,13 +77,6 @@ jobs:
   build-wasm:
     needs: check
     runs-on: ubuntu-latest
-    env:
-      # Override the Cargo.toml dev profile settings to optimize for build speed
-      CARGO_PROFILE_DEV_DEBUG: 'true'
-      CARGO_PROFILE_DEV_OPT_LEVEL: '0'
-      # Disable incremental builds to hopefully reduce the cache size and avoid GitHub purging
-      # the caches so much and therefore causing cache misses
-      CARGO_INCREMENTAL: '0'
     steps:
       - uses: actions/checkout@v2
 

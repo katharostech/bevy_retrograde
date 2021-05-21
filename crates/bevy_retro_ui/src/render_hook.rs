@@ -567,8 +567,7 @@ impl RenderHook for UiRenderHook {
                                             height: height as u32,
                                         };
 
-                                        render_state =
-                                            render_state.set_scissor(scissor_region);
+                                        render_state = render_state.set_scissor(scissor_region);
                                         clip_stack.push(scissor_region);
                                     }
                                     Batch::ClipPop => {

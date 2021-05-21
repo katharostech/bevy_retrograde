@@ -365,7 +365,8 @@ impl Renderer {
         }
 
         // Sort render hooks based on priority
-        self.render_hooks.sort_unstable_by_key(|b| Reverse(b.priority()))
+        self.render_hooks
+            .sort_unstable_by_key(|b| Reverse(b.priority()))
     }
 
     #[tracing::instrument(skip(
