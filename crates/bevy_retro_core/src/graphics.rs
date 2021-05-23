@@ -95,24 +95,50 @@ pub trait RenderHook {
 /// The `depth` and `is_transparent` fields are used to sort the renderable objects before rendering
 /// and the `identifier` field is used by the [`RenderHook`] that created the handle to identify the
 /// renderable that this handle refers to.
+///
+/// The optional entity can be used to break ties in sort order when depths and transparency are
+/// equal
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct RenderHookRenderableHandle {
+    /// Identifier used to by the render hook to uniquely tie this handle to a specific renderable
+    /// that it knows about
     pub identifier: usize,
+    /// Whether or not this renderable is transparent
     pub is_transparent: bool,
+    /// The z depth of this renderable in the scene
     pub depth: i32,
+    /// An optional entity to tie to this renderable that will be used to break ties in depth and
+    /// transparency when sorting
+    pub entity: Option<Entity>,
 }
 
 // Sort non-transparent before transparent, and lower depth before higher depth
 impl std::cmp::Ord for RenderHookRenderableHandle {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        use std::cmp::Ordering;
         if self == other {
-            std::cmp::Ordering::Equal
+            Ordering::Equal
         } else if self.is_transparent && !other.is_transparent {
-            std::cmp::Ordering::Greater
+            Ordering::Greater
         } else if !self.is_transparent && other.is_transparent {
-            std::cmp::Ordering::Less
+            Ordering::Less
         } else {
-            self.depth.cmp(&other.depth)
+            let depth_cmp = self.depth.cmp(&other.depth);
+
+            // Break ties of depth by sorting by the entity id if given
+            if depth_cmp == std::cmp::Ordering::Equal {
+                if self.entity == other.entity {
+                    Ordering::Equal
+                } else if self.entity.is_none() && other.entity.is_some() {
+                    Ordering::Less
+                } else if self.entity.is_some() && other.entity.is_none() {
+                    Ordering::Greater
+                } else {
+                    self.entity.unwrap().cmp(&other.entity.unwrap())
+                }
+            } else {
+                depth_cmp
+            }
         }
     }
 }
