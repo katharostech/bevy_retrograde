@@ -1,6 +1,7 @@
 use luminance::{
     blending::{Blending, Equation, Factor},
     context::GraphicsContext,
+    depth_test::DepthComparison,
     pipeline::{PipelineState, TextureBinding},
     pixel::NormUnsigned,
     render_state::RenderState,
@@ -110,6 +111,7 @@ impl RenderHook for SpriteHook {
         let sprite_iter = sprites.iter(world);
         let mut sprite_entities = Vec::new();
         let mut renderables = Vec::new();
+
         for (ent, visible, pos) in sprite_iter {
             // Skip invisible sprites
             if !**visible {
@@ -123,6 +125,7 @@ impl RenderHook for SpriteHook {
                 depth: pos.z,
                 // Any sprite could be transparent so we just mark it as such
                 is_transparent: true,
+                entity: Some(ent),
             });
         }
 
@@ -171,18 +174,20 @@ impl RenderHook for SpriteHook {
         let sprite_sheet_assets = world.get_resource::<Assets<SpriteSheet>>().unwrap();
 
         // Create the render state
-        let render_state = &RenderState::default().set_blending_separate(
-            Blending {
-                equation: Equation::Additive,
-                src: Factor::SrcAlpha,
-                dst: Factor::SrcAlphaComplement,
-            },
-            Blending {
-                equation: Equation::Additive,
-                src: Factor::One,
-                dst: Factor::Zero,
-            },
-        );
+        let render_state = &RenderState::default()
+            .set_blending_separate(
+                Blending {
+                    equation: Equation::Additive,
+                    src: Factor::SrcAlpha,
+                    dst: Factor::SrcAlphaComplement,
+                },
+                Blending {
+                    equation: Equation::Additive,
+                    src: Factor::SrcAlpha,
+                    dst: Factor::SrcAlphaComplement,
+                },
+            )
+            .set_depth_test(Some(DepthComparison::LessOrEqual));
 
         // Do the render
         surface
@@ -190,7 +195,9 @@ impl RenderHook for SpriteHook {
             .pipeline(
                 // Render to the scene framebuffer
                 &target_framebuffer,
-                &PipelineState::default().enable_clear_color(false),
+                &PipelineState::default()
+                    .enable_clear_color(false)
+                    .enable_clear_depth(false),
                 |pipeline, mut shading_gate| {
                     shading_gate.shade(
                         sprite_program,

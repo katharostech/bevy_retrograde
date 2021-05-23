@@ -228,6 +228,7 @@ impl RenderHook for UiRenderHook {
                 identifier: 0,
                 depth: i32::MAX, // We render on top of everything else
                 is_transparent: true,
+                entity: None,
             },
         ]
     }

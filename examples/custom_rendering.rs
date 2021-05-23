@@ -131,13 +131,16 @@ impl RenderHook for TriangleRenderHook {
             .unwrap()
             .iter()
             .enumerate()
-            .map(|(i, _)| RenderHookRenderableHandle {
+            .map(|(i, e)| RenderHookRenderableHandle {
                 // We keep track of the renderable using its index in our triangle batch
                 identifier: i,
                 // Our triangles are not transparent ( this value is used during depth sorting )
                 is_transparent: false,
                 // We just render at the center of the world depth-wise
                 depth: triangle_depths[i],
+                // We can specify the entity here to sort by which order entities were spawned when
+                // the depth and transparency is identical
+                entity: Some(*e),
             })
             .collect()
     }
