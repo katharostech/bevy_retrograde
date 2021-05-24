@@ -1,16 +1,16 @@
 [package]
 name = "bevy_retro_audio"
-version = "0.0.0"
-authors = ["Zicklag <zicklag@katharostech.com>"]
+version = "0.1.0"
+authors = ["Katharos Technology LLC."]
 edition = "2018"
-license-file = "LICENSE.md"
-description = "A Bevy plugin for playing sounds."
+
+license-file = "../LICENSE.md"
+readme = "../README.md"
+description = "A simple Bevy plugin for playing sounds"
 repository = "https://github.com/katharostech/bevy_retro"
 documentation = "https://docs.rs/bevy_retro_audio"
-readme = "README.md"
-keywords = ["gamedev", "audio", "bevy"]
+keywords = ["bevy", "gamedev", "2D", "bevy_retro", "pixel-perfect", "audio"]
 categories = [
-    "games",
     "game-development",
     "multimedia::audio"
 ]

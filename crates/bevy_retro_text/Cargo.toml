@@ -1,13 +1,26 @@
 [package]
 name = "bevy_retro_text"
 version = "0.1.0"
-authors = ["Zicklag <zicklag@katharostech.com>"]
+authors = ["Katharos Technology LLC."]
 edition = "2018"
+
+license-file = "../LICENSE.md"
+readme = "../README.md"
+description = "Bevy Retro's text rendering implementation"
+repository = "https://github.com/katharostech/bevy_retro"
+documentation = "https://docs.rs/bevy_retro_text"
+keywords = ["bevy", "gamedev", "2D", "bevy_retro", "pixel-perfect"]
+categories = [
+    "game-engines",
+    "multimedia",
+    "rendering::engine",
+    "wasm"
+]
 
 [dependencies]
 bevy = { version = "0.5", default-features = false }
-bevy_retro_core = { path = "../bevy_retro_core" }
-bevy_retro_macros = { path = "../bevy_retro_macros" }
+bevy_retro_core = { version = "0.1", path = "../bevy_retro_core" }
+bevy_retro_macros = { version = "0.1", path = "../bevy_retro_macros" }
 
 unicode-linebreak = "0.1.1"
 bdf = { git = "https://github.com/katharostech/rust-bdf", branch = "ignore-errored-glyphs" }

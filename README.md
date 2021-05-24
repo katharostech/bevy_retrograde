@@ -14,100 +14,67 @@
 
 [skipngo]:  https://github.com/katharostech/skipngo
 
-Bevy Retro is a 2D, pixel-perfect renderer for [Bevy] that can target both web and desktop using
-OpenGL/WebGL.
+Bevy Retro is a 2D, pixel-perfect renderer for [Bevy][__link0] that can target both web and desktop using OpenGL/WebGL.
 
-[Bevy]: https://bevyengine.org
+Bevy Retro is focused on providing an easy and ergonomic way to write 2D, pixel-perfect games. Compared to the out-of-the-box Bevy setup, you do not have to work with a 3D scene to create 2D games. Sprites and their coordinates are based on pixel positions in a retro-resolution scene.
 
-Bevy Retro is focused on providing an easy and ergonomic way to write 2D, pixel-perfect games.
-Compared to the out-of-the-box Bevy setup, it has no concept of 3D, and sprites don't even have
-rotations, scales, or floating point positions. All coordinates are based on real pixel
-positions.
+Bevy Retro replaces almost all of the out-of-the-box Bevy components and Bundles that you would normally use ( `Transform`, `Camera2DBundle`, etc. ) and comes with its own `Position`, `Camera`, `Image`, `Sprite`, etc. components and bundles. Bevy Retro tries to provide a focused 2D-centric experience on top of Bevy that helps take out some of the pitfalls and makes it easier to think about your game when all you need is 2D.
 
-Bevy Retro replaces almost all of the out-of-the-box Bevy components and Bundles that you would
-normally use ( `Transform`, `Camera2DBundle`, etc. ) and comes with its own `Position`,
-`Camera`, `Image`, `Sprite`, etc. components and bundles. Bevy Retro tries to provide a focused
-2D-centric experience on top of Bevy that helps take out some of the pitfalls and makes it
-easier to think about your game when all you need is 2D.
+We want to provide a batteries-included plugin that comes with almost everything you need to make a 2D pixel game with Bevy including, collisions, sound, saving data, etc. While adding these features we will try to maintain full web compatibility, but it can’t be guaranteed that all features will be feasible to implement for web.
 
-We want to provide a batteries included plugin that comes with everything you need to make a 2D
-pixel game with Bevy, and over time we will be adding features other than rendering such as
-sound playing, data saving, etc. While adding these features we will try to maintain full web
-compatibility, but it can't be guaranteed that all features will be feasible to implement for
-web.
+These extra features will be included as optional cargo features that can be disabled if not needed and, where applicable, may be packaged as separate Rust crates that can be used even if you don’t want to use the rest of Bevy Retro.
 
-These extra features will be included as optional cargo featurs that can be disabled if not
-needed and, where applicable, be packaged a separate Rust crates that can be used even if you
-don't want to use the rest of Bevy Retro.
 
 ## License
 
-Bevy Retro LDtk is licensed under the [Katharos License][k_license] which places certain
-restrictions on what you are allowed to use it for. Please read and understand the terms before
-using Bevy Retro for your project.
+Bevy Retro LDtk is licensed under the [Katharos License][__link1] which places certain restrictions on what you are allowed to use it for. Please read and understand the terms before using Bevy Retro for your project.
 
-[k_license]: https://github.com/katharostech/katharos-license
 
 ## Development Status
 
-Bevy Retro is in very early stages of development, but should still be somewhat usable.
-Potentially drastic breaking changes are a large possibility, though. Bevy Retro's design will
-mature as we use it to work on an actual game and we find out what works and what doesn't.
+Bevy Retro is in early stages of development. The API is not stable, but there are not many large anticipated changes. Bevy Retro should be usable enough to use in your own projects if you are fine adapting to some API changes as they come.
 
 See also [Supported Bevy Version](#supported-bevy-version) below.
 
+
 ## Features & Examples
 
-Check out our [examples] list to see how to use each Bevy Retro feature:
+Check out our [examples][__link2] list to see how to use each Bevy Retro feature:
 
-- Supports web and desktop out-of-the-box
-- Integer pixel coordinates
-- Supports sprites and sprite sheets
-- A super-simple hierarchy system
-- Scaled pixel-perfect rendering with three camera modes: fixed width, fixed height, and
-  letter-boxed
-- An [LDtk](https://ldtk.io) map loading [plugin](./plugins/bevy_retro_ldtk)
-- An integration with the [RAUI] UI library for building in-game user interfaces and HUD
-- Pixel-perfect collision detection
-- Text rendering of BDF fonts
-- Custom shaders for post-processing, including a built-in CRT shader
-- Render hooks allowing you to drop down into raw [Luminance] calls for custom rendering
+ - Supports web and desktop out-of-the-box
+ - Integer pixel coordinates
+ - Supports sprites and sprite sheets
+ - A super-simple hierarchy system
+ - Scaled pixel-perfect rendering with three camera modes: fixed width, fixed height, and letter-boxed
+ - An [LDtk][__link3] map loading [plugin][__link4]
+ - An integration with the [RAUI][__link5] UI library for building in-game user interfaces and HUD
+ - Pixel-perfect collision detection
+ - Text rendering of BDF fonts
+ - Custom shaders for post-processing, including a built-in CRT shader
+ - Render hooks allowing you to drop down into raw [Luminance][__link6] calls for custom rendering
 
-[examples]: https://github.com/katharostech/bevy_retro/tree/master/examples#bevy-retro-examples
-
-[luminance]: https://github.com/phaazon/luminance-rs
-
-[RAUI]: https://raui-labs.github.io/raui/
 
 ## Supported Bevy Version
 
-Bevy Retro currently works on the latest Bevy release and _may_ support Bevy master as well.
-Bevy Retro will try to follow the latest Bevy release, but if there are features introduced in
-Bevy master that we need, we may require Bevy master for a time until the next Bevy release.
+Bevy Retro currently works on the latest Bevy release and *may* support Bevy master as well. Bevy Retro will try to follow the latest Bevy release, but if there are features introduced in Bevy master that we need, we may require Bevy master for a time until the next Bevy release.
 
-Because Bevy Retro is developing quickly an there are no stable releases yet, it can be
-inconvenient to have to keep your bevy dependency up-to-date with the version that Bevy Retro
-currently supports. To to make this easier you can depend on the `bevy` crate with `*` for the
-version in your `Cargo.toml`.
-
-This will make sure that if Bevy Retro changes the supported version of Bevy at any time, you
-will get the updated Bevy automatically. The downside is that you will get potentially breaking
-Bevy changes if Bevy Retro switches to using Bevy master at some point and you may have to
-update your code to fix those breakages.
+When depending on the `bevy` crate, you must be sure to set `default-features` to `false` in your `Cargo.toml` so that the rendering types in `bevy` don’t conflict with the ones in `bevy_retro`.
 
 **`Cargo.toml`:**
 
+
 ```toml
-# Be sure to turn off the default features of Bevy to avoid conflicts with the
-# Bevy Retro renderer types.
-bevy = { version = "*", default-features = false }
+bevy = { version = "0.5", default-features = false }
 bevy_retro = { git = "https://github.com/katharostech/bevy_retro.git" }
 ```
+
+
 ## Sample
 
-Here's a quick sample of what using Bevy Retro looks like:
+Here’s a quick sample of what using Bevy Retro looks like:
 
 **`main.rs`:**
+
 
 ```rust
 use bevy::prelude::*;
@@ -196,3 +163,14 @@ fn setup(
     });
 }
 ```
+
+
+
+ [__link0]: https://bevyengine.org
+ [__link1]: https://github.com/katharostech/katharos-license
+ [__link2]: https://github.com/katharostech/bevy_retro/tree/master/examples#bevy-retro-examples
+ [__link3]: https://ldtk.io
+ [__link4]: ./plugins/bevy_retro_ldtk
+ [__link5]: https://raui-labs.github.io/raui/
+ [__link6]: https://github.com/phaazon/luminance-rs
+

@@ -7,7 +7,7 @@ list:
 
 # Generate the README from the lib.rs docs
 readme:
-    cargo readme > README.md
+    cargo doc2readme --template README.j2 --out README.md
 
 # Build Bevy Retro
 build:

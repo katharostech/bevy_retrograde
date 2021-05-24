@@ -418,7 +418,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_retro"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "bevy",
  "bevy_retro_audio",
@@ -433,7 +433,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_retro_audio"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "bevy",
@@ -444,7 +444,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_retro_core"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "bevy",
@@ -471,7 +471,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_retro_ldtk"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "bevy",
