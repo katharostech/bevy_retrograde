@@ -10,13 +10,10 @@ jobs:
   # and is not out-of-sync.
   check-readme:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/msrd0/cargo-readme:latest
     steps:
       - uses: actions/checkout@v2
-      - name: Copy README
-        run: cp README.md README.md.ref
-      - name: Generate README from lib.rs
-        run: cargo readme > README.md
-      - name: Diff Generated README and Copied README
-        run: diff README.md README.md.ref
+      - uses: docker://ghcr.io/msrd0/cargo-doc2readme
+        with:
+          entrypoint: cargo
+          args: doc2readme
+      - run: git diff --exit-code README.md
