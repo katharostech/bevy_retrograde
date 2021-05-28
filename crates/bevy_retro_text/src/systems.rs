@@ -101,7 +101,7 @@ pub fn rasterize_text_block(
     // Start glyph layout
     let mut current_line = Vec::new();
     let mut line_x = 0; // The x position in the line we are currently at
-    for (char_i, char) in text.text.chars().enumerate() {
+    for (char_i, char) in text.text.char_indices() {
         // Get the glyph for this character
         let glyph = font
             .glyphs()
