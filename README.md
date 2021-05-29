@@ -46,12 +46,12 @@ Check out our [examples][__link2] list to see how to use each Bevy Retro feature
  - Supports sprites and sprite sheets
  - A super-simple hierarchy system
  - Scaled pixel-perfect rendering with three camera modes: fixed width, fixed height, and letter-boxed
- - An [LDtk][__link3] map loading [plugin][__link4]
- - An integration with the [RAUI][__link5] UI library for building in-game user interfaces and HUD
+ - [LDtk][__link3] map loading and rendering
+ - An integration with the [RAUI][__link4] UI library for building in-game user interfaces and HUD
  - Pixel-perfect collision detection
  - Text rendering of BDF fonts
  - Custom shaders for post-processing, including a built-in CRT shader
- - Render hooks allowing you to drop down into raw [Luminance][__link6] calls for custom rendering
+ - Render hooks allowing you to drop down into raw [Luminance][__link5] calls for custom rendering
 
 
 ## Supported Bevy Version
@@ -170,7 +170,6 @@ fn setup(
  [__link1]: https://github.com/katharostech/katharos-license
  [__link2]: https://github.com/katharostech/bevy_retro/tree/master/examples#bevy-retro-examples
  [__link3]: https://ldtk.io
- [__link4]: ./plugins/bevy_retro_ldtk
- [__link5]: https://raui-labs.github.io/raui/
- [__link6]: https://github.com/phaazon/luminance-rs
+ [__link4]: https://raui-labs.github.io/raui/
+ [__link5]: https://github.com/phaazon/luminance-rs
 
