@@ -14,6 +14,14 @@ env:
   # Disable incremental builds ( because we only build once in CI )
   CARGO_INCREMENTAL: 0
 
+  # Undo the dev profile overrides inside of the Cargo.toml so that the
+  # cargo build uses the same settings as cargo test and doesn't have
+  # to re-compile all deps with a different profile
+  CARGO_PROFILE_DEV_OPT_LEVEL: 0
+  CARGO_PROFILE_DEV_DEBUG: 0
+  # Also just disable debug symbols for testing
+  CARGO_PROFILE_TEST_DEBUG: 0
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -70,7 +78,9 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           override: true
 
-      # No need to build first because the test command will build the crate
+      - name: Build
+        run: cargo build --workspace --features ldtk --verbose
+
       - name: Test
         run: cargo test --workspace --features ldtk --verbose
 
