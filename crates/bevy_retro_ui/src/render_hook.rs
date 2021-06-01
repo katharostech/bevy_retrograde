@@ -71,7 +71,7 @@ pub struct UiRenderHook {
     image_cache: HashSet<Handle<Image>>,
     handle_to_path: HashMap<HandleId, String>,
     /// Cache of fonts that the UI is using
-    font_cache: Vec<Handle<Font>>,
+    font_cache: HashSet<Handle<Font>>,
     interactions: BevyInteractionsEngine,
     has_shown_clipping_warning: bool,
 }
@@ -338,10 +338,10 @@ impl RenderHook for UiRenderHook {
             // point, we assume that it might at any time want to use it again so we avoid
             // re-loading the image by just not un-loading the image. This could be a problem for
             // some UIs. We should find a way to make this configurable somehow.
+            // We have the same issue with the fonts below.
         }
 
         // Get list of font handles used by the UI
-        let mut font_handles = Vec::new();
         for font_path in batches.iter().filter_map(|x| match x {
             Batch::ExternalText(_, batch) => Some(&batch.font),
             _ => None,
@@ -352,12 +352,11 @@ impl RenderHook for UiRenderHook {
 
             // Load the font if loading has not started yet
             if let LoadState::NotLoaded = asset_server.get_load_state(&font_handle) {
-                font_cache.push(asset_server.load(font_path.as_str()));
+                asset_server.load::<Font, _>(font_path.as_str());
             }
-            font_handles.push(font_handle);
+
+            font_cache.insert(font_handle);
         }
-        // Update the image cache with the new handle list
-        *font_cache = font_handles;
 
         // Rasterize text blocks to textures
         // TODO: Cache text block rasterizations and reuse if they haven't been changed
