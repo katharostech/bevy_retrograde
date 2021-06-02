@@ -117,13 +117,6 @@ impl RenderHook for UiRenderHook {
         })
     }
 
-    // Make sure the ui system runs before the sprite hook by making its priority higher ( the
-    // default, and the priority of the sprite hook is 0 ). This way the text sprites we create in
-    // this hook will be present when the sprite hook runs.
-    fn priority(&self) -> i32 {
-        1
-    }
-
     fn prepare_low_res(
         &mut self,
         world: &mut World,
