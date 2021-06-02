@@ -54,11 +54,6 @@ pub trait RenderHook {
     where
         Self: Sized;
 
-    /// Returns the priority of this render hook relative to the other render hooks
-    fn priority(&self) -> i32 {
-        0
-    }
-
     /// This function is called before rendering to the retro-resolution framebuffer and is expected
     /// to return a vector of [`RenderHookRenderableHandle`]'s, one for each item that will be
     /// rendered by this hook. The [`RenderHookRenderableHandle`] indicates the depth of the object
