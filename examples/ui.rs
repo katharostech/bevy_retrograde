@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_retro::prelude::*;
-use bevy_retro::ui::raui::prelude::widget;
+use bevy_retro::ui::raui::prelude::make_widget;
 
 // Create a stage label that will be used for our game logic stage
 #[derive(StageLabel, Debug, Eq, Hash, PartialEq, Clone)]
@@ -49,9 +49,7 @@ fn setup(mut commands: Commands, mut ui_tree: ResMut<UiTree>, asset_server: Res<
     // Set the UI tree. The `UiTree` Resource is used to set the widget tree that should be
     // rendered. There can be only one widget tree rendered at a time, but the tree may be as simple
     // or as complex as you desire.
-    *ui_tree = UiTree(widget! {
-        (ui::my_widget)
-    });
+    *ui_tree = UiTree(make_widget!(ui::my_widget).into());
 }
 
 /// System that scrolls the background when the button is clicked
@@ -78,136 +76,144 @@ mod ui {
     use crate::ButtonClicked;
 
     pub fn my_widget(_ctx: WidgetContext) -> WidgetNode {
-        // Create shared properties that will be accessible to all child widgets, used for the theme
-        // in our case.
-        let shared_props = Props::default()
-            // Add the theme properties
-            .with({
-                let mut theme = ThemeProps::default();
+        // Create our theme definition, which will effect the "paper" type RAUI components
+        let theme = {
+            let mut theme = ThemeProps::default();
 
-                theme.content_backgrounds.insert(
-                    String::new(),
-                    ThemedImageMaterial::Image(ImageBoxImage {
-                        id: "ui/panel.png".to_owned(),
-                        scaling: ImageBoxImageScaling::Frame((20.0, false).into()),
-                        ..Default::default()
-                    }),
-                );
+            theme.content_backgrounds.insert(
+                String::new(),
+                ThemedImageMaterial::Image(ImageBoxImage {
+                    id: "ui/panel.png".to_owned(),
+                    scaling: ImageBoxImageScaling::Frame((20.0, false).into()),
+                    ..Default::default()
+                }),
+            );
 
-                theme.content_backgrounds.insert(
-                    String::from("button-up"),
-                    ThemedImageMaterial::Image(ImageBoxImage {
-                        id: "ui/button-up.png".to_owned(),
-                        scaling: ImageBoxImageScaling::Frame((8.0, false).into()),
-                        ..Default::default()
-                    }),
-                );
+            theme.content_backgrounds.insert(
+                String::from("button-up"),
+                ThemedImageMaterial::Image(ImageBoxImage {
+                    id: "ui/button-up.png".to_owned(),
+                    scaling: ImageBoxImageScaling::Frame((8.0, false).into()),
+                    ..Default::default()
+                }),
+            );
 
-                theme.content_backgrounds.insert(
-                    String::from("button-down"),
-                    ThemedImageMaterial::Image(ImageBoxImage {
-                        id: "ui/button-down.png".to_owned(),
-                        scaling: ImageBoxImageScaling::Frame((8.0, false).into()),
-                        ..Default::default()
-                    }),
-                );
+            theme.content_backgrounds.insert(
+                String::from("button-down"),
+                ThemedImageMaterial::Image(ImageBoxImage {
+                    id: "ui/button-down.png".to_owned(),
+                    scaling: ImageBoxImageScaling::Frame((8.0, false).into()),
+                    ..Default::default()
+                }),
+            );
 
-                theme.text_variants.insert(
-                    String::new(),
-                    ThemedTextMaterial {
-                        font: TextBoxFont {
-                            name: "cozette.bdf".into(),
-                            // Font's in Bevy Retro don't really have sizes so we can just set this to
-                            // one
-                            size: 1.0,
+            theme.text_variants.insert(
+                String::new(),
+                ThemedTextMaterial {
+                    font: TextBoxFont {
+                        name: "cozette.bdf".into(),
+                        // Font's in Bevy Retro don't really have sizes so we can just set this to
+                        // one
+                        size: 1.0,
+                    },
+                    ..Default::default()
+                },
+            );
+
+            theme
+        };
+
+        // The make_widget! macro will create a component from a function, in this case the
+        // `nav_content_box` function that we use from the RAUI prelude. Most other functions
+        make_widget!(nav_content_box)
+            .with_shared_props(theme)
+            // Add the popup widget as a child
+            .listed_slot(
+                make_widget!(popup)
+                    // And add some layout properties
+                    .with_props(ContentBoxItemLayout {
+                        margin: Rect {
+                            left: 20.,
+                            right: 20.,
+                            top: 20.,
+                            bottom: 20.,
                         },
                         ..Default::default()
-                    },
-                );
-
-                theme
-            });
-
-        // Create the props for our popup
-        let popup_props = Props::new(ContentBoxItemLayout {
-            margin: Rect {
-                left: 20.,
-                right: 20.,
-                top: 20.,
-                bottom: 20.,
-            },
-            ..Default::default()
-        });
-
-        widget! {
-            (nav_content_box | {shared_props} [
-                (popup: {popup_props})
-            ])
-        }
+                    }),
+            )
+            // the into call makes the component convert into the `WidgetNode` type required by the
+            // function return type
+            .into()
     }
 
     // A simple popup-type component
     fn popup(ctx: WidgetContext) -> WidgetNode {
-        let panel_props = ctx.props.clone().with(PaperProps {
-            frame: None,
-            ..Default::default()
-        });
-
-        let text_props = Props::new(TextBoxProps {
-            text: "The Red Radish".into(),
-            font: TextBoxFont {
-                name: "cozette.bdf".into(),
-                size: 1.,
-            },
-            width: TextBoxSizeValue::Fill,
-            horizontal_align: TextBoxHorizontalAlign::Center,
-            ..Default::default()
-        })
-        .with(FlexBoxItemLayout {
-            grow: 0.0,
-            shrink: 0.0,
-            fill: 1.0,
-            align: 0.5,
-            ..Default::default()
-        });
-
-        let image_props = Props::new(ImageBoxProps {
-            material: ImageBoxMaterial::Image(ImageBoxImage {
-                id: "redRadish.png".into(),
+        // Build our popup widget
+        make_widget!(nav_vertical_paper)
+            // We add any props added to this widget to the top-level nav-paper that makes up this
+            // widget by merging ctx.props.
+            .merge_props(ctx.props.clone())
+            // Popup Title
+            .listed_slot(
+                make_widget!(text_box)
+                    .with_props(TextBoxProps {
+                        text: "The Red Radish".into(),
+                        font: TextBoxFont {
+                            name: "cozette.bdf".into(),
+                            size: 1.,
+                        },
+                        width: TextBoxSizeValue::Fill,
+                        height: TextBoxSizeValue::Exact(16.),
+                        horizontal_align: TextBoxHorizontalAlign::Center,
+                        ..Default::default()
+                    })
+                    .with_props(FlexBoxItemLayout {
+                        grow: 0.0,
+                        shrink: 0.0,
+                        fill: 1.0,
+                        align: 0.5,
+                        margin: Rect {
+                            top: 10.,
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    }),
+            )
+            // Radish image
+            .listed_slot(
+                make_widget!(image_box)
+                    .with_props(ImageBoxProps {
+                        material: ImageBoxMaterial::Image(ImageBoxImage {
+                            id: "redRadish.png".into(),
+                            ..Default::default()
+                        }),
+                        width: ImageBoxSizeValue::Exact(32.),
+                        height: ImageBoxSizeValue::Exact(32.),
+                        ..Default::default()
+                    })
+                    .with_props(FlexBoxItemLayout {
+                        grow: 0.0,
+                        shrink: 0.0,
+                        fill: 1.0,
+                        align: 0.5,
+                        margin: Rect {
+                            top: 15.,
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    }),
+            )
+            // Button
+            .listed_slot(make_widget!(start_button).with_props(FlexBoxItemLayout {
+                grow: 0.0,
+                align: 0.5,
+                margin: Rect {
+                    top: 28.,
+                    ..Default::default()
+                },
                 ..Default::default()
-            }),
-            width: ImageBoxSizeValue::Exact(32.),
-            height: ImageBoxSizeValue::Exact(32.),
-            ..Default::default()
-        })
-        .with(FlexBoxItemLayout {
-            grow: 0.0,
-            shrink: 0.0,
-            fill: 1.0,
-            align: 0.5,
-            margin: Rect {
-                top: 30.,
-                ..Default::default()
-            },
-            ..Default::default()
-        });
-
-        let button_props = Props::new(FlexBoxItemLayout {
-            align: 0.5,
-            margin: Rect {
-                top: 15.,
-                ..Default::default()
-            },
-            ..Default::default()
-        });
-
-        widget! {
-            (nav_vertical_paper: {panel_props} [
-                (text_box: {text_props})
-                (image_box: {image_props})
-                (start_button: {button_props})
-            ])
-        }
+            }))
+            .into()
     }
 
     #[pre_hooks(
@@ -238,56 +244,56 @@ mod ui {
             }
         }
 
-        // In the rest of this we style our button
-
-        let button_props = ctx
-            .props
-            .clone()
-            .with(NavItemActive)
-            .with(ButtonNotifyProps(ctx.id.to_owned().into()));
-
-        let button_panel_props = ctx.props.clone().with(PaperProps {
-            frame: None,
-            variant: if clicked {
-                String::from("button-down")
-            } else {
-                String::from("button-up")
-            },
-            ..Default::default()
-        });
-
-        let label_props = Props::new(TextPaperProps {
-            text: "Start Game".to_owned(),
-            width: TextBoxSizeValue::Fill,
-            height: TextBoxSizeValue::Fill,
-            horizontal_align_override: Some(TextBoxHorizontalAlign::Center),
-            vertical_align_override: Some(TextBoxVerticalAlign::Middle),
-            transform: Transform {
-                translation: Vec2 {
-                    x: 0.,
-                    y: if clicked { 2. } else { 0. },
-                },
-                ..Default::default()
-            },
-            ..Default::default()
-        });
-
         let scale = if hover { 1.05 } else { 1. };
 
-        let size_box_props = Props::new(SizeBoxProps {
-            width: SizeBoxSizeValue::Exact(85. * scale),
-            height: SizeBoxSizeValue::Exact(25. * scale),
-            ..Default::default()
-        });
+        // And we build our button
 
-        widget! {
-            (button: {button_props} {
-                content = (size_box: {size_box_props} {
-                    content = (horizontal_paper: {button_panel_props} [
-                        (text_paper: {label_props})
-                    ])
-                })
-            })
-        }
+        // The button component
+        make_widget!(button)
+            .merge_props(ctx.props.clone())
+            .with_props(NavItemActive)
+            .with_props(ButtonNotifyProps(ctx.id.clone().into()))
+            // Inside the button's content slot we create a size box that can resize its contents
+            .named_slot(
+                "content",
+                make_widget!(size_box)
+                    .with_props(SizeBoxProps {
+                        width: SizeBoxSizeValue::Exact(85. * scale),
+                        height: SizeBoxSizeValue::Exact(25. * scale),
+                        ..Default::default()
+                    })
+                    // In the size box we put a horizontal paper that contains the styled visible
+                    // portion of the button
+                    .named_slot(
+                        "content",
+                        make_widget!(horizontal_paper)
+                            .with_props(PaperProps {
+                                frame: None,
+                                variant: if clicked {
+                                    String::from("button-down")
+                                } else {
+                                    String::from("button-up")
+                                },
+                                ..Default::default()
+                            })
+                            // And we add our text inside of the paper
+                            .listed_slot(make_widget!(text_paper).with_props(TextPaperProps {
+                                text: "Start Game".to_owned(),
+                                width: TextBoxSizeValue::Fill,
+                                height: TextBoxSizeValue::Fill,
+                                horizontal_align_override: Some(TextBoxHorizontalAlign::Center),
+                                vertical_align_override: Some(TextBoxVerticalAlign::Middle),
+                                transform: Transform {
+                                    translation: Vec2 {
+                                        x: 0.,
+                                        y: if clicked { 2. } else { 0. },
+                                    },
+                                    ..Default::default()
+                                },
+                                ..Default::default()
+                            })),
+                    ),
+            )
+            .into()
     }
 }
