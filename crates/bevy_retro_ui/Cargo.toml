@@ -23,4 +23,4 @@ bevy_retro_core = { version = "0.1", path = "../bevy_retro_core" }
 bevy_retro_text = { version = "0.1", path = "../bevy_retro_text" }
 bevy_retro_macros = { version = "0.1", path = "../bevy_retro_macros" }
 
-raui = { git = "https://github.com/katharostech/raui", rev = "9e88dbb6fb7c20b8aebf0659a4282c0393c4b799", features = ["material", "tesselate"] } 
+raui = { version = "0.37.1", features = ["material", "tesselate"] } 

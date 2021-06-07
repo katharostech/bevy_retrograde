@@ -60,16 +60,19 @@ impl BevyInteractionsEngine {
                     top: 0.,
                     bottom: window.height(),
                 },
-                CoordsMappingScaling::Fit(Vec2 {
+                CoordsMappingScaling::Stretch(Vec2 {
                     x: target_size.x as f32,
                     y: target_size.y as f32,
                 }),
             );
 
-            self.mouse_position = coords_mapping.real_to_virtual_vec2(Vec2 {
-                x: event.position.x,
-                y: window.height() - event.position.y,
-            });
+            self.mouse_position = coords_mapping.real_to_virtual_vec2(
+                Vec2 {
+                    x: event.position.x,
+                    y: window.height() - event.position.y,
+                },
+                false,
+            );
 
             self.engine
                 .interact(Interaction::PointerMove(self.mouse_position));

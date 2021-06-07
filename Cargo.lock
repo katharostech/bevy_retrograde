@@ -2494,8 +2494,9 @@ dependencies = [
 
 [[package]]
 name = "raui"
-version = "0.35.0"
-source = "git+https://github.com/katharostech/raui?rev=9e88dbb6fb7c20b8aebf0659a4282c0393c4b799#9e88dbb6fb7c20b8aebf0659a4282c0393c4b799"
+version = "0.37.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7d376aa166cec4a7fd9251a1da31955fb2b2b6dba13656e55fc151a7116f6621"
 dependencies = [
  "raui-core",
  "raui-material",
@@ -2504,8 +2505,9 @@ dependencies = [
 
 [[package]]
 name = "raui-core"
-version = "0.35.0"
-source = "git+https://github.com/katharostech/raui?rev=9e88dbb6fb7c20b8aebf0659a4282c0393c4b799#9e88dbb6fb7c20b8aebf0659a4282c0393c4b799"
+version = "0.37.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dc868c6c33d284b09705ae8ce21b90d6139ad0bf2df7ca856d09948841531196"
 dependencies = [
  "raui-derive",
  "serde",
@@ -2514,8 +2516,9 @@ dependencies = [
 
 [[package]]
 name = "raui-derive"
-version = "0.35.0"
-source = "git+https://github.com/katharostech/raui?rev=9e88dbb6fb7c20b8aebf0659a4282c0393c4b799#9e88dbb6fb7c20b8aebf0659a4282c0393c4b799"
+version = "0.37.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c6658d74e5e215f9e5178d48ad155dcff6c82ad0fb432610c1a4fad04e4e2933"
 dependencies = [
  "quote",
  "syn",
@@ -2523,8 +2526,9 @@ dependencies = [
 
 [[package]]
 name = "raui-material"
-version = "0.35.0"
-source = "git+https://github.com/katharostech/raui?rev=9e88dbb6fb7c20b8aebf0659a4282c0393c4b799#9e88dbb6fb7c20b8aebf0659a4282c0393c4b799"
+version = "0.37.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cd14c5d36354dcdf37ffdd15503c6ec9b95a350eee1a5d3072bf743bbd49dffd"
 dependencies = [
  "raui-core",
  "serde",
@@ -2532,8 +2536,9 @@ dependencies = [
 
 [[package]]
 name = "raui-tesselate-renderer"
-version = "0.35.0"
-source = "git+https://github.com/katharostech/raui?rev=9e88dbb6fb7c20b8aebf0659a4282c0393c4b799#9e88dbb6fb7c20b8aebf0659a4282c0393c4b799"
+version = "0.37.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "64fb828af3b4174892c0caf8f3074ccead40821cc6b8d51d51df7535a6d0e7a9"
 dependencies = [
  "raui-core",
  "serde",
