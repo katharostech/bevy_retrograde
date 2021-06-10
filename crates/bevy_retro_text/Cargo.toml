@@ -21,9 +21,8 @@ categories = [
 bevy = { version = "0.5", default-features = false }
 bevy_retro_core = { version = "0.1", path = "../bevy_retro_core" }
 bevy_retro_macros = { version = "0.1", path = "../bevy_retro_macros" }
-
+peg = "0.7.0"
 unicode-linebreak = "0.1.1"
-bdf = { git = "https://github.com/meh/rust-bdf", branch = "master" }
 
 thiserror = "1.0.24"
 anyhow = "1.0.40"

@@ -11,14 +11,6 @@ trait GlyphExt {
     fn real_width(&self) -> u32;
 }
 
-impl GlyphExt for Glyph {
-    fn real_width(&self) -> u32 {
-        self.device_width()
-            .map(|x| x.0)
-            .unwrap_or((self.bounds().width as i32 + self.bounds().x) as u32)
-    }
-}
-
 pub(crate) fn font_rendering(
     mut texts: Query<
         (
@@ -84,8 +76,8 @@ pub fn rasterize_text_block(
     font: &Font,
     text_block: Option<&TextBlock>,
 ) -> bevy_retro_core::image::ImageBuffer<Rgba<u8>, Vec<u8>> {
-    let default_glyph = font.glyphs().get(&' ');
-    let font_bounds = font.bounds();
+    let default_glyph = font.glyphs.get(&' ');
+    let font_bounds = &font.bounds;
 
     // Calculate line breaks for the text
     let mut line_breaks = unicode_linebreak::linebreaks(&text.text).collect::<Vec<_>>();
@@ -96,7 +88,7 @@ pub fn rasterize_text_block(
     let mut lines: Vec<Vec<Glyph>> = Default::default();
 
     // The height of a line
-    let line_height = font.bounds().height;
+    let line_height = font.bounds.height;
 
     // Start glyph layout
     let mut current_line = Vec::new();
@@ -104,7 +96,7 @@ pub fn rasterize_text_block(
     for (char_i, char) in text.text.char_indices() {
         // Get the glyph for this character
         let glyph = font
-            .glyphs()
+            .glyphs
             .get(&char)
             .or(default_glyph)
             .unwrap_or_else(|| panic!("Font does not contain glyph for character: {:?}", char));
@@ -115,7 +107,7 @@ pub fn rasterize_text_block(
         // Wrap the line if necessary
         if let Some(max_width) = text_block.map(|x| x.width) {
             // Calculate the new x position of the line after adding this glyph
-            line_x += glyph.real_width();
+            line_x += glyph.device_width.0;
 
             // If this character must break the line
             if line_breaks
@@ -154,7 +146,7 @@ pub fn rasterize_text_block(
                             // line
                             line_x = current_line
                                 .iter()
-                                .fold(0, |width, g| width + g.real_width());
+                                .fold(0, |width, g| width + g.device_width.0);
                             break;
                         }
                         _ => (),
@@ -173,7 +165,7 @@ pub fn rasterize_text_block(
     let image_width = lines.iter().fold(0, |width, line| {
         let line_width = line
             .iter()
-            .fold(0, |width, glyph| width + glyph.real_width());
+            .fold(0, |width, glyph| width + glyph.device_width.0);
 
         if line_width > width {
             line_width
@@ -212,7 +204,7 @@ pub fn rasterize_text_block(
                     // Get the full width of the characters in this line
                     let chars_width = line
                         .iter()
-                        .fold(0, |width, glyph| width + glyph.real_width());
+                        .fold(0, |width, glyph| width + glyph.device_width.0);
 
                     match other {
                         TextHorizontalAlign::Center => {
@@ -228,10 +220,10 @@ pub fn rasterize_text_block(
         // Loop through all the glyphs in each line
         for glyph in line {
             // Get bounds
-            let bounds = glyph.bounds();
+            let bounds = &glyph.bounds;
 
             // Skip rasterizing whitespace chars
-            if !glyph.codepoint().is_whitespace() {
+            if !glyph.codepoint.is_whitespace() {
                 // Create a sub-image of the text block for the area occupied by the glyph
                 let mut sub_img = image.sub_image(
                     line_x + x_offset,
@@ -253,7 +245,7 @@ pub fn rasterize_text_block(
                             (255. * text.color.r).round() as u8,
                             (255. * text.color.g).round() as u8,
                             (255. * text.color.b).round() as u8,
-                            if glyph.get(x, y) {
+                            if glyph.bitmap.get(x, y) {
                                 (255. * text.color.a).round() as u8
                             } else {
                                 0
@@ -264,7 +256,7 @@ pub fn rasterize_text_block(
             }
 
             // Increment line position
-            line_x += glyph.real_width();
+            line_x += glyph.device_width.0;
         }
     }
 
