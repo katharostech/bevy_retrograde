@@ -15,6 +15,8 @@ mod assets;
 
 mod components;
 
+pub(crate) mod bdf;
+
 mod systems;
 pub use systems::rasterize_text_block;
 use systems::*;

@@ -8,14 +8,14 @@ use bevy::{
 /// A font asset
 #[derive(TypeUuid, Clone, Debug)]
 #[uuid = "8dd853b0-f6b7-406a-b1c0-d81abd4137fc"]
-pub struct Font(bdf::Font);
-bevy_retro_macros::impl_deref!(Font, bdf::Font);
+pub struct Font(crate::bdf::Font);
+bevy_retro_macros::impl_deref!(Font, crate::bdf::Font);
 
 /// An error that occurs when loading an image file
 #[derive(thiserror::Error, Debug)]
 pub enum FontLoaderError {
-    #[error("Error parsing font: {0}")]
-    FontError(#[from] bdf::Error),
+    #[error("Error loading font: {0}")]
+    FontError(#[from] crate::bdf::Error),
 }
 
 /// An image asset loader
@@ -42,7 +42,7 @@ async fn load_image<'a, 'b>(
     load_context: &'a mut LoadContext<'b>,
 ) -> Result<(), FontLoaderError> {
     // Load the font
-    let font = bdf::read(bytes)?;
+    let font = crate::bdf::parse(bytes)?;
 
     load_context.set_default_asset(LoadedAsset::new(Font(font)));
 

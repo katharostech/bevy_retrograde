@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Katharos Technology LLC."]
 edition = "2018"
 
-license-file = "../LICENSE.md"
+license-file = "../../LICENSE.md"
 readme = "../README.md"
 description = "A Bevy Retro plugin for reading the LDtk 2D tile map format."
 repository = "https://github.com/katharostech/bevy_retro"
