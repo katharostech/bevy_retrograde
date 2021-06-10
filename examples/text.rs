@@ -2,7 +2,7 @@ use bevy::{
     diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
     prelude::*,
 };
-use bevy_retro::prelude::*;
+use bevy_retrograde::prelude::*;
 
 // Create a stage label that will be used for our game logic stage
 #[derive(StageLabel, Debug, Eq, Hash, PartialEq, Clone)]

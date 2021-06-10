@@ -55,7 +55,7 @@
 //! - Custom shaders for post-processing, including a built-in CRT shader
 //! - Render hooks allowing you to drop down into raw [Luminance] calls for custom rendering
 //!
-//! [examples]: https://github.com/katharostech/bevy_retro/tree/master/examples#bevy-retro-examples
+//! [examples]: https://github.com/katharostech/bevy_retrograde/tree/master/examples#bevy-retro-examples
 //!
 //! [luminance]: https://github.com/phaazon/luminance-rs
 //!
@@ -69,7 +69,7 @@
 //!
 //! When depending on the `bevy` crate, you must be sure to set `default-features` to `false` in
 //! your `Cargo.toml` so that the rendering types in `bevy` don't conflict with the ones in
-//! `bevy_retro`.
+//! `bevy_retrograde`.
 //!
 //! **`Cargo.toml`:**
 //!
@@ -77,7 +77,7 @@
 //! # Be sure to turn off the default features of Bevy to avoid conflicts with the
 //! # Bevy Retro renderer types.
 //! bevy = { version = "0.5", default-features = false }
-//! bevy_retro = { git = "https://github.com/katharostech/bevy_retro.git" }
+//! bevy_retrograde = "0.1.0"
 //! ```
 //! # Sample
 //!
@@ -87,7 +87,7 @@
 //!
 //! ```no_run
 //! use bevy::prelude::*;
-//! use bevy_retro::prelude::*;
+//! use bevy_retrograde::prelude::*;
 //!
 //! fn main() {
 //!     App::build()
@@ -208,41 +208,41 @@ impl bevy::app::PluginGroup for RetroPlugins {
 #[doc(hidden)]
 pub mod prelude {
     pub use crate::*;
-    pub use bevy_retro_core::prelude::*;
-    pub use bevy_retro_macros::impl_deref;
+    pub use bevy_retrograde_core::prelude::*;
+    pub use bevy_retrograde_macros::impl_deref;
 
     #[cfg(feature = "audio")]
-    pub use bevy_retro_audio::*;
+    pub use bevy_retrograde_audio::*;
 
     #[cfg(feature = "text")]
-    pub use bevy_retro_text::prelude::*;
+    pub use bevy_retrograde_text::prelude::*;
 
     #[cfg(feature = "ldtk")]
-    pub use bevy_retro_ldtk::*;
+    pub use bevy_retrograde_ldtk::*;
 
     #[cfg(feature = "ui")]
-    pub use bevy_retro_ui::*;
+    pub use bevy_retrograde_ui::*;
 }
 
 #[doc(inline)]
-pub use bevy_retro_core as core;
+pub use bevy_retrograde_core as core;
 
 #[cfg(feature = "re-export-bevy")]
 pub use bevy;
 
-pub use bevy_retro_macros::impl_deref;
+pub use bevy_retrograde_macros::impl_deref;
 
 #[cfg(feature = "audio")]
 #[doc(inline)]
-pub use bevy_retro_audio as audio;
+pub use bevy_retrograde_audio as audio;
 
 #[cfg(feature = "text")]
 #[doc(inline)]
-pub use bevy_retro_text as text;
+pub use bevy_retrograde_text as text;
 
 #[cfg(feature = "ldtk")]
-pub use bevy_retro_ldtk as ldtk;
+pub use bevy_retrograde_ldtk as ldtk;
 
 #[cfg(feature = "ui")]
 #[doc(inline)]
-pub use bevy_retro_ui as ui;
+pub use bevy_retrograde_ui as ui;

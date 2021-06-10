@@ -1,5 +1,5 @@
 use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*};
-use bevy_retro::prelude::*;
+use bevy_retrograde::prelude::*;
 use rand::{thread_rng, Rng};
 
 struct RadishCounter {
@@ -117,7 +117,7 @@ mod ui {
         diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
         prelude::World,
     };
-    use bevy_retro::ui::raui::prelude::*;
+    use bevy_retrograde::ui::raui::prelude::*;
 
     pub fn fps_counter(ctx: WidgetContext) -> WidgetNode {
         let world = ctx.process_context.get_mut::<World>().unwrap();
