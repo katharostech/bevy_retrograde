@@ -12,14 +12,14 @@ pub use crate::renderer::Surface;
 mod starc;
 pub use starc::*;
 
-/// A [`luminance`] framebuffer using Bevy Retro's backend
+/// A [`luminance`] framebuffer using Bevy Retrograde's backend
 pub type Framebuffer<D, CS, DS> = luminance::framebuffer::Framebuffer<Glow, D, CS, DS>;
-/// A [`luminance`] program using Bevy Retro's backend
+/// A [`luminance`] program using Bevy Retrograde's backend
 pub type Program<Sem, Out, Uni> = luminance::shader::Program<Glow, Sem, Out, Uni>;
-/// A [`luminance`] tesselator using Bevy Retro's backend
+/// A [`luminance`] tesselator using Bevy Retrograde's backend
 pub type Tess<V, I = (), W = (), S = luminance::tess::Interleaved> =
     luminance::tess::Tess<Glow, V, I, W, S>;
-/// A [`luminance`] texturre using Bevy Retro's backend
+/// A [`luminance`] texturre using Bevy Retrograde's backend
 pub type Texture<D, P> = luminance::texture::Texture<Glow, D, P>;
 /// A cache mapping [`Handle<Image>`]s to luminance textures uploaded to the GPU
 ///
@@ -28,16 +28,16 @@ pub type Texture<D, P> = luminance::texture::Texture<Glow, D, P>;
 pub type TextureCache = HashMap<Handle<Image>, Texture<Dim2, NormRGBA8UI>>;
 
 #[cfg(not(wasm))]
-/// A [`luminance`] that is used as the render target for the Bevy Retro scene at the low-res camera
+/// A [`luminance`] that is used as the render target for the Bevy Retrograde scene at the low-res camera
 /// resolution
 pub type SceneFramebuffer = Framebuffer<Dim2, luminance::pixel::RGBA32F, ()>;
 #[cfg(wasm)]
 pub type SceneFramebuffer = Framebuffer<Dim2, luminance::pixel::RGBA8UI, ()>;
 
-/// A trait that allows you hook custom functionality into the Bevy Retro renderer
+/// A trait that allows you hook custom functionality into the Bevy Retrograde renderer
 ///
 /// By implementing [`RenderHook`] you are able to use the raw [`luminance`] API to do fully custom
-/// rendering of any kind of object along-side of the built-in Bevy Retro rendering for sprites,
+/// rendering of any kind of object along-side of the built-in Bevy Retrograde rendering for sprites,
 /// text, UI, etc.
 ///
 /// Render hook can be added during the creation of the Bevy app using
@@ -45,7 +45,7 @@ pub type SceneFramebuffer = Framebuffer<Dim2, luminance::pixel::RGBA8UI, ()>;
 /// during the game by using the [`RenderHooks`] resource.
 ///
 /// Currently render hooks are able to render only to the low-resolution framebuffer that is
-/// configured at the resolution of the Bevy Retro camera, but in the future you will be able to
+/// configured at the resolution of the Bevy Retrograde camera, but in the future you will be able to
 /// render at the full resolution of the user's screen if desired, allowing you to selectively break
 /// out of the pixel-perfect, retro rendering.
 pub trait RenderHook {
@@ -148,14 +148,14 @@ impl PartialOrd for RenderHookRenderableHandle {
 type RenderHookInitFn =
     dyn Fn(bevy::window::WindowId, &mut Surface) -> Box<dyn RenderHook> + Sync + Send + 'static;
 
-/// Bevy resource that can be used to add [`RenderHook`]s to the Bevy Retro renderer
+/// Bevy resource that can be used to add [`RenderHook`]s to the Bevy Retrograde renderer
 #[derive(Default)]
 pub struct RenderHooks {
     pub(crate) new_hooks: Vec<Box<RenderHookInitFn>>,
 }
 
 impl RenderHooks {
-    /// Add a new [`RenderHook`] to the Bevy Retro renderer
+    /// Add a new [`RenderHook`] to the Bevy Retrograde renderer
     pub fn add_render_hook<T: RenderHook + 'static>(&mut self) {
         self.new_hooks
             .push(Box::new(T::init) as Box<RenderHookInitFn>);

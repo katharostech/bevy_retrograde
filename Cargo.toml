@@ -17,6 +17,10 @@ categories = [
     "wasm"
 ]
 
+exclude = [
+    "examples/screenshots/"
+]
+
 [workspace]
 members = ["crates/*"]
 

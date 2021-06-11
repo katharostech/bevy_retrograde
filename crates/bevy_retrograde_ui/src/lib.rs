@@ -12,7 +12,7 @@ pub(crate) mod interaction;
 
 pub use raui;
 
-/// Text rendering plugin for Bevy Retro
+/// Text rendering plugin for Bevy Retrograde
 pub struct RetroUiPlugin;
 
 impl Plugin for RetroUiPlugin {

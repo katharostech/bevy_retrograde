@@ -5,8 +5,8 @@ authors = ["Katharos Technology LLC."]
 edition = "2018"
 
 license-file = "../../LICENSE.md"
-readme = "../README.md"
-description = "Bevy Retro's text rendering implementation"
+readme = "../../README.md"
+description = "Bevy Retrograde's text rendering implementation"
 repository = "https://github.com/katharostech/bevy_retrograde"
 documentation = "https://docs.rs/bevy_retrograde_text"
 keywords = ["bevy", "gamedev", "2D", "bevy_retrograde", "pixel-perfect"]

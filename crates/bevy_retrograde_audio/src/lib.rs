@@ -1,6 +1,6 @@
-//! The Bevy Retro audio plugin
+//! The Bevy Retrograde audio plugin
 //!
-//! Bevy Retro attempts to provide an _extremely_ simple, yet still effective API for playing audio
+//! Bevy Retrograde attempts to provide an _extremely_ simple, yet still effective API for playing audio
 //! in games using [Kira]. If more control is desired you may want to look into [`bevy_kira_audio`]
 //! which grants more control over audio playback.
 //!
@@ -21,7 +21,7 @@ pub use components::*;
 mod systems;
 pub(crate) use systems::*;
 
-/// The Bevy Retro audio plugin
+/// The Bevy Retrograde audio plugin
 #[derive(Default)]
 pub struct RetroAudioPlugin;
 

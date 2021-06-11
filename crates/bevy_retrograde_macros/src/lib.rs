@@ -1,4 +1,4 @@
-//! Macros used in Bevy Retro
+//! Macros used in Bevy Retrograde
 
 /// Utility to implement deref for single-element tuple structs
 ///

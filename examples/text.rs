@@ -11,7 +11,7 @@ struct GameStage;
 fn main() {
     App::build()
         .insert_resource(WindowDescriptor {
-            title: "Bevy Retro Text".into(),
+            title: "Bevy Retrograde Text".into(),
             ..Default::default()
         })
         .add_plugin(FrameTimeDiagnosticsPlugin)
@@ -33,7 +33,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         ..Default::default()
     });
 
-    // Bevy Retro reads the BDF font format
+    // Bevy Retrograde reads the BDF font format
     let font = asset_server.load("cozette.bdf");
 
     // Spawn a single line of text

@@ -10,7 +10,7 @@ _( Tileset from ["Cavernas"] by Adam Saltsman )_
 
 ["cavernas"]: https://adamatomic.itch.io/cavernas
 
-A [Bevy Retro][br] plugin for loading [LDtk] tile maps.
+A [Bevy Retrograde][br] plugin for loading [LDtk] tile maps.
 
 [ldtk]: https://github.com/deepnight/ldtk [br]: https://github.com/katharostech/bevy_retrograde
 
@@ -82,7 +82,7 @@ PR to help prioritize what gets implemented.
 
 ## License
 
-Bevy Retro LDtk is licensed under the [Katharos License][k_license] which places certain
+Bevy Retrograde LDtk is licensed under the [Katharos License][k_license] which places certain
 restrictions on what you are allowed to use it for. Please read and understand the terms before
 using Bevy LDtk for your project.
 

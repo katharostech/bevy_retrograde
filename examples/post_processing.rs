@@ -8,7 +8,7 @@ struct GameStage;
 fn main() {
     App::build()
         .insert_resource(WindowDescriptor {
-            title: "Bevy Retro Post-Processing".into(),
+            title: "Bevy Retrograde Post-Processing".into(),
             ..Default::default()
         })
         .add_plugins(RetroPlugins)

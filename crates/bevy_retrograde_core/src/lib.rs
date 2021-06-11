@@ -1,4 +1,4 @@
-//! Bevy Retro core
+//! Bevy Retrograde core
 
 use bevy::prelude::*;
 
@@ -31,7 +31,7 @@ pub mod shaders;
 
 mod renderer;
 
-/// The ECS schedule stages that the Bevy retro code is run in
+/// The ECS schedule stages that the Bevy Retrograde code is run in
 #[derive(Debug, Clone, Copy, StageLabel, Hash, PartialEq, Eq)]
 pub enum RetroCoreStage {
     WorldPositionPropagation,
@@ -40,7 +40,7 @@ pub enum RetroCoreStage {
 
 use crate::{graphics::*, prelude::*, renderer::*};
 
-/// The Bevy Retro Core plugin
+/// The Bevy Retrograde Core plugin
 #[derive(Default)]
 pub struct RetroCorePlugin;
 
