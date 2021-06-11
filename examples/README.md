@@ -1,4 +1,4 @@
-# Bevy Retro Examples
+# Bevy Retrograde Examples
 
 ## Running Examples
 
@@ -22,14 +22,13 @@ http://localhost:4000. You can install [`basic-http-server`] or you can modify t
 whatever your favorite development http server is.
 
 [just]: https://github.com/casey/just
-
 [`basic-http-server`]: https://github.com/brson/basic-http-server
 
 ## Full List
 
 ### [hello_world]
 
-A good intro into Bevy Retro that also shows how to use the hierarchy system.
+A good intro into Bevy Retrograde that also shows how to use the hierarchy system.
 
 ![hello_world](./screenshots/hello_world.gif)
 
@@ -73,7 +72,7 @@ An example showing you how to load and display an LDtk map file.
 
 An example demonstrating the [RAUI] UI integration. It shows how to create UI elements that can resize with the screen and how to create theme-able buttons and interact with the ECS world from the UI.
 
-[RAUI]: https://raui-labs.github.io/raui/
+[raui]: https://raui-labs.github.io/raui/
 
 ![ui](./screenshots/ui.gif)
 
@@ -100,7 +99,7 @@ raw calls to the [Luminance] graphics API allowing you to render _any_ kind of o
 
 ![custom_rendering](./screenshots/custom_rendering.gif)
 
-[Luminance]: https://github.com/phaazon/luminance-rs
+[luminance]: https://github.com/phaazon/luminance-rs
 [custom_rendering]: ./custom_rendering.rs
 
 ### [radishmark]

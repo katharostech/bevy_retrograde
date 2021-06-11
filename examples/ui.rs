@@ -9,7 +9,7 @@ struct GameStage;
 fn main() {
     App::build()
         .insert_resource(WindowDescriptor {
-            title: "Bevy Retro UI".into(),
+            title: "Bevy Retrograde UI".into(),
             ..Default::default()
         })
         .add_plugins(RetroPlugins)
@@ -112,7 +112,7 @@ mod ui {
                 ThemedTextMaterial {
                     font: TextBoxFont {
                         name: "cozette.bdf".into(),
-                        // Font's in Bevy Retro don't really have sizes so we can just set this to
+                        // Font's in Bevy Retrograde don't really have sizes so we can just set this to
                         // one
                         size: 1.0,
                     },

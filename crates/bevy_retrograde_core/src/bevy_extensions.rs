@@ -71,7 +71,7 @@ impl AssetServerExt for AssetServer {
 
 /// Render hook extension to the Bevy [`AppBuilder`]
 pub trait AppBuilderRenderHookExt {
-    /// Add a new [`RenderHook`] to the Bevy Retro renderer
+    /// Add a new [`RenderHook`] to the Bevy Retrograde renderer
     fn add_render_hook<T: RenderHook + 'static>(self) -> Self;
 }
 impl AppBuilderRenderHookExt for &mut AppBuilder {

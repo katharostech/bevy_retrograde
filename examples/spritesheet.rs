@@ -7,7 +7,7 @@ struct GameStage;
 fn main() {
     App::build()
         .insert_resource(WindowDescriptor {
-            title: "Bevy Retro Sprite Sheet".into(),
+            title: "Bevy Retrograde Sprite Sheet".into(),
             ..Default::default()
         })
         .add_plugins(RetroPlugins)

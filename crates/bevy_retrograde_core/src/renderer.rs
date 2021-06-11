@@ -18,7 +18,7 @@ bevy_retrograde_macros::items_attr!(cfg(wasm), {
     use wasm_bindgen::prelude::*;
     use wasm_bindgen::JsCast;
 
-    /// A [`luminance`] surface using the Bevy Retro backend
+    /// A [`luminance`] surface using the Bevy Retrograde backend
     pub type Surface = WebSysWebGLSurface;
 
     #[wasm_bindgen]
@@ -35,7 +35,7 @@ bevy_retrograde_macros::items_attr!(cfg(wasm), {
 });
 
 #[cfg(not(wasm))]
-/// A [`luminance`] surface using the Bevy Retro backend
+/// A [`luminance`] surface using the Bevy Retrograde backend
 pub type Surface = luminance_surfman::SurfmanSurface;
 
 /// Helper function that returns the rendering system

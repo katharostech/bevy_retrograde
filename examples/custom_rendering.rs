@@ -4,8 +4,8 @@
 //!
 //! The rendering types and modules will be moved around soon so this is somewhat work-in-progres.
 //!
-//! Bevy Retro uses [luminance](https://github.com/phaazon/luminance-rs) for rendering, so custom
-//! rendering in Bevy Retro must also use luminance.
+//! Bevy Retrograde uses [luminance](https://github.com/phaazon/luminance-rs) for rendering, so custom
+//! rendering in Bevy Retrograde must also use luminance.
 
 use bevy::prelude::*;
 use bevy_retrograde::{
@@ -28,7 +28,7 @@ struct Triangle {
 fn main() {
     App::build()
         .insert_resource(WindowDescriptor {
-            title: "Bevy Retro Custom Rendering".into(),
+            title: "Bevy Retrograde Custom Rendering".into(),
             ..Default::default()
         })
         // Here we add a custom `TriangleRenderHook` that we will setup to render objects with the

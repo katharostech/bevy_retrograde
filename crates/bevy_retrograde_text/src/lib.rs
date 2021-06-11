@@ -1,4 +1,4 @@
-//! The Bevy Retro text rendering plugin
+//! The Bevy Retrograde text rendering plugin
 
 #![allow(clippy::type_complexity)]
 
@@ -27,7 +27,7 @@ use prelude::*;
 #[derive(StageLabel, Debug, Clone, Hash, PartialEq, Eq)]
 pub struct RetroTextStage;
 
-/// Text rendering plugin for Bevy Retro
+/// Text rendering plugin for Bevy Retrograde
 pub struct RetroTextPlugin;
 
 impl Plugin for RetroTextPlugin {

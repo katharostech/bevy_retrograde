@@ -8,7 +8,7 @@ struct GameStage;
 fn main() {
     App::build()
         .insert_resource(WindowDescriptor {
-            title: "Bevy Retro Hello World".into(),
+            title: "Bevy Retrograde Hello World".into(),
             ..Default::default()
         })
         .add_plugins(RetroPlugins)

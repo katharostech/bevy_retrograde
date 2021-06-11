@@ -9,7 +9,7 @@ readme = "../../README.md"
 description = "A simple Bevy plugin for playing sounds"
 repository = "https://github.com/katharostech/bevy_retrograde"
 documentation = "https://docs.rs/bevy_retrograde_audio"
-keywords = ["bevy", "gamedev", "2D", "bevy_retrograde", "pixel-perfect", "audio"]
+keywords = ["bevy", "2D", "bevy_retrograde", "pixel-perfect", "audio"]
 categories = [
     "game-development",
     "multimedia::audio"

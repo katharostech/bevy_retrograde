@@ -6,6 +6,7 @@ edition = "2018"
 
 license-file = "../../LICENSE.md"
 readme = "../../README.md"
+description = "The core components and renderer of Bevy Retrograde"
 repository = "https://github.com/katharostech/bevy_retrograde"
 documentation = "https://docs.rs/bevy_retrograde_core"
 keywords = ["bevy", "gamedev", "2D", "bevy_retrograde", "pixel-perfect"]

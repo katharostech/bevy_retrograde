@@ -7,7 +7,7 @@ struct GameStage;
 fn main() {
     App::build()
         .insert_resource(WindowDescriptor {
-            title: "Bevy Retro LDtk Map".into(),
+            title: "Bevy Retrograde LDtk Map".into(),
             ..Default::default()
         })
         .add_plugins(RetroPlugins)

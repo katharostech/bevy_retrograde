@@ -7,39 +7,39 @@
 [![Katharos License](https://img.shields.io/badge/License-Katharos-blue)](https://github.com/katharostech/katharos-license)
 
 <div align="center">
-    <em>( Screenshot of <a href="https://katharostech.com/post/bounty-bros-on-web">Bounty Bros.</a> game made with Bevy Retro and <a href="https://github.com/katharostech/skipngo">Skip'n Go</a> )</em>
+    <em>( Screenshot of <a href="https://katharostech.com/post/bounty-bros-on-web">Bounty Bros.</a> game made with Bevy Retrograde and <a href="https://github.com/katharostech/skipngo">Skip'n Go</a> )</em>
 </div>
 
 ![bounty bros game screenshot](./doc/bounty_bros.png)
 
 [skipngo]:  https://github.com/katharostech/skipngo
 
-Bevy Retro is a 2D, pixel-perfect renderer for [Bevy][__link0] that can target both web and desktop using OpenGL/WebGL.
+Bevy Retrograde is a 2D, pixel-perfect renderer for [Bevy][__link0] that can target both web and desktop using OpenGL/WebGL.
 
-Bevy Retro is focused on providing an easy and ergonomic way to write 2D, pixel-perfect games. Compared to the out-of-the-box Bevy setup, you do not have to work with a 3D scene to create 2D games. Sprites and their coordinates are based on pixel positions in a retro-resolution scene.
+Bevy Retrograde is focused on providing an easy and ergonomic way to write 2D, pixel-perfect games. Compared to the out-of-the-box Bevy setup, you do not have to work with a 3D scene to create 2D games. Sprites and their coordinates are based on pixel positions in a retro-resolution scene.
 
-Bevy Retro replaces almost all of the out-of-the-box Bevy components and Bundles that you would normally use ( `Transform`, `Camera2DBundle`, etc. ) and comes with its own `Position`, `Camera`, `Image`, `Sprite`, etc. components and bundles. Bevy Retro tries to provide a focused 2D-centric experience on top of Bevy that helps take out some of the pitfalls and makes it easier to think about your game when all you need is 2D.
+Bevy Retrograde replaces almost all of the out-of-the-box Bevy components and Bundles that you would normally use ( `Transform`, `Camera2DBundle`, etc. ) and comes with its own `Position`, `Camera`, `Image`, `Sprite`, etc. components and bundles. Bevy Retrograde tries to provide a focused 2D-centric experience on top of Bevy that helps take out some of the pitfalls and makes it easier to think about your game when all you need is 2D.
 
 We want to provide a batteries-included plugin that comes with almost everything you need to make a 2D pixel game with Bevy including, collisions, sound, saving data, etc. While adding these features we will try to maintain full web compatibility, but it can’t be guaranteed that all features will be feasible to implement for web.
 
-These extra features will be included as optional cargo features that can be disabled if not needed and, where applicable, may be packaged as separate Rust crates that can be used even if you don’t want to use the rest of Bevy Retro.
+These extra features will be included as optional cargo features that can be disabled if not needed and, where applicable, may be packaged as separate Rust crates that can be used even if you don’t want to use the rest of Bevy Retrograde.
 
 
 ## License
 
-Bevy Retro LDtk is licensed under the [Katharos License][__link1] which places certain restrictions on what you are allowed to use it for. Please read and understand the terms before using Bevy Retro for your project.
+Bevy Retrograde LDtk is licensed under the [Katharos License][__link1] which places certain restrictions on what you are allowed to use it for. Please read and understand the terms before using Bevy Retrograde for your project.
 
 
 ## Development Status
 
-Bevy Retro is in early stages of development. The API is not stable, but there are not many large anticipated changes. Bevy Retro should be usable enough to use in your own projects if you are fine adapting to some API changes as they come.
+Bevy Retrograde is in early stages of development. The API is not stable, but there are not many large anticipated changes. Bevy Retrograde should be usable enough to use in your own projects if you are fine adapting to some API changes as they come.
 
 See also [Supported Bevy Version](#supported-bevy-version) below.
 
 
 ## Features & Examples
 
-Check out our [examples][__link2] list to see how to use each Bevy Retro feature:
+Check out our [examples][__link2] list to see how to use each Bevy Retrograde feature:
 
  - Supports web and desktop out-of-the-box
  - Integer pixel coordinates
@@ -56,7 +56,7 @@ Check out our [examples][__link2] list to see how to use each Bevy Retro feature
 
 ## Supported Bevy Version
 
-Bevy Retro currently works on the latest Bevy release and *may* support Bevy master as well. Bevy Retro will try to follow the latest Bevy release, but if there are features introduced in Bevy master that we need, we may require Bevy master for a time until the next Bevy release.
+Bevy Retrograde currently works on the latest Bevy release and *may* support Bevy master as well. Bevy Retrograde will try to follow the latest Bevy release, but if there are features introduced in Bevy master that we need, we may require Bevy master for a time until the next Bevy release.
 
 When depending on the `bevy` crate, you must be sure to set `default-features` to `false` in your `Cargo.toml` so that the rendering types in `bevy` don’t conflict with the ones in `bevy_retrograde`.
 
@@ -71,7 +71,7 @@ bevy_retrograde = "0.1.0"
 
 ## Sample
 
-Here’s a quick sample of what using Bevy Retro looks like:
+Here’s a quick sample of what using Bevy Retrograde looks like:
 
 **`main.rs`:**
 

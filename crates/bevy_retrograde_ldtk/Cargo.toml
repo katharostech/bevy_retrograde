@@ -6,10 +6,10 @@ edition = "2018"
 
 license-file = "../../LICENSE.md"
 readme = "../../README.md"
-description = "A Bevy Retro plugin for reading the LDtk 2D tile map format."
+description = "A Bevy Retrograde plugin for reading the LDtk 2D tile map format."
 repository = "https://github.com/katharostech/bevy_retrograde"
 documentation = "https://docs.rs/bevy_retrograde_ldtk"
-keywords = ["bevy", "gamedev", "2D", "bevy_retrograde", "pixel-perfect", "map-editor"]
+keywords = ["bevy", "2D", "bevy_retrograde", "pixel-perfect", "map-editor"]
 categories = [
     "game-development",
     "parser-implementations"

@@ -4,7 +4,7 @@ use bevy_retrograde::prelude::*;
 fn main() {
     App::build()
         .insert_resource(WindowDescriptor {
-            title: "Bevy Retro Audio".into(),
+            title: "Bevy Retrograde Audio".into(),
             ..Default::default()
         })
         .add_plugins(RetroPlugins)
