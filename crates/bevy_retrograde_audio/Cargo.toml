@@ -5,7 +5,7 @@ authors = ["Katharos Technology LLC."]
 edition = "2018"
 
 license-file = "../../LICENSE.md"
-readme = "../README.md"
+readme = "../../README.md"
 description = "A simple Bevy plugin for playing sounds"
 repository = "https://github.com/katharostech/bevy_retrograde"
 documentation = "https://docs.rs/bevy_retrograde_audio"

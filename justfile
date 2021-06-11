@@ -26,6 +26,21 @@ run-example-web example='hello_world':
     ln -fs ../../../assets target/wasm/{{example}}
     basic-http-server target/wasm/{{example}}
 
-# build the documentation
+# Build the documentation
 doc *args:
     cargo doc --features {{dev_features}} {{args}}
+
+# Publish all of the crates
+publish confirm="":
+    @if [ "{{confirm}}" ]; then \
+        cd crates/bevy_retrograde_macros && cargo publish && cd ../../ && \
+        cd crates/bevy_retrograde_core && cargo publish && cd ../../ && \
+        cd crates/bevy_retrograde_audio && cargo publish && cd ../../ && \
+        cd crates/bevy_retrograde_text && cargo publish && cd ../../ && \
+        cd crates/bevy_retrograde_ui && cargo publish && cd ../../ && \
+        cd crates/bevy_retrograde_ldtk && cargo publish && cd ../../ && \
+        cd crates/bevy_retrograde_ldtk && cargo publish && cd ../../ && \
+        cargo publish; \
+    else \
+        echo "You must provide argument 'yes I'm sure'"; \
+    fi
