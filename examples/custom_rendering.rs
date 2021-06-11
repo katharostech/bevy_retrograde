@@ -8,7 +8,7 @@
 //! rendering in Bevy Retro must also use luminance.
 
 use bevy::prelude::*;
-use bevy_retro::{
+use bevy_retrograde::{
     core::{
         graphics::*,
         luminance::{

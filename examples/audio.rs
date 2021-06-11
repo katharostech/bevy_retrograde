@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_retro::prelude::*;
+use bevy_retrograde::prelude::*;
 
 fn main() {
     App::build()

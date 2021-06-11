@@ -1,9 +1,9 @@
-# bevy_retro
+# Bevy Retrograde
 
-[![Crates.io](https://img.shields.io/crates/v/bevy_retro.svg)](https://crates.io/crates/bevy_retro)
-[![Docs.rs](https://docs.rs/bevy_retro/badge.svg)](https://docs.rs/bevy_retro)
-[![Build Status](https://github.com/katharostech/bevy_retro/actions/workflows/rust.yaml/badge.svg)](https://github.com/katharostech/bevy_retro/actions/workflows/rust.yaml)
-[![lines of code](https://tokei.rs/b1/github/katharostech/bevy_retro?category=code)](https://github.com/katharostech/bevy_retro)
+[![Crates.io](https://img.shields.io/crates/v/bevy_retrograde.svg)](https://crates.io/crates/bevy_retrograde)
+[![Docs.rs](https://docs.rs/bevy_retrograde/badge.svg)](https://docs.rs/bevy_retrograde)
+[![Build Status](https://github.com/katharostech/bevy_retrograde/actions/workflows/rust.yaml/badge.svg)](https://github.com/katharostech/bevy_retrograde/actions/workflows/rust.yaml)
+[![lines of code](https://tokei.rs/b1/github/katharostech/bevy_retrograde?category=code)](https://github.com/katharostech/bevy_retrograde)
 [![Katharos License](https://img.shields.io/badge/License-Katharos-blue)](https://github.com/katharostech/katharos-license)
 
 <div align="center">
@@ -58,14 +58,14 @@ Check out our [examples][__link2] list to see how to use each Bevy Retro feature
 
 Bevy Retro currently works on the latest Bevy release and *may* support Bevy master as well. Bevy Retro will try to follow the latest Bevy release, but if there are features introduced in Bevy master that we need, we may require Bevy master for a time until the next Bevy release.
 
-When depending on the `bevy` crate, you must be sure to set `default-features` to `false` in your `Cargo.toml` so that the rendering types in `bevy` don’t conflict with the ones in `bevy_retro`.
+When depending on the `bevy` crate, you must be sure to set `default-features` to `false` in your `Cargo.toml` so that the rendering types in `bevy` don’t conflict with the ones in `bevy_retrograde`.
 
 **`Cargo.toml`:**
 
 
 ```toml
 bevy = { version = "0.5", default-features = false }
-bevy_retro = { git = "https://github.com/katharostech/bevy_retro.git" }
+bevy_retrograde = "0.1.0"
 ```
 
 
@@ -78,7 +78,7 @@ Here’s a quick sample of what using Bevy Retro looks like:
 
 ```rust
 use bevy::prelude::*;
-use bevy_retro::prelude::*;
+use bevy_retrograde::prelude::*;
 
 fn main() {
     App::build()
@@ -168,7 +168,7 @@ fn setup(
 
  [__link0]: https://bevyengine.org
  [__link1]: https://github.com/katharostech/katharos-license
- [__link2]: https://github.com/katharostech/bevy_retro/tree/master/examples#bevy-retro-examples
+ [__link2]: https://github.com/katharostech/bevy_retrograde/tree/master/examples#bevy-retro-examples
  [__link3]: https://ldtk.io
  [__link4]: https://raui-labs.github.io/raui/
  [__link5]: https://github.com/phaazon/luminance-rs
