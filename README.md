@@ -32,26 +32,28 @@ Bevy Retrograde LDtk is licensed under the [Katharos License][__link1] which pla
 
 ## Development Status
 
-Bevy Retrograde is in early stages of development. The API is not stable, but there are not many large anticipated changes. Bevy Retrograde should be usable enough to use in your own projects if you are fine adapting to some API changes as they come.
+Bevy Retrograde is in early stages of development. The API is not stable and may change dramatically at any time. Planned possible changes include:
+
+ - Switching to using Bevy’s built-in renderer for desktop/mobile and [`bevy_webgl2`][__link2] for web instead of using our own OpenGL based renderer. This will potentially make Bevy Retrograde more compatible with the larger Bevy ecosystem instead of it creating an island of plugins that only work on Bevy Retro. We will probably wait for the [second iteration][__link3] of the Bevy rendererer to attempt this.
 
 See also [Supported Bevy Version](#supported-bevy-version) below.
 
 
 ## Features & Examples
 
-Check out our [examples][__link2] list to see how to use each Bevy Retrograde feature:
+Check out our [examples][__link4] list to see how to use each Bevy Retrograde feature:
 
  - Supports web and desktop out-of-the-box
  - Integer pixel coordinates
  - Supports sprites and sprite sheets
  - A super-simple hierarchy system
  - Scaled pixel-perfect rendering with three camera modes: fixed width, fixed height, and letter-boxed
- - [LDtk][__link3] map loading and rendering
- - An integration with the [RAUI][__link4] UI library for building in-game user interfaces and HUD
+ - [LDtk][__link5] map loading and rendering
+ - An integration with the [RAUI][__link6] UI library for building in-game user interfaces and HUD
  - Pixel-perfect collision detection
  - Text rendering of BDF fonts
  - Custom shaders for post-processing, including a built-in CRT shader
- - Render hooks allowing you to drop down into raw [Luminance][__link5] calls for custom rendering
+ - Render hooks allowing you to drop down into raw [Luminance][__link7] calls for custom rendering
 
 
 ## Supported Bevy Version
@@ -168,8 +170,10 @@ fn setup(
 
  [__link0]: https://bevyengine.org
  [__link1]: https://github.com/katharostech/katharos-license
- [__link2]: https://github.com/katharostech/bevy_retrograde/tree/master/examples#bevy-retro-examples
- [__link3]: https://ldtk.io
- [__link4]: https://raui-labs.github.io/raui/
- [__link5]: https://github.com/phaazon/luminance-rs
+ [__link2]: https://github.com/mrk-its/bevy_webgl2
+ [__link3]: https://github.com/bevyengine/bevy/discussions/2351
+ [__link4]: https://github.com/katharostech/bevy_retrograde/tree/master/examples#bevy-retro-examples
+ [__link5]: https://ldtk.io
+ [__link6]: https://raui-labs.github.io/raui/
+ [__link7]: https://github.com/phaazon/luminance-rs
 

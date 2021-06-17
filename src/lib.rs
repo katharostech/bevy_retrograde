@@ -1,17 +1,18 @@
-//! Bevy Retrograde is a 2D, pixel-perfect renderer for [Bevy] that can target both web and desktop using
-//! OpenGL/WebGL.
+//! Bevy Retrograde is a 2D, pixel-perfect renderer for [Bevy] that can target both web and desktop
+//! using OpenGL/WebGL.
 //!
 //! [Bevy]: https://bevyengine.org
 //!
-//! Bevy Retrograde is focused on providing an easy and ergonomic way to write 2D, pixel-perfect games.
-//! Compared to the out-of-the-box Bevy setup, you do not have to work with a 3D scene to create 2D
-//! games. Sprites and their coordinates are based on pixel positions in a retro-resolution scene.
+//! Bevy Retrograde is focused on providing an easy and ergonomic way to write 2D, pixel-perfect
+//! games. Compared to the out-of-the-box Bevy setup, you do not have to work with a 3D scene to
+//! create 2D games. Sprites and their coordinates are based on pixel positions in a
+//! retro-resolution scene.
 //!
-//! Bevy Retrograde replaces almost all of the out-of-the-box Bevy components and Bundles that you would
-//! normally use ( `Transform`, `Camera2DBundle`, etc. ) and comes with its own `Position`,
-//! `Camera`, `Image`, `Sprite`, etc. components and bundles. Bevy Retrograde tries to provide a focused
-//! 2D-centric experience on top of Bevy that helps take out some of the pitfalls and makes it
-//! easier to think about your game when all you need is 2D.
+//! Bevy Retrograde replaces almost all of the out-of-the-box Bevy components and Bundles that you
+//! would normally use ( `Transform`, `Camera2DBundle`, etc. ) and comes with its own `Position`,
+//! `Camera`, `Image`, `Sprite`, etc. components and bundles. Bevy Retrograde tries to provide a
+//! focused 2D-centric experience on top of Bevy that helps take out some of the pitfalls and makes
+//! it easier to think about your game when all you need is 2D.
 //!
 //! We want to provide a batteries-included plugin that comes with almost everything you need to
 //! make a 2D pixel game with Bevy including, collisions, sound, saving data, etc. While adding
@@ -32,9 +33,18 @@
 //!
 //! # Development Status
 //!
-//! Bevy Retrograde is in early stages of development. The API is not stable, but there are not many
-//! large anticipated changes. Bevy Retrograde should be usable enough to use in your own projects if you
-//! are fine adapting to some API changes as they come.
+//! Bevy Retrograde is in early stages of development. The API is not stable and may change
+//! dramatically at any time. Planned possible changes include:
+//!
+//! - Switching to using Bevy's built-in renderer for desktop/mobile and [`bevy_webgl2`] for web
+//!   instead of using our own OpenGL based renderer. This will potentially make Bevy Retrograde
+//!   more compatible with the larger Bevy ecosystem instead of it creating an island of plugins
+//!   that only work on Bevy Retro. We will probably wait for the [second iteration][bevy_renderer2]
+//!   of the Bevy rendererer to attempt this.
+//!
+//! [`bevy_webgl2`]: https://github.com/mrk-its/bevy_webgl2
+//!
+//! [bevy_renderer2]: https://github.com/bevyengine/bevy/discussions/2351
 //!
 //! See also [Supported Bevy Version](#supported-bevy-version) below.
 //!
@@ -55,7 +65,8 @@
 //! - Custom shaders for post-processing, including a built-in CRT shader
 //! - Render hooks allowing you to drop down into raw [Luminance] calls for custom rendering
 //!
-//! [examples]: https://github.com/katharostech/bevy_retrograde/tree/master/examples#bevy-retro-examples
+//! [examples]:
+//! https://github.com/katharostech/bevy_retrograde/tree/master/examples#bevy-retro-examples
 //!
 //! [luminance]: https://github.com/phaazon/luminance-rs
 //!
@@ -63,9 +74,10 @@
 //!
 //! # Supported Bevy Version
 //!
-//! Bevy Retrograde currently works on the latest Bevy release and _may_ support Bevy master as well.
-//! Bevy Retrograde will try to follow the latest Bevy release, but if there are features introduced in
-//! Bevy master that we need, we may require Bevy master for a time until the next Bevy release.
+//! Bevy Retrograde currently works on the latest Bevy release and _may_ support Bevy master as
+//! well. Bevy Retrograde will try to follow the latest Bevy release, but if there are features
+//! introduced in Bevy master that we need, we may require Bevy master for a time until the next
+//! Bevy release.
 //!
 //! When depending on the `bevy` crate, you must be sure to set `default-features` to `false` in
 //! your `Cargo.toml` so that the rendering types in `bevy` don't conflict with the ones in
