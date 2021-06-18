@@ -61,7 +61,7 @@ fn setup(
         .spawn()
         .insert_bundle(SpriteBundle {
             image: red_radish_image,
-            position: Position::new(0, 0, 0),
+            position: Position::new(0., 0., 0.),
             ..Default::default()
         })
         // Add our player marker component so we can move it
@@ -73,7 +73,7 @@ fn setup(
         .spawn()
         .insert_bundle(SpriteBundle {
             image: yellow_radish_image,
-            position: Position::new(-20, 0, 0),
+            position: Position::new(-20., 0., 0.),
             ..Default::default()
         })
         .id();
@@ -88,7 +88,7 @@ fn setup(
     commands.spawn().insert_bundle(SpriteBundle {
         image: blue_radish_image,
         // Set the blue radish back a layer so that he shows up under the other two
-        position: Position::new(-20, -20, -1),
+        position: Position::new(-20., -20., -1.),
         sprite: Sprite {
             flip_x: true,
             flip_y: false,
@@ -100,27 +100,27 @@ fn setup(
 
 fn move_player(keyboard_input: Res<Input<KeyCode>>, mut query: Query<&mut Position, With<Player>>) {
     for mut pos in query.iter_mut() {
-        const SPEED: i32 = 1;
+        const SPEED: f32 = 1.;
 
-        let mut direction = IVec3::new(0, 0, 0);
+        let mut direction = Vec3::new(0., 0., 0.);
 
         if keyboard_input.pressed(KeyCode::Left) {
-            direction += IVec3::new(-SPEED, 0, 0);
+            direction += Vec3::new(-SPEED, 0., 0.);
         }
 
         if keyboard_input.pressed(KeyCode::Right) {
-            direction += IVec3::new(SPEED, 0, 0);
+            direction += Vec3::new(SPEED, 0., 0.);
         }
 
         if keyboard_input.pressed(KeyCode::Up) {
-            direction += IVec3::new(0, -SPEED, 0);
+            direction += Vec3::new(0., -SPEED, 0.);
         }
 
         if keyboard_input.pressed(KeyCode::Down) {
-            direction += IVec3::new(0, SPEED, 0);
+            direction += Vec3::new(0., SPEED, 0.);
         }
 
-        if direction != IVec3::new(0, 0, 0) {
+        if direction != Vec3::new(0., 0., 0.) {
             **pos += direction;
         }
     }

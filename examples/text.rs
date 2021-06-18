@@ -43,7 +43,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..Default::default()
         },
         font: font.clone(),
-        position: Position::new(0, -110, 0),
+        position: Position::new(0., -110., 0.),
         ..Default::default()
     });
 
@@ -64,7 +64,6 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         })
         .insert(TextBlock {
             width: 120,
-            horizontal_align: TextHorizontalAlign::Center,
             ..Default::default()
         });
 
@@ -82,7 +81,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..Default::default()
         },
         font: font.clone(),
-        position: Position::new(0, 110, 0),
+        position: Position::new(0., 110., 0.),
         ..Default::default()
     });
 
@@ -99,7 +98,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 ..Default::default()
             },
             font: font.clone(),
-            position: Position::new(-200, -110, 0),
+            position: Position::new(-200., -110., 0.),
             ..Default::default()
         })
         .insert(Fps);

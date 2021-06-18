@@ -39,13 +39,13 @@ impl<'a, 'b> WorldPositionsQueryTrait<'a, 'b> for &'b mut WorldPositionsQuery<'a
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Reflect)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Reflect)]
 #[reflect_value(PartialEq, Serialize, Deserialize, Component)]
 #[serde(default)]
 /// The position of a 2D object in the world
 pub struct Position {
     /// The actual position
-    pub(crate) pos: IVec3,
+    pub(crate) pos: Vec3,
     // TODO: Maybe bevy's change detection is good enough to handle this
     /// Whether or not this position has changed since it was last propagated to the global
     /// transform
@@ -54,16 +54,16 @@ pub struct Position {
 
 impl Position {
     // Create a new position
-    pub fn new(x: i32, y: i32, z: i32) -> Self {
+    pub fn new(x: f32, y: f32, z: f32) -> Self {
         Self {
-            pos: IVec3::new(x, y, z),
+            pos: Vec3::new(x, y, z),
             dirty: true,
         }
     }
 }
 
-impl From<IVec3> for Position {
-    fn from(pos: IVec3) -> Self {
+impl From<Vec3> for Position {
+    fn from(pos: Vec3) -> Self {
         Self { pos, dirty: true }
     }
 }
@@ -78,7 +78,7 @@ impl Default for Position {
 }
 
 impl std::ops::Deref for Position {
-    type Target = IVec3;
+    type Target = Vec3;
 
     fn deref(&self) -> &Self::Target {
         &self.pos
@@ -93,7 +93,7 @@ impl std::ops::DerefMut for Position {
 }
 
 /// The global position in the world
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Reflect)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Reflect)]
 #[reflect_value(PartialEq, Serialize, Deserialize, Component)]
-pub struct WorldPosition(#[serde(default)] pub IVec3);
-impl_deref!(WorldPosition, IVec3);
+pub struct WorldPosition(#[serde(default)] pub Vec3);
+impl_deref!(WorldPosition, Vec3);

@@ -53,8 +53,10 @@
 //! Check out our [examples] list to see how to use each Bevy Retrograde feature:
 //!
 //! - Supports web and desktop out-of-the-box
-//! - Integer pixel coordinates
-//! - Supports sprites and sprite sheets
+//! - Sprites and sprite sheets
+//! - Rendering to a low-resolution framebuffer, making it impossible to get un-aligned pixels
+//!   unless you want to
+//! - Opting-out of pixel-perfect alignment on a per-sprite basis, if desired
 //! - A super-simple hierarchy system
 //! - Scaled pixel-perfect rendering with three camera modes: fixed width, fixed height, and
 //!   letter-boxed
@@ -128,7 +130,7 @@
 //!             background_color: Color::new(0.2, 0.2, 0.2, 1.0),
 //!             ..Default::default()
 //!         },
-//!         position: Position::new(0, 0, 0),
+//!         position: Position::new(0., 0., 0.),
 //!         ..Default::default()
 //!     });
 //!
@@ -137,7 +139,7 @@
 //!         .spawn()
 //!         .insert_bundle(SpriteBundle {
 //!             image: red_radish_image,
-//!             position: Position::new(0, 0, 0),
+//!             position: Position::new(0., 0., 0.),
 //!             sprite: Sprite {
 //!                 flip_x: true,
 //!                 flip_y: false,
@@ -154,10 +156,13 @@
 //!         .spawn()
 //!         .insert_bundle(SpriteBundle {
 //!             image: yellow_radish_image,
-//!             position: Position::new(-20, 0, 0),
+//!             position: Position::new(-20., 0., 0.),
 //!             sprite: Sprite {
-//!                 flip_x: true,
-//!                 flip_y: false,
+//!                 // Flip the sprite upside down 🙃
+//!                 flip_y: true,
+//!                 // By setting a sprite to be non-pixel-perfect you can get smoother movement
+//!                 // for things like characters, like they did in Shovel Knight®.
+//!                 pixel_perfect: false,
 //!                 ..Default::default()
 //!             },
 //!             ..Default::default()
@@ -174,7 +179,7 @@
 //!     commands.spawn().insert_bundle(SpriteBundle {
 //!         image: blue_radish_image,
 //!         // Set the blue radish back a layer so that he shows up under the other two
-//!         position: Position::new(-20, -20, -1),
+//!         position: Position::new(-20., -20., -1.),
 //!         sprite: Sprite {
 //!             flip_x: true,
 //!             flip_y: false,

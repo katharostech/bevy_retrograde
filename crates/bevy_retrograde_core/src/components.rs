@@ -17,7 +17,7 @@ pub(crate) fn add_components(app: &mut AppBuilder) {
         .register_type::<Visible>();
 }
 
-/// An 8-bit RGBA color
+/// A floating point RGBA color
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Reflect)]
 #[reflect_value(Serialize, Deserialize, PartialEq, Component)]
 pub struct Color {
@@ -144,13 +144,28 @@ impl Camera {
         let aspect_ratio = window_width / window_height;
         match self.size {
             CameraSize::FixedHeight(height) => UVec2::new(
-                (aspect_ratio * height as f32 / self.pixel_aspect_ratio).floor() as u32,
+                // The width must be an even number to keep the alignment with non-pixel-perfect
+                // sprites working ( for some reason I have not yet fully understood )
+                {
+                    let x = (aspect_ratio * height as f32 / self.pixel_aspect_ratio).floor() as u32;
+                    if x % 2 != 0 {
+                        x - 1
+                    } else {
+                        x
+                    }
+                },
                 height,
             ),
-            CameraSize::FixedWidth(width) => UVec2::new(
-                width,
-                (width as f32 / aspect_ratio * self.pixel_aspect_ratio).floor() as u32,
-            ),
+            CameraSize::FixedWidth(width) => UVec2::new(width, {
+                // The width must be an even number to keep the alignment with non-pixel-perfect
+                // sprites working ( for some reason I have not yet fully understood )
+                let y = (width as f32 / aspect_ratio * self.pixel_aspect_ratio).floor() as u32;
+                if y % 2 != 0 {
+                    y - 1
+                } else {
+                    y
+                }
+            }),
             CameraSize::LetterBoxed { width, height } => UVec2::new(width, height),
         }
     }
@@ -167,7 +182,10 @@ pub struct Sprite {
     /// Flip the sprite on y
     pub flip_y: bool,
     /// A visual offset for the sprite
-    pub offset: IVec2,
+    pub offset: Vec2,
+    /// Whether or not to constrain the sprite rendering to perfect pixel alignment with the
+    /// virtual, low resolution of the camera
+    pub pixel_perfect: bool,
 }
 
 impl Default for Sprite {
@@ -176,7 +194,8 @@ impl Default for Sprite {
             centered: true,
             flip_x: false,
             flip_y: false,
-            offset: IVec2::default(),
+            offset: Vec2::default(),
+            pixel_perfect: true,
         }
     }
 }

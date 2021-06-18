@@ -4,8 +4,10 @@ attribute vec2 v_uv;
 varying vec2 uv;
 
 uniform ivec2 camera_size;
-uniform ivec2 camera_position;
+uniform vec2 camera_position;
 uniform bool camera_centered;
+
+uniform bool pixel_perfect;
 
 uniform sampler2D sprite_texture;
 uniform ivec2 sprite_texture_size;
@@ -13,8 +15,8 @@ uniform bool sprite_centered;
 uniform int sprite_flip;
 uniform ivec2 sprite_tileset_grid_size;
 uniform int sprite_tileset_index;
-uniform ivec3 sprite_position;
-uniform ivec2 sprite_offset;
+uniform vec3 sprite_position;
+uniform vec2 sprite_offset;
 
 struct SpriteUvAndSize {
   vec2 uv;
@@ -64,27 +66,32 @@ void main() {
   uv = sprite_uv_and_size.uv;
 
   // Get the camera position, possibly adjusted to center the view
-  ivec2 adjusted_camera_pos = camera_position;
+  vec2 adjusted_camera_pos = camera_position;
   if (camera_centered) {
-    adjusted_camera_pos -= ivec2(camera_size) / 2;
+    adjusted_camera_pos -= vec2(camera_size) / 2.0;
   }
 
   // Get the pixel screen position of the center of the sprite
-  ivec2 screen_pos = sprite_position.xy - adjusted_camera_pos + sprite_offset;
+  vec2 screen_pos = sprite_position.xy - adjusted_camera_pos + sprite_offset;
+
+  // Round the sprite position this sprite is supposed to be pixel perfect
+  if (pixel_perfect) {
+    screen_pos = vec2(floor(screen_pos.x), floor(screen_pos.y));
+  }
 
   // Get the local position of the vertex in pixels
-  ivec2 vertex_pos = ivec2(v_pos) * sprite_size;
+  vec2 vertex_pos = v_pos * vec2(sprite_size);
 
   // Center the sprite if necessary
   if (sprite_centered) {
-    vertex_pos -= sprite_size / 2;
+    vertex_pos -= vec2(sprite_size) / 2.0;
   }
 
   // Calculate the normalized coordinate of this vertice
-  vec2 norm_pos = (vec2(vertex_pos + screen_pos) / vec2(camera_size) - 0.5) * 2.0;
+  vec2 norm_pos = ((vertex_pos + screen_pos) / vec2(camera_size) - 0.5) * 2.0;
 
   // Normalize the sprite Z component, allocating 2048 layers -1023 to 1024
-  float norm_z = float(-sprite_position.z + 1024) / float(2048.0);
+  float norm_z = (-sprite_position.z + 1024.0) / 2048.0;
 
   // Invert the y component
   vec2 pos = norm_pos * vec2(1.0, -1.0);

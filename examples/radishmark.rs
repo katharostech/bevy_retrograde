@@ -7,7 +7,7 @@ struct RadishCounter {
 }
 
 struct Radish {
-    velocity: IVec2,
+    velocity: Vec2,
 }
 
 struct RadishImage([Handle<Image>; 3]);
@@ -80,14 +80,14 @@ fn mouse_handler(
                 .insert_bundle(SpriteBundle {
                     image: radish.0[rng.gen_range(0..3)].clone(),
                     position: Position::new(
-                        rng.gen_range(0..=10),
-                        rng.gen_range(0..=10),
-                        bird_z as i32,
+                        rng.gen_range(0.0..=10.0),
+                        rng.gen_range(0.0..=10.0),
+                        bird_z as f32,
                     ),
                     ..Default::default()
                 })
                 .insert(Radish {
-                    velocity: IVec2::new(rng.gen_range(1..=2), rng.gen_range(1..=2)),
+                    velocity: Vec2::new(rng.gen_range(1.0..=2.0), rng.gen_range(1.0..=2.0)),
                 });
         }
     }
@@ -102,11 +102,11 @@ fn movement_system(mut radishes: Query<(&Radish, &mut Position)>) {
 
 fn collision_system(mut bird_query: Query<(&mut Radish, &Position)>) {
     for (mut radish, pos) in bird_query.iter_mut() {
-        if pos.x.abs() > GAME_WIDTH / 2 {
-            radish.velocity.x *= -1;
+        if pos.x.abs() > (GAME_WIDTH / 2) as f32 {
+            radish.velocity.x *= -1.0;
         }
-        if pos.y.abs() > GAME_HEIGHT / 2 {
-            radish.velocity.y *= -1;
+        if pos.y.abs() > (GAME_HEIGHT / 2) as f32 {
+            radish.velocity.y *= -1.0;
         }
     }
 }

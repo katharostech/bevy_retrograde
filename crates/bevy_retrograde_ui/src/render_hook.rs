@@ -117,7 +117,7 @@ impl RenderHook for UiRenderHook {
         })
     }
 
-    fn prepare_low_res(
+    fn prepare(
         &mut self,
         world: &mut World,
         texture_cache: &mut TextureCache,
@@ -219,14 +219,15 @@ impl RenderHook for UiRenderHook {
             // We only do one render pass so we create one renderable
             RenderHookRenderableHandle {
                 identifier: 0,
-                depth: i32::MAX, // We render on top of everything else
+                depth: f32::INFINITY, // We render on top of everything else
                 is_transparent: true,
                 entity: None,
+                low_resolution: true,
             },
         ]
     }
 
-    fn render_low_res(
+    fn render(
         &mut self,
         world: &mut World,
         surface: &mut Surface,
@@ -283,18 +284,11 @@ impl RenderHook for UiRenderHook {
 
         // Create the render state
         let mut render_state = RenderState::default()
-            .set_blending_separate(
-                Blending {
-                    equation: Equation::Additive,
-                    src: Factor::SrcAlpha,
-                    dst: Factor::SrcAlphaComplement,
-                },
-                Blending {
-                    equation: Equation::Additive,
-                    src: Factor::One,
-                    dst: Factor::Zero,
-                },
-            )
+            .set_blending(Blending {
+                equation: Equation::Additive,
+                src: Factor::SrcAlpha,
+                dst: Factor::SrcAlphaComplement,
+            })
             .set_face_culling(Some(FaceCulling {
                 order: luminance::face_culling::FaceCullingOrder::CW,
                 mode: luminance::face_culling::FaceCullingMode::Back,

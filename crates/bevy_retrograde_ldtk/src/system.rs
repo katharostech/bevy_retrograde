@@ -157,7 +157,11 @@ fn process_ldtk_maps(
                             },
                             // Each layer is 2 units higher than the one before it
                             visible: Visible(layer.visible),
-                            position: Position::new(level.world_x, level.world_y, z as i32 * 2),
+                            position: Position::new(
+                                level.world_x as f32,
+                                level.world_y as f32,
+                                z as f32 * 2.,
+                            ),
                             ..Default::default()
                         })
                         .insert(LdtkMapLayer {

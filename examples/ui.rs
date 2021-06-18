@@ -41,7 +41,7 @@ fn setup(mut commands: Commands, mut ui_tree: ResMut<UiTree>, asset_server: Res<
         .spawn()
         .insert_bundle(LdtkMapBundle {
             map: asset_server.load("maps/map.ldtk"),
-            position: Position::new(-200, -100, 0),
+            position: Position::new(-200., -100., 0.),
             ..Default::default()
         })
         .insert(Map);
@@ -59,7 +59,7 @@ fn scroll_background(
 ) {
     for _ in button_clicked_events.iter() {
         for mut pos in maps.iter_mut() {
-            pos.x += 1;
+            pos.x += 1.;
         }
     }
 }

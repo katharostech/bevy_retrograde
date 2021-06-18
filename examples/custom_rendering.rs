@@ -57,7 +57,7 @@ fn setup(mut commands: Commands) {
 fn move_triangle(time: Res<Time>, mut query: Query<(&mut Triangle, &mut Position)>) {
     for (mut tri, mut pos) in query.iter_mut() {
         tri.scale = time.seconds_since_startup().sin() as f32;
-        pos.x = (time.seconds_since_startup().sin() * 400.).round() as i32;
+        pos.x = (time.seconds_since_startup().sin() * 400.).round() as f32;
     }
 }
 
@@ -103,7 +103,7 @@ impl RenderHook for TriangleRenderHook {
     /// renderer can do depth sorting.
     ///
     /// This function should not do any rendering yet.
-    fn prepare_low_res(
+    fn prepare(
         &mut self,
         world: &mut World,
         // This is a hash map that maps [`Handle<Image>`] to luminance GPU textures that can be
@@ -141,6 +141,7 @@ impl RenderHook for TriangleRenderHook {
                 // We can specify the entity here to sort by which order entities were spawned when
                 // the depth and transparency is identical
                 entity: Some(*e),
+                low_resolution: true,
             })
             .collect()
     }
@@ -149,7 +150,7 @@ impl RenderHook for TriangleRenderHook {
     /// and is where the actual rendering happens. When called, the render function should render
     /// only the renderables that are passed in in the `renderables` argument so that the depth is
     /// handled properly.
-    fn render_low_res(
+    fn render(
         &mut self,
         world: &mut World,
         surface: &mut Surface,

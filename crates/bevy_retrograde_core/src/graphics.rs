@@ -59,7 +59,7 @@ pub trait RenderHook {
     /// rendered by this hook. The [`RenderHookRenderableHandle`] indicates the depth of the object
     /// in the scene and whether or not it is transparent.
     #[allow(unused_variables)]
-    fn prepare_low_res(
+    fn prepare(
         &mut self,
         world: &mut World,
         texture_cache: &mut TextureCache,
@@ -73,7 +73,7 @@ pub trait RenderHook {
     /// renderables produced by other render hookds. It is passed a framebuffer and a list of
     /// renderables that should be rendered by this hook in this pass.
     #[allow(unused_variables)]
-    fn render_low_res(
+    fn render(
         &mut self,
         world: &mut World,
         surface: &mut Surface,
@@ -82,8 +82,6 @@ pub trait RenderHook {
         renderables: &[RenderHookRenderableHandle],
     ) {
     }
-
-    // TODO: Add high-res render hook
 }
 /// Represents a renderable object that can be depth-sorted with other renderables
 ///
@@ -93,7 +91,7 @@ pub trait RenderHook {
 ///
 /// The optional entity can be used to break ties in sort order when depths and transparency are
 /// equal
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub struct RenderHookRenderableHandle {
     /// Identifier used to by the render hook to uniquely tie this handle to a specific renderable
     /// that it knows about
@@ -101,11 +99,18 @@ pub struct RenderHookRenderableHandle {
     /// Whether or not this renderable is transparent
     pub is_transparent: bool,
     /// The z depth of this renderable in the scene
-    pub depth: i32,
+    pub depth: f32,
+    /// Whether or not this renderable should be rendered in the low ( retro ) resolution frame
+    /// buffer
+    ///
+    /// Renderable will be rendered in the high-resolution framebuffer if this is false.
+    pub low_resolution: bool,
     /// An optional entity to tie to this renderable that will be used to break ties in depth and
     /// transparency when sorting
     pub entity: Option<Entity>,
 }
+
+impl std::cmp::Eq for RenderHookRenderableHandle {}
 
 // Sort non-transparent before transparent, and lower depth before higher depth
 impl std::cmp::Ord for RenderHookRenderableHandle {
@@ -113,15 +118,18 @@ impl std::cmp::Ord for RenderHookRenderableHandle {
         use std::cmp::Ordering;
         if self == other {
             Ordering::Equal
+        // First, sort by transparency
         } else if self.is_transparent && !other.is_transparent {
             Ordering::Greater
         } else if !self.is_transparent && other.is_transparent {
             Ordering::Less
+        // If their transparency is the same
         } else {
-            let depth_cmp = self.depth.cmp(&other.depth);
+            // Compare depths
+            let depth_cmp = self.depth.partial_cmp(&other.depth);
 
             // Break ties of depth by sorting by the entity id if given
-            if depth_cmp == std::cmp::Ordering::Equal {
+            if (self.depth - other.depth).abs() < f32::EPSILON {
                 if self.entity == other.entity {
                     Ordering::Equal
                 } else if self.entity.is_none() && other.entity.is_some() {
@@ -132,7 +140,14 @@ impl std::cmp::Ord for RenderHookRenderableHandle {
                     self.entity.unwrap().cmp(&other.entity.unwrap())
                 }
             } else {
-                depth_cmp
+                // If the depths can be ordered ( i.e. neither is not-a-number )
+                if let Some(depth_cmp) = depth_cmp {
+                    // Just return the depth ordering
+                    depth_cmp
+                } else {
+                    // Default to "less" in the case of not-a-numbers
+                    Ordering::Less
+                }
             }
         }
     }
