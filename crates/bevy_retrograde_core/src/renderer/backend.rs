@@ -190,10 +190,10 @@ impl Renderer {
         let back_buffer = surface.back_buffer().unwrap();
 
         // Get the camera
-        let mut cameras = world.query::<(&Camera, &WorldPosition)>();
+        let mut cameras = world.query::<(&Camera, &GlobalTransform)>();
         let mut camera_iter = cameras.iter(world);
         let (camera, camera_pos) = if let Some(camera_components) = camera_iter.next() {
-            (camera_components.0.clone(), **camera_components.1)
+            (camera_components.0.clone(), camera_components.1.translation)
         } else {
             return;
         };

@@ -40,14 +40,17 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         map: asset_server.load("maps/map.ldtk"),
         // We offset the map a little to move it more to the center of the screen, because maps are
         // spawned with (0, 0) as the top-left corner of the map
-        position: Position::new(-200., -100., 0.),
+        transform: Transform::from_xyz(-200., -100., 0.),
         ..Default::default()
     });
 }
 
 /// This system moves the camera so you can look around the map
-fn move_camera(keyboard_input: Res<Input<KeyCode>>, mut query: Query<&mut Position, With<Camera>>) {
-    for mut pos in query.iter_mut() {
+fn move_camera(
+    keyboard_input: Res<Input<KeyCode>>,
+    mut query: Query<&mut Transform, With<Camera>>,
+) {
+    for mut transform in query.iter_mut() {
         const SPEED: f32 = 1.;
 
         let mut direction = Vec3::new(0., 0., 0.);
@@ -68,7 +71,7 @@ fn move_camera(keyboard_input: Res<Input<KeyCode>>, mut query: Query<&mut Positi
             direction += Vec3::new(0., SPEED, 0.);
         }
 
-        **pos += direction;
+        transform.translation += direction;
     }
 }
 

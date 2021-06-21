@@ -48,16 +48,16 @@ fn setup(mut commands: Commands) {
     // Spawn a triangle
     commands.spawn().insert_bundle((
         Triangle { scale: 0.5 },
-        Position::default(),
-        WorldPosition::default(),
+        Transform::default(),
+        GlobalTransform::default(),
     ));
 }
 
 /// Scale our triangle up and down and move it left and right
-fn move_triangle(time: Res<Time>, mut query: Query<(&mut Triangle, &mut Position)>) {
-    for (mut tri, mut pos) in query.iter_mut() {
+fn move_triangle(time: Res<Time>, mut query: Query<(&mut Triangle, &mut Transform)>) {
+    for (mut tri, mut transform) in query.iter_mut() {
         tri.scale = time.seconds_since_startup().sin() as f32;
-        pos.x = (time.seconds_since_startup().sin() * 400.).round() as f32;
+        transform.translation.x = (time.seconds_since_startup().sin() * 400.).round() as f32;
     }
 }
 
@@ -113,14 +113,14 @@ impl RenderHook for TriangleRenderHook {
         _frame_context: &FrameContext,
     ) -> Vec<RenderHookRenderableHandle> {
         // We create a query for all of our triangles in our scene
-        let mut triangles = world.query::<(Entity, &Triangle, &WorldPosition)>();
+        let mut triangles = world.query::<(Entity, &Triangle, &GlobalTransform)>();
 
         // Start a list of triangle entities
         let mut triangle_batch = Vec::new();
         let mut triangle_depths = Vec::new();
-        for (ent, _, pos) in triangles.iter(world) {
+        for (ent, _, transform) in triangles.iter(world) {
             triangle_batch.push(ent);
-            triangle_depths.push(pos.z);
+            triangle_depths.push(transform.translation.z);
         }
 
         // Set our current batch
@@ -168,7 +168,7 @@ impl RenderHook for TriangleRenderHook {
             ..
         } = self;
 
-        let mut triangles = world.query::<(Entity, &Triangle, &WorldPosition)>();
+        let mut triangles = world.query::<(Entity, &Triangle, &GlobalTransform)>();
 
         surface
             .new_pipeline_gate()
@@ -180,7 +180,7 @@ impl RenderHook for TriangleRenderHook {
                     shading_gate.shade(tri_program, |mut interface, uniforms, mut render_gate| {
                         for renderable in renderables {
                             // Get the triangle for this renderable
-                            let (_, tri, pos) = triangles
+                            let (_, tri, transform) = triangles
                                 .get(
                                     world,
                                     *current_triangle_batch
@@ -190,6 +190,7 @@ impl RenderHook for TriangleRenderHook {
                                         .unwrap(),
                                 )
                                 .unwrap();
+                            let pos = transform.translation;
 
                             // Set the triangle uniforms
                             interface.set(

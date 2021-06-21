@@ -38,10 +38,9 @@ fn setup(mut commands: Commands, mut ui_tree: ResMut<UiTree>, asset_server: Res<
 
     // Spawn an LDtk map, just to give a decent backdrop for our UI
     commands
-        .spawn()
-        .insert_bundle(LdtkMapBundle {
+        .spawn_bundle(LdtkMapBundle {
             map: asset_server.load("maps/map.ldtk"),
-            position: Position::new(-200., -100., 0.),
+            transform: Transform::from_xyz(-200., -100., 0.),
             ..Default::default()
         })
         .insert(Map);
@@ -55,11 +54,11 @@ fn setup(mut commands: Commands, mut ui_tree: ResMut<UiTree>, asset_server: Res<
 /// System that scrolls the background when the button is clicked
 fn scroll_background(
     mut button_clicked_events: EventReader<ButtonClicked>,
-    mut maps: Query<&mut Position, With<Map>>,
+    mut maps: Query<&mut Transform, With<Map>>,
 ) {
     for _ in button_clicked_events.iter() {
-        for mut pos in maps.iter_mut() {
-            pos.x += 1.;
+        for mut transform in maps.iter_mut() {
+            transform.translation.x += 1.;
         }
     }
 }

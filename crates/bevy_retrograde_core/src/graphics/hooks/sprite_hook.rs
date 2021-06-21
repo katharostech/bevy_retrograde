@@ -109,14 +109,14 @@ impl RenderHook for SpriteHook {
 
         // Create the sprite query
         let mut sprites = world
-            .query_filtered::<(Entity, &Visible, &WorldPosition), (With<Handle<Image>>, With<Sprite>)>();
+            .query_filtered::<(Entity, &Visible, &GlobalTransform), (With<Handle<Image>>, With<Sprite>)>();
 
         // Loop through and collect sprites
         let sprite_iter = sprites.iter(world);
         let mut sprite_entities = Vec::new();
         let mut renderables = Vec::new();
 
-        for (ent, visible, pos) in sprite_iter {
+        for (ent, visible, transform) in sprite_iter {
             // Skip invisible sprites
             if !**visible {
                 continue;
@@ -126,7 +126,7 @@ impl RenderHook for SpriteHook {
             renderables.push(RenderHookRenderableHandle {
                 // Set the identifier to the index of the sprite entity in the sprite entities list
                 identifier: sprite_entities.len() - 1,
-                depth: pos.z,
+                depth: transform.translation.z,
                 // Any sprite could be transparent so we just mark it as such
                 is_transparent: true,
                 entity: Some(ent),
@@ -160,7 +160,7 @@ impl RenderHook for SpriteHook {
             &Handle<Image>,
             &Sprite,
             Option<&Handle<SpriteSheet>>,
-            &WorldPosition,
+            &GlobalTransform,
         )>();
 
         // Get the spritesheet assets
@@ -219,7 +219,7 @@ impl RenderHook for SpriteHook {
                                     .get(renderable.identifier)
                                     .expect("Tried to render non-existent renderable");
 
-                                let (image_handle, sprite, sprite_sheet_handle, world_position) =
+                                let (image_handle, sprite, sprite_sheet_handle, world_transform) =
                                     sprites.get(world, *sprite_entity).unwrap();
 
                                 let sprite_sheet = sprite_sheet_handle
@@ -275,14 +275,15 @@ impl RenderHook for SpriteHook {
 
                                 // Set sprite position and offset
                                 debug_assert!(
-                                    -1024. < world_position.z && world_position.z <= 1024.,
+                                    -1024. < world_transform.translation.z
+                                        && world_transform.translation.z <= 1024.,
                                     "Sprite world Z position ( {} ) must be between -1024 and \
                                     1024. Please open an issue if this is a problem for you: \
                                     https://github.com/katharostech/bevy_retrograde/issues",
-                                    world_position.z
+                                    world_transform.translation.z
                                 );
 
-                                let pos = world_position.0;
+                                let pos = world_transform.translation;
                                 interface.set(&uniforms.sprite_position, [pos.x, pos.y, pos.z]);
                                 interface.set(
                                     &uniforms.sprite_offset,

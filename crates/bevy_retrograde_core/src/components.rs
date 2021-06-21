@@ -3,15 +3,10 @@
 use bevy::{prelude::*, reflect::TypeUuid};
 use serde::{Deserialize, Serialize};
 
-mod position;
-pub use position::*;
-
 pub(crate) fn add_components(app: &mut AppBuilder) {
     app.register_type::<Camera>()
         .register_type::<Color>()
         .register_type::<CameraSize>()
-        .register_type::<Position>()
-        .register_type::<WorldPosition>()
         .register_type::<Sprite>()
         .register_type::<SpriteSheet>()
         .register_type::<Visible>();

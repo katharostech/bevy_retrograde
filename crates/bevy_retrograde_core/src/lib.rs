@@ -10,7 +10,6 @@ pub mod prelude {
     pub use crate::bundles::*;
     pub use crate::collisions::*;
     pub use crate::components::*;
-    pub use crate::hierarchy::*;
     pub use crate::shaders::*;
 }
 
@@ -26,7 +25,6 @@ pub mod bundles;
 pub mod collisions;
 pub mod components;
 pub mod graphics;
-pub mod hierarchy;
 pub mod shaders;
 
 mod renderer;
@@ -34,7 +32,6 @@ mod renderer;
 /// The ECS schedule stages that the Bevy Retrograde code is run in
 #[derive(Debug, Clone, Copy, StageLabel, Hash, PartialEq, Eq)]
 pub enum RetroCoreStage {
-    WorldPositionPropagation,
     Rendering,
 }
 
@@ -49,17 +46,10 @@ impl Plugin for RetroCorePlugin {
         add_components(app);
         add_assets(app);
 
-        app.init_resource::<SceneGraph>()
-            .init_resource::<RenderHooks>()
+        app.init_resource::<RenderHooks>()
             .add_render_hook::<graphics::hooks::SpriteHook>()
             .add_stage_after(
                 CoreStage::Last,
-                RetroCoreStage::WorldPositionPropagation,
-                SystemStage::single_threaded()
-                    .with_system(propagate_world_positions_system.system()),
-            )
-            .add_stage_after(
-                RetroCoreStage::WorldPositionPropagation,
                 RetroCoreStage::Rendering,
                 SystemStage::single_threaded().with_system(get_render_system().exclusive_system()),
             );

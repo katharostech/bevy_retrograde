@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy_retrograde_core::components::{Position, WorldPosition};
 use ldtk::LayerInstance;
 
 use crate::asset::LdtkMap;
@@ -10,9 +9,9 @@ pub struct LdtkMapBundle {
     /// The handle to a map asset
     pub map: Handle<LdtkMap>,
     /// The transform of the map
-    pub position: Position,
+    pub transform: Transform,
     /// The world position
-    pub world_position: WorldPosition,
+    pub global_transform: GlobalTransform,
 }
 
 /// Component added to spawned map layers

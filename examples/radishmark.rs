@@ -76,10 +76,9 @@ fn mouse_handler(
             counter.count += 1;
             let bird_z = (counter.count + count) as i32 % 1024;
             commands
-                .spawn()
-                .insert_bundle(SpriteBundle {
+                .spawn_bundle(SpriteBundle {
                     image: radish.0[rng.gen_range(0..3)].clone(),
-                    position: Position::new(
+                    transform: Transform::from_xyz(
                         rng.gen_range(0.0..=10.0),
                         rng.gen_range(0.0..=10.0),
                         bird_z as f32,
@@ -93,19 +92,19 @@ fn mouse_handler(
     }
 }
 
-fn movement_system(mut radishes: Query<(&Radish, &mut Position)>) {
+fn movement_system(mut radishes: Query<(&Radish, &mut Transform)>) {
     for (radish, mut transform) in radishes.iter_mut() {
-        transform.x += radish.velocity.x;
-        transform.y += radish.velocity.y;
+        transform.translation.x += radish.velocity.x;
+        transform.translation.y += radish.velocity.y;
     }
 }
 
-fn collision_system(mut bird_query: Query<(&mut Radish, &Position)>) {
-    for (mut radish, pos) in bird_query.iter_mut() {
-        if pos.x.abs() > (GAME_WIDTH / 2) as f32 {
+fn collision_system(mut bird_query: Query<(&mut Radish, &Transform)>) {
+    for (mut radish, transform) in bird_query.iter_mut() {
+        if transform.translation.x.abs() > (GAME_WIDTH / 2) as f32 {
             radish.velocity.x *= -1.0;
         }
-        if pos.y.abs() > (GAME_HEIGHT / 2) as f32 {
+        if transform.translation.y.abs() > (GAME_HEIGHT / 2) as f32 {
             radish.velocity.y *= -1.0;
         }
     }
