@@ -136,13 +136,21 @@ impl Default for CameraSize {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct CameraTargetSizes {
+    /// The target retro resolution of the camera
+    pub low: UVec2,
+    /// The target screen-ish resolution of the camera
+    pub high: UVec2,
+}
+
 impl Camera {
     /// Get the size in game pixels ( retro-sized, not screen pixels ) of the camera view
-    pub fn get_target_size(&self, window: &bevy::window::Window) -> UVec2 {
+    pub fn get_target_sizes(&self, window: &bevy::window::Window) -> CameraTargetSizes {
         let window_width = window.width();
         let window_height = window.height();
         let aspect_ratio = window_width / window_height;
-        match self.size {
+        let low_res = match self.size {
             CameraSize::FixedHeight(height) => UVec2::new(
                 // The width must be an even number to keep the alignment with non-pixel-perfect
                 // sprites working ( for some reason I have not yet fully understood )
@@ -167,6 +175,14 @@ impl Camera {
                 }
             }),
             CameraSize::LetterBoxed { width, height } => UVec2::new(width, height),
+        };
+
+        let multiple = (window_width as f32 / low_res.x as f32).ceil() as u32;
+        let high_res = low_res * multiple;
+
+        CameraTargetSizes {
+            low: low_res,
+            high: high_res,
         }
     }
 }

@@ -106,10 +106,11 @@ impl RenderHook for TriangleRenderHook {
     fn prepare(
         &mut self,
         world: &mut World,
+        _surface: &mut Surface,
         // This is a hash map that maps [`Handle<Image>`] to luminance GPU textures that can be
         // added to shader uniforms
         _texture_cache: &mut TextureCache,
-        _surface: &mut Surface,
+        _frame_context: &FrameContext,
     ) -> Vec<RenderHookRenderableHandle> {
         // We create a query for all of our triangles in our scene
         let mut triangles = world.query::<(Entity, &Triangle, &WorldPosition)>();
@@ -141,7 +142,6 @@ impl RenderHook for TriangleRenderHook {
                 // We can specify the entity here to sort by which order entities were spawned when
                 // the depth and transparency is identical
                 entity: Some(*e),
-                low_resolution: true,
             })
             .collect()
     }
@@ -155,6 +155,7 @@ impl RenderHook for TriangleRenderHook {
         world: &mut World,
         surface: &mut Surface,
         _texture_cache: &mut TextureCache,
+        _frame_context: &FrameContext,
         // This is the framebuffer that we should render to
         target_framebuffer: &SceneFramebuffer,
         // This is the list of renderables that we should render

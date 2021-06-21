@@ -6,7 +6,7 @@ use luminance_glow::Glow;
 
 pub(crate) mod hooks;
 
-use crate::prelude::Image;
+use crate::prelude::{Camera, CameraTargetSizes, Image};
 pub use crate::renderer::Surface;
 
 mod starc;
@@ -62,8 +62,9 @@ pub trait RenderHook {
     fn prepare(
         &mut self,
         world: &mut World,
-        texture_cache: &mut TextureCache,
         surface: &mut Surface,
+        texture_cache: &mut TextureCache,
+        frame_context: &FrameContext,
     ) -> Vec<RenderHookRenderableHandle> {
         vec![]
     }
@@ -78,11 +79,20 @@ pub trait RenderHook {
         world: &mut World,
         surface: &mut Surface,
         texture_cache: &mut TextureCache,
+        frame_context: &FrameContext,
         target_framebuffer: &SceneFramebuffer,
         renderables: &[RenderHookRenderableHandle],
     ) {
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct FrameContext {
+    pub camera: Camera,
+    pub camera_pos: Vec3,
+    pub target_sizes: CameraTargetSizes,
+}
+
 /// Represents a renderable object that can be depth-sorted with other renderables
 ///
 /// The `depth` and `is_transparent` fields are used to sort the renderable objects before rendering
@@ -100,11 +110,6 @@ pub struct RenderHookRenderableHandle {
     pub is_transparent: bool,
     /// The z depth of this renderable in the scene
     pub depth: f32,
-    /// Whether or not this renderable should be rendered in the low ( retro ) resolution frame
-    /// buffer
-    ///
-    /// Renderable will be rendered in the high-resolution framebuffer if this is false.
-    pub low_resolution: bool,
     /// An optional entity to tie to this renderable that will be used to break ties in depth and
     /// transparency when sorting
     pub entity: Option<Entity>,

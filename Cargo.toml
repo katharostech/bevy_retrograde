@@ -50,8 +50,8 @@ hex = "0.4.3"
 rand = "0.8.3"
 
 [profile.dev]
-opt-level = 3
-debug = 1
+opt-level = 1
+debug = 0
 
 [profile.release]
 lto = true

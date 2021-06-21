@@ -49,11 +49,10 @@ pub(crate) struct SpriteHook {
     sprite_program: Program<(), (), SpriteUniformInterface>,
     sprite_tess: Tess<SpriteVert>,
     current_sprite_batch: Option<Vec<Entity>>,
-    window_id: bevy::window::WindowId,
 }
 
 impl RenderHook for SpriteHook {
-    fn init(window_id: bevy::window::WindowId, surface: &mut Surface) -> Box<dyn RenderHook> {
+    fn init(_window_id: bevy::window::WindowId, surface: &mut Surface) -> Box<dyn RenderHook> {
         // Intern shader uniform names
         #[cfg(wasm)]
         {
@@ -81,7 +80,7 @@ impl RenderHook for SpriteHook {
             .unwrap();
 
         // Create the shader program for the sprite instances
-        let built_sprite_program = surface
+        let sprite_program = surface
             .new_shader_program::<(), (), SpriteUniformInterface>()
             .from_strings(
                 include_str!("sprite_hook/sprite_quad.vert"),
@@ -89,34 +88,35 @@ impl RenderHook for SpriteHook {
                 None,
                 include_str!("sprite_hook/sprite_quad.frag"),
             )
-            .unwrap();
+            .unwrap()
+            .program;
 
         Box::new(Self {
-            sprite_program: built_sprite_program.program,
+            sprite_program,
             sprite_tess,
             current_sprite_batch: None,
-            window_id,
         }) as Box<dyn RenderHook>
     }
 
     fn prepare(
         &mut self,
         world: &mut World,
-        _texture_cache: &mut TextureCache,
         _surface: &mut Surface,
+        _texture_cache: &mut TextureCache,
+        _frame_context: &FrameContext,
     ) -> Vec<RenderHookRenderableHandle> {
         self.current_sprite_batch = None;
 
         // Create the sprite query
         let mut sprites = world
-            .query_filtered::<(Entity, &Visible, &WorldPosition, &Sprite), (With<Handle<Image>>, With<Sprite>)>();
+            .query_filtered::<(Entity, &Visible, &WorldPosition), (With<Handle<Image>>, With<Sprite>)>();
 
         // Loop through and collect sprites
         let sprite_iter = sprites.iter(world);
         let mut sprite_entities = Vec::new();
         let mut renderables = Vec::new();
 
-        for (ent, visible, pos, sprite) in sprite_iter {
+        for (ent, visible, pos) in sprite_iter {
             // Skip invisible sprites
             if !**visible {
                 continue;
@@ -129,11 +129,11 @@ impl RenderHook for SpriteHook {
                 depth: pos.z,
                 // Any sprite could be transparent so we just mark it as such
                 is_transparent: true,
-                low_resolution: sprite.pixel_perfect,
                 entity: Some(ent),
             });
         }
 
+        // Set the current sprite batch
         self.current_sprite_batch = Some(sprite_entities);
 
         renderables
@@ -144,6 +144,7 @@ impl RenderHook for SpriteHook {
         world: &mut World,
         surface: &mut Surface,
         texture_cache: &mut TextureCache,
+        frame_context: &FrameContext,
         target_framebuffer: &SceneFramebuffer,
         renderables: &[RenderHookRenderableHandle],
     ) {
@@ -151,24 +152,8 @@ impl RenderHook for SpriteHook {
             sprite_program,
             sprite_tess,
             current_sprite_batch,
-            window_id,
             ..
         } = self;
-
-        // Calculate the low resolution target size from the camera and the bevy window
-        let mut cameras = world.query::<&Camera>();
-        let mut camera_iter = cameras.iter(world);
-        let camera = if let Some(camera_components) = camera_iter.next() {
-            camera_components.clone()
-        } else {
-            return;
-        };
-        if camera_iter.next().is_some() {
-            panic!("Only one Retro camera is supported");
-        }
-        let bevy_windows = world.get_resource::<Windows>().unwrap();
-        let bevy_window = bevy_windows.get(*window_id).unwrap();
-        let low_res_target_size = camera.get_target_size(&bevy_window);
 
         // Create the sprite query
         let mut sprites = world.query::<(
@@ -177,18 +162,6 @@ impl RenderHook for SpriteHook {
             Option<&Handle<SpriteSheet>>,
             &WorldPosition,
         )>();
-
-        // Get the camera
-        let mut cameras = world.query::<(&Camera, &WorldPosition)>();
-        let mut camera_iter = cameras.iter(world);
-        let (camera, camera_pos) = if let Some(camera_components) = camera_iter.next() {
-            camera_components
-        } else {
-            return;
-        };
-        if camera_iter.next().is_some() {
-            panic!("Only one Retro camera is supported");
-        }
 
         // Get the spritesheet assets
         let sprite_sheet_assets = world.get_resource::<Assets<SpriteSheet>>().unwrap();
@@ -225,15 +198,18 @@ impl RenderHook for SpriteHook {
                             // Set the camera and window uniforms
                             interface.set(
                                 &uniforms.camera_position,
-                                [camera_pos.x.floor(), camera_pos.y.floor()],
+                                [frame_context.camera_pos.x, frame_context.camera_pos.y],
                             );
                             interface.set(
                                 &uniforms.camera_size,
-                                [low_res_target_size[0] as i32, low_res_target_size[1] as i32],
+                                [
+                                    frame_context.target_sizes.low.x as i32,
+                                    frame_context.target_sizes.low.y as i32,
+                                ],
                             );
                             interface.set(
                                 &uniforms.camera_centered,
-                                if camera.centered { 1 } else { 0 },
+                                if frame_context.camera.centered { 1 } else { 0 },
                             );
 
                             for renderable in renderables {
@@ -300,16 +276,13 @@ impl RenderHook for SpriteHook {
                                 // Set sprite position and offset
                                 debug_assert!(
                                     -1024. < world_position.z && world_position.z <= 1024.,
-                                    "Sprite world Z position must be between -1024 and 1024. \
-                                    Please open an issue if this is a problem for you: \
-                                    https://github.com/katharostech/bevy_retrograde/issues"
+                                    "Sprite world Z position ( {} ) must be between -1024 and \
+                                    1024. Please open an issue if this is a problem for you: \
+                                    https://github.com/katharostech/bevy_retrograde/issues",
+                                    world_position.z
                                 );
 
-                                let pos = if sprite.pixel_perfect {
-                                    world_position.0.floor()
-                                } else {
-                                    world_position.0
-                                };
+                                let pos = world_position.0;
                                 interface.set(&uniforms.sprite_position, [pos.x, pos.y, pos.z]);
                                 interface.set(
                                     &uniforms.sprite_offset,

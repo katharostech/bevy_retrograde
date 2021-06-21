@@ -71,13 +71,14 @@ void main() {
     adjusted_camera_pos -= vec2(camera_size) / 2.0;
   }
 
-  // Get the pixel screen position of the center of the sprite
-  vec2 screen_pos = sprite_position.xy - adjusted_camera_pos + sprite_offset;
-
-  // Round the sprite position this sprite is supposed to be pixel perfect
+  // Round the sprite position if it is in pixel-perfect mode
+  vec3 sprite_pos_adjusted = sprite_position;
   if (pixel_perfect) {
-    screen_pos = vec2(floor(screen_pos.x), floor(screen_pos.y));
+    sprite_pos_adjusted = floor(sprite_position);
   }
+
+  // Get the pixel screen position of the center of the sprite
+  vec2 screen_pos = sprite_pos_adjusted.xy - adjusted_camera_pos + sprite_offset;
 
   // Get the local position of the vertex in pixels
   vec2 vertex_pos = v_pos * vec2(sprite_size);

@@ -6,12 +6,11 @@ use bevy::{
     math::{Mat4, Vec3},
     prelude::{AssetServer, Assets, Handle, Mut, World},
     utils::HashSet,
-    window::Windows,
 };
 use bevy_retrograde_core::{
     graphics::{
-        Program, RenderHook, RenderHookRenderableHandle, SceneFramebuffer, Surface, Tess,
-        TextureCache,
+        FrameContext, Program, RenderHook, RenderHookRenderableHandle, SceneFramebuffer, Surface,
+        Tess, TextureCache,
     },
     luminance::{
         self,
@@ -27,7 +26,7 @@ use bevy_retrograde_core::{
         texture::{Dim2, GenMipmaps, MagFilter, MinFilter, Sampler, Wrap},
         Semantics, UniformInterface, Vertex,
     },
-    prelude::{Camera, Color, Image},
+    prelude::{Color, Image},
 };
 use bevy_retrograde_text::{prelude::*, rasterize_text_block};
 use raui::{
@@ -59,7 +58,6 @@ impl<'a> AssetPathExt for AssetPath<'a> {
 
 /// The render hook responsible for rendering the UI
 pub struct UiRenderHook {
-    window_id: bevy::window::WindowId,
     app: Application,
     current_ui_tesselation: Option<Tesselation>,
     text_tess: Tess<UiVert>,
@@ -77,12 +75,11 @@ pub struct UiRenderHook {
 }
 
 impl RenderHook for UiRenderHook {
-    fn init(window_id: bevy::window::WindowId, surface: &mut Surface) -> Box<dyn RenderHook>
+    fn init(_window_id: bevy::window::WindowId, surface: &mut Surface) -> Box<dyn RenderHook>
     where
         Self: Sized,
     {
         Box::new(Self {
-            window_id,
             current_ui_tesselation: None,
             shader_program: surface
                 .new_shader_program::<(), (), UiUniformInterface>()
@@ -120,20 +117,15 @@ impl RenderHook for UiRenderHook {
     fn prepare(
         &mut self,
         world: &mut World,
-        texture_cache: &mut TextureCache,
         _surface: &mut Surface,
+        texture_cache: &mut TextureCache,
+        frame_context: &FrameContext,
     ) -> Vec<RenderHookRenderableHandle> {
-        // Get the camera
-        let mut cameras_query = world.query::<&Camera>();
-        let camera = cameras_query.iter(world).next().unwrap().clone();
-        let bevy_windows = world.get_resource::<Windows>().unwrap();
-        let bevy_window = bevy_windows.get(self.window_id).unwrap();
-        let target_size = camera.get_target_size(bevy_window);
-
         // Scope the borrow of the world and its resources
         let ui_tesselation = {
             // Update interactions
-            self.interactions.update(world, target_size);
+            self.interactions
+                .update(world, frame_context.target_sizes.low);
 
             // Get our bevy resources from the world
             let delta_time = world.get_resource::<Time>().unwrap().delta_seconds();
@@ -185,8 +177,8 @@ impl RenderHook for UiRenderHook {
                 let coords_mapping = CoordsMapping::new(Rect {
                     left: 0.,
                     top: 0.,
-                    right: target_size.x as f32,
-                    bottom: target_size.y as f32,
+                    right: frame_context.target_sizes.low.x as f32,
+                    bottom: frame_context.target_sizes.low.y as f32,
                 });
 
                 // Calculate app layout
@@ -222,7 +214,6 @@ impl RenderHook for UiRenderHook {
                 depth: f32::INFINITY, // We render on top of everything else
                 is_transparent: true,
                 entity: None,
-                low_resolution: true,
             },
         ]
     }
@@ -232,6 +223,7 @@ impl RenderHook for UiRenderHook {
         world: &mut World,
         surface: &mut Surface,
         texture_cache: &mut TextureCache,
+        frame_context: &FrameContext,
         target_framebuffer: &SceneFramebuffer,
         // We only have one renderable for everything so we don't need to read this
         _renderables: &[RenderHookRenderableHandle],
@@ -419,10 +411,10 @@ impl RenderHook for UiRenderHook {
                         shader_program,
                         |mut interface, uniforms, mut render_gate| {
                             // Set the target size uniform
-                            let target_size = target_framebuffer.size();
+                            let target_size = frame_context.target_sizes.low;
                             interface.set(
                                 &uniforms.target_size,
-                                [target_size[0] as f32, target_size[1] as f32],
+                                [target_size.x as f32, target_size.y as f32],
                             );
 
                             for batch in batches {
