@@ -43,7 +43,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..Default::default()
         },
         font: font.clone(),
-        position: Position::new(0, -110, 0),
+        transform: Transform::from_xyz(0., -110., 0.),
         ..Default::default()
     });
 
@@ -53,8 +53,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     // Spawn a multi-line text block that automatically wraps at a certain width
     commands
-        .spawn()
-        .insert_bundle(TextBundle {
+        .spawn_bundle(TextBundle {
             text: Text {
                 text: long_text.into(),
                 color: Color::new(1., 0., 0., 1.),
@@ -64,7 +63,6 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         })
         .insert(TextBlock {
             width: 120,
-            horizontal_align: TextHorizontalAlign::Center,
             ..Default::default()
         });
 
@@ -82,14 +80,13 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..Default::default()
         },
         font: font.clone(),
-        position: Position::new(0, 110, 0),
+        transform: Transform::from_xyz(0., 110., 0.),
         ..Default::default()
     });
 
     // Add a frames per second counter
     commands
-        .spawn()
-        .insert_bundle(TextBundle {
+        .spawn_bundle(TextBundle {
             text: Text {
                 text: "FPS:".into(),
                 ..Default::default()
@@ -99,7 +96,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 ..Default::default()
             },
             font: font.clone(),
-            position: Position::new(-200, -110, 0),
+            transform: Transform::from_xyz(-200., -110., 0.),
             ..Default::default()
         })
         .insert(Fps);

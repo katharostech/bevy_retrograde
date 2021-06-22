@@ -36,7 +36,6 @@ fn process_ldtk_maps(
     mut new_maps: Query<(Entity, &Handle<LdtkMap>), Without<LdtkMapHasLoaded>>,
     map_assets: Res<Assets<LdtkMap>>,
     mut image_assets: ResMut<Assets<Image>>,
-    mut scene_graph: ResMut<SceneGraph>,
 ) {
     // Loop through all of the maps
     'load_map: for (map_ent, map_handle) in new_maps.iter_mut() {
@@ -148,8 +147,7 @@ fn process_ldtk_maps(
 
                     // Spawn the layer
                     let layer_ent = commands
-                        .spawn()
-                        .insert_bundle(SpriteBundle {
+                        .spawn_bundle(SpriteBundle {
                             image: image_assets.add(Image::from(layer_image)),
                             sprite: Sprite {
                                 centered: false,
@@ -157,7 +155,11 @@ fn process_ldtk_maps(
                             },
                             // Each layer is 2 units higher than the one before it
                             visible: Visible(layer.visible),
-                            position: Position::new(level.world_x, level.world_y, z as i32 * 2),
+                            transform: Transform::from_xyz(
+                                level.world_x as f32,
+                                level.world_y as f32,
+                                z as f32 * 2.,
+                            ),
                             ..Default::default()
                         })
                         .insert(LdtkMapLayer {
@@ -167,7 +169,8 @@ fn process_ldtk_maps(
                         })
                         .id();
 
-                    scene_graph.add_child(map_ent, layer_ent).unwrap();
+                    // Make the layer a child of the map entity
+                    commands.entity(map_ent).push_children(&[layer_ent]);
                 }
 
                 // Mark the map as having been loaded so that we don't process it again

@@ -3,7 +3,6 @@ use std::usize;
 use bevy::{
     app::{Events, ManualEventReader},
     prelude::*,
-    winit::WinitWindows,
 };
 use luminance::{
     context::GraphicsContext,
@@ -97,7 +96,7 @@ struct Renderable {
 pub(crate) struct Renderer {
     pub(crate) surface: Surface,
     window_id: bevy::window::WindowId,
-    scene_framebuffer: SceneFramebuffer,
+    staging_framebuffer: SceneFramebuffer,
     screen_tess: Tess<ScreenVert>,
     screen_program: Program<(), (), ScreenUniformInterface>,
 
@@ -150,7 +149,7 @@ impl Renderer {
             surface,
             screen_tess,
             screen_program,
-            scene_framebuffer,
+            staging_framebuffer: scene_framebuffer,
             custom_shader: None,
             render_hooks: Vec::new(),
 
@@ -168,7 +167,7 @@ impl Renderer {
         let Self {
             screen_program,
             screen_tess,
-            scene_framebuffer,
+            staging_framebuffer,
             surface,
             window_id,
             render_hooks,
@@ -191,10 +190,10 @@ impl Renderer {
         let back_buffer = surface.back_buffer().unwrap();
 
         // Get the camera
-        let mut cameras = world.query::<&Camera>();
+        let mut cameras = world.query::<(&Camera, &GlobalTransform)>();
         let mut camera_iter = cameras.iter(world);
-        let camera = if let Some(camera_components) = camera_iter.next() {
-            camera_components.clone()
+        let (camera, camera_pos) = if let Some(camera_components) = camera_iter.next() {
+            (camera_components.0.clone(), camera_components.1.translation)
         } else {
             return;
         };
@@ -205,9 +204,11 @@ impl Renderer {
         // Get the window this renderer is supposed to render to
         let bevy_windows = world.get_resource::<Windows>().unwrap();
         let bevy_window = bevy_windows.get(*window_id).unwrap();
-        let winit_windows = world.get_resource::<WinitWindows>().unwrap();
-        let winit_window = winit_windows.get_window(*window_id).unwrap();
-        let window_size = winit_window.inner_size();
+        let window_width = bevy_window.width();
+        let window_height = bevy_window.height();
+
+        // Get the camera target sizes
+        let target_sizes = camera.get_target_sizes(&bevy_window);
 
         // If the camera has a different custom shader, rebuild our screen shader program
         if camera.custom_shader != self.custom_shader {
@@ -216,32 +217,36 @@ impl Renderer {
             *screen_program = build_screen_program(surface, camera.custom_shader.as_deref());
         }
 
-        // Calculate the target size of our scene framebuffer
-        let target_size = camera.get_target_size(bevy_window);
-        let target_size = [target_size.x, target_size.y];
-
-        // Recreate the scene framebuffer if its size does not match our target size
-        let fbsize = scene_framebuffer.size();
-        if target_size != fbsize {
-            *scene_framebuffer = surface
-                .new_framebuffer(target_size, 0, PIXELATED_SAMPLER)
+        // If the scene framebuffer is a different size than our target size, re-created it
+        let target_fb_size = [target_sizes.high.x, target_sizes.high.y];
+        if staging_framebuffer.size() != target_fb_size {
+            *staging_framebuffer = surface
+                .new_framebuffer(target_fb_size, 0, PIXELATED_SAMPLER)
                 .expect("Create framebuffer");
         }
 
-        // Clear the screen
+        // Clear the scene framebuffer
+        // TODO: Handle the letter-box clear color
         surface
             .new_pipeline_gate()
             .pipeline(
-                &scene_framebuffer,
+                &staging_framebuffer,
                 &PipelineState::default().set_clear_color(color_to_array(camera.background_color)),
                 |_, _| Ok(()),
             )
             .assume();
 
+        // Create the frame context to pass to our render hooks
+        let frame_context = FrameContext {
+            camera,
+            camera_pos,
+            target_sizes,
+        };
+
         let mut renderables = Vec::new();
         // Loop through our render hooks and run their prepare functions
         for (i, hook) in render_hooks.iter_mut().enumerate() {
-            for handle in hook.prepare_low_res(world, texture_cache, surface) {
+            for handle in hook.prepare(world, surface, texture_cache, &frame_context) {
                 // Add all the renderables from this render hook to our renderables list
                 renderables.push(Renderable {
                     hook_idx: i,
@@ -279,11 +284,12 @@ impl Renderer {
                     render_hooks
                         .get_mut(current_batch_render_hook_idx)
                         .unwrap()
-                        .render_low_res(
+                        .render(
                             world,
                             surface,
                             texture_cache,
-                            &scene_framebuffer,
+                            &frame_context,
+                            &staging_framebuffer,
                             &batch_renderables,
                         );
 
@@ -300,40 +306,48 @@ impl Renderer {
         render_hooks
             .get_mut(current_batch_render_hook_idx)
             .unwrap()
-            .render_low_res(
+            .render(
                 world,
                 surface,
                 texture_cache,
-                &scene_framebuffer,
+                &frame_context,
+                &staging_framebuffer,
                 &batch_renderables,
             );
 
         let bevy_time = world.get_resource::<Time>().unwrap();
 
-        // Render the scene framebuffer to the back buffer on a quad
+        // Render the staging framebuffer to the back buffer on a quad
         surface
             .new_pipeline_gate()
             .pipeline(
                 &back_buffer,
-                &PipelineState::default().set_clear_color(color_to_array(camera.letterbox_color)),
+                &PipelineState::default()
+                    .set_clear_color(color_to_array(frame_context.camera.letterbox_color)),
                 |pipeline, mut shd_gate| {
                     // we must bind the offscreen framebuffer color content so that we can pass it to a shader
-                    let bound_texture = pipeline.bind_texture(scene_framebuffer.color_slot())?;
+                    let bound_texture = pipeline.bind_texture(staging_framebuffer.color_slot())?;
 
                     shd_gate.shade(screen_program, |mut interface, uniforms, mut rdr_gate| {
                         interface.set(
                             &uniforms.camera_size,
-                            [target_size[0] as i32, target_size[1] as i32],
+                            [
+                                frame_context.target_sizes.low.x as i32,
+                                frame_context.target_sizes.low.y as i32,
+                            ],
                         );
                         interface.set(
                             &uniforms.window_size,
-                            [window_size.width as i32, window_size.height as i32],
+                            [window_width as i32, window_height as i32],
                         );
                         interface.set(&uniforms.screen_texture, bound_texture.binding());
-                        interface.set(&uniforms.pixel_aspect_ratio, camera.pixel_aspect_ratio);
+                        interface.set(
+                            &uniforms.pixel_aspect_ratio,
+                            frame_context.camera.pixel_aspect_ratio,
+                        );
                         interface.set(
                             &uniforms.camera_size_fixed,
-                            match camera.size {
+                            match frame_context.camera.size {
                                 CameraSize::LetterBoxed { .. } => 0,
                                 CameraSize::FixedWidth(_) => 1,
                                 CameraSize::FixedHeight(_) => 2,

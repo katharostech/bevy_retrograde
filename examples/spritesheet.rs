@@ -31,8 +31,7 @@ fn setup(
 ) {
     // Spawn sprite
     commands
-        .spawn()
-        .insert_bundle(SpriteSheetBundle {
+        .spawn_bundle(SpriteSheetBundle {
             sprite_bundle: SpriteBundle {
                 image: asset_server.load("redRadishSheet.png"),
                 ..Default::default()

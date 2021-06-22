@@ -1,17 +1,18 @@
-//! Bevy Retrograde is a 2D, pixel-perfect renderer for [Bevy] that can target both web and desktop using
-//! OpenGL/WebGL.
+//! Bevy Retrograde is a 2D, pixel-perfect renderer for [Bevy] that can target both web and desktop
+//! using OpenGL/WebGL.
 //!
 //! [Bevy]: https://bevyengine.org
 //!
-//! Bevy Retrograde is focused on providing an easy and ergonomic way to write 2D, pixel-perfect games.
-//! Compared to the out-of-the-box Bevy setup, you do not have to work with a 3D scene to create 2D
-//! games. Sprites and their coordinates are based on pixel positions in a retro-resolution scene.
+//! Bevy Retrograde is focused on providing an easy and ergonomic way to write 2D, pixel-perfect
+//! games. Compared to the out-of-the-box Bevy setup, you do not have to work with a 3D scene to
+//! create 2D games. Sprites and their coordinates are based on pixel positions in a
+//! retro-resolution scene.
 //!
-//! Bevy Retrograde replaces almost all of the out-of-the-box Bevy components and Bundles that you would
-//! normally use ( `Transform`, `Camera2DBundle`, etc. ) and comes with its own `Position`,
-//! `Camera`, `Image`, `Sprite`, etc. components and bundles. Bevy Retrograde tries to provide a focused
-//! 2D-centric experience on top of Bevy that helps take out some of the pitfalls and makes it
-//! easier to think about your game when all you need is 2D.
+//! Bevy Retrograde replaces almost all of the out-of-the-box Bevy components and Bundles that you
+//! would normally use ( `Transform`, `Camera2DBundle`, etc. ) and comes with its own `Position`,
+//! `Camera`, `Image`, `Sprite`, etc. components and bundles. Bevy Retrograde tries to provide a
+//! focused 2D-centric experience on top of Bevy that helps take out some of the pitfalls and makes
+//! it easier to think about your game when all you need is 2D.
 //!
 //! We want to provide a batteries-included plugin that comes with almost everything you need to
 //! make a 2D pixel game with Bevy including, collisions, sound, saving data, etc. While adding
@@ -32,9 +33,18 @@
 //!
 //! # Development Status
 //!
-//! Bevy Retrograde is in early stages of development. The API is not stable, but there are not many
-//! large anticipated changes. Bevy Retrograde should be usable enough to use in your own projects if you
-//! are fine adapting to some API changes as they come.
+//! Bevy Retrograde is in early stages of development. The API is not stable and may change
+//! dramatically at any time. Planned possible changes include:
+//!
+//! - Switching to using Bevy's built-in renderer for desktop/mobile and [`bevy_webgl2`] for web
+//!   instead of using our own OpenGL based renderer. This will potentially make Bevy Retrograde
+//!   more compatible with the larger Bevy ecosystem instead of it creating an island of plugins
+//!   that only work on Bevy Retro. We will probably wait for the [second iteration][bevy_renderer2]
+//!   of the Bevy rendererer to attempt this.
+//!
+//! [`bevy_webgl2`]: https://github.com/mrk-its/bevy_webgl2
+//!
+//! [bevy_renderer2]: https://github.com/bevyengine/bevy/discussions/2351
 //!
 //! See also [Supported Bevy Version](#supported-bevy-version) below.
 //!
@@ -43,29 +53,36 @@
 //! Check out our [examples] list to see how to use each Bevy Retrograde feature:
 //!
 //! - Supports web and desktop out-of-the-box
-//! - Integer pixel coordinates
-//! - Supports sprites and sprite sheets
-//! - A super-simple hierarchy system
+//! - Sprites and sprite sheets
 //! - Scaled pixel-perfect rendering with three camera modes: fixed width, fixed height, and
 //!   letter-boxed
+//! - Sprites are pixel-perfectly aligned by default but can be set to non-perfect on a per-sprite
+//!   basis
 //! - [LDtk](https://ldtk.io) map loading and rendering
 //! - An integration with the [RAUI] UI library for building in-game user interfaces and HUD
-//! - Pixel-perfect collision detection
+//! - Physics and collision detection powered by [Heron] and [Rapier] with automatic generation of
+//!   convex collision shapes from sprite images
 //! - Text rendering of BDF fonts
 //! - Custom shaders for post-processing, including a built-in CRT shader
 //! - Render hooks allowing you to drop down into raw [Luminance] calls for custom rendering
 //!
-//! [examples]: https://github.com/katharostech/bevy_retrograde/tree/master/examples#bevy-retro-examples
+//! [examples]:
+//! https://github.com/katharostech/bevy_retrograde/tree/master/examples#bevy-retro-examples
 //!
 //! [luminance]: https://github.com/phaazon/luminance-rs
 //!
 //! [RAUI]: https://raui-labs.github.io/raui/
 //!
+//! [Heron]: https://github.com/jcornaz/heron
+//!
+//! [Rapier]: https://rapier.rs/
+//!
 //! # Supported Bevy Version
 //!
-//! Bevy Retrograde currently works on the latest Bevy release and _may_ support Bevy master as well.
-//! Bevy Retrograde will try to follow the latest Bevy release, but if there are features introduced in
-//! Bevy master that we need, we may require Bevy master for a time until the next Bevy release.
+//! Bevy Retrograde currently works on the latest Bevy release and _may_ support Bevy master as
+//! well. Bevy Retrograde will try to follow the latest Bevy release, but if there are features
+//! introduced in Bevy master that we need, we may require Bevy master for a time until the next
+//! Bevy release.
 //!
 //! When depending on the `bevy` crate, you must be sure to set `default-features` to `false` in
 //! your `Cargo.toml` so that the rendering types in `bevy` don't conflict with the ones in
@@ -101,7 +118,6 @@
 //! fn setup(
 //!     mut commands: Commands,
 //!     asset_server: Res<AssetServer>,
-//!     mut scene_graph: ResMut<SceneGraph>,
 //! ) {
 //!     // Load our sprites
 //!     let red_radish_image = asset_server.load("redRadish.png");
@@ -116,16 +132,14 @@
 //!             background_color: Color::new(0.2, 0.2, 0.2, 1.0),
 //!             ..Default::default()
 //!         },
-//!         position: Position::new(0, 0, 0),
 //!         ..Default::default()
 //!     });
 //!
 //!     // Spawn a red radish
 //!     let red_radish = commands
-//!         .spawn()
-//!         .insert_bundle(SpriteBundle {
+//!         .spawn_bundle(SpriteBundle {
 //!             image: red_radish_image,
-//!             position: Position::new(0, 0, 0),
+//!             transform: Transform::from_xyz(0., 0., 0.),
 //!             sprite: Sprite {
 //!                 flip_x: true,
 //!                 flip_y: false,
@@ -139,13 +153,15 @@
 //!
 //!     // Spawn a yellow radish
 //!     let yellow_radish = commands
-//!         .spawn()
-//!         .insert_bundle(SpriteBundle {
+//!         .spawn_bundle(SpriteBundle {
 //!             image: yellow_radish_image,
-//!             position: Position::new(-20, 0, 0),
+//!             transform: Transform::from_xyz(-20., 0., 0.),
 //!             sprite: Sprite {
-//!                 flip_x: true,
-//!                 flip_y: false,
+//!                 // Flip the sprite upside down 🙃
+//!                 flip_y: true,
+//!                 // By setting a sprite to be non-pixel-perfect you can get smoother movement
+//!                 // for things like characters, like they did in Shovel Knight®.
+//!                 pixel_perfect: false,
 //!                 ..Default::default()
 //!             },
 //!             ..Default::default()
@@ -153,16 +169,13 @@
 //!         .id();
 //!
 //!     // Make the yellow radish a child of the red radish
-//!     scene_graph
-//!         .add_child(red_radish, yellow_radish)
-//!         // This could fail if the child is an ancestor of the parent
-//!         .unwrap();
+//!     commands.entity(red_radish).push_children(&[yellow_radish]);
 //!
 //!     // Spawn a blue radish
 //!     commands.spawn().insert_bundle(SpriteBundle {
 //!         image: blue_radish_image,
 //!         // Set the blue radish back a layer so that he shows up under the other two
-//!         position: Position::new(-20, -20, -1),
+//!         transform: Transform::from_xyz(-20., -20., -1.),
 //!         sprite: Sprite {
 //!             flip_x: true,
 //!             flip_y: false,
@@ -187,6 +200,7 @@ impl bevy::app::PluginGroup for RetroPlugins {
         group.add(bevy::asset::AssetPlugin::default());
         group.add(bevy::winit::WinitPlugin::default());
         group.add(bevy::scene::ScenePlugin::default());
+        group.add(bevy::transform::TransformPlugin::default());
 
         group.add(core::RetroCorePlugin);
 
@@ -198,6 +212,9 @@ impl bevy::app::PluginGroup for RetroPlugins {
 
         #[cfg(feature = "text")]
         group.add(text::RetroTextPlugin);
+
+        #[cfg(feature = "physics")]
+        group.add(physics::RetroPhysicsPlugin);
 
         #[cfg(feature = "ui")]
         group.add(ui::RetroUiPlugin);
@@ -222,6 +239,9 @@ pub mod prelude {
 
     #[cfg(feature = "ui")]
     pub use bevy_retrograde_ui::*;
+
+    #[cfg(feature = "physics")]
+    pub use bevy_retrograde_physics::*;
 }
 
 #[doc(inline)]
@@ -239,6 +259,10 @@ pub use bevy_retrograde_audio as audio;
 #[cfg(feature = "text")]
 #[doc(inline)]
 pub use bevy_retrograde_text as text;
+
+#[cfg(feature = "physics")]
+#[doc(inline)]
+pub use bevy_retrograde_physics as physics;
 
 #[cfg(feature = "ldtk")]
 pub use bevy_retrograde_ldtk as ldtk;

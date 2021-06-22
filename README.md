@@ -32,26 +32,27 @@ Bevy Retrograde LDtk is licensed under the [Katharos License][__link1] which pla
 
 ## Development Status
 
-Bevy Retrograde is in early stages of development. The API is not stable, but there are not many large anticipated changes. Bevy Retrograde should be usable enough to use in your own projects if you are fine adapting to some API changes as they come.
+Bevy Retrograde is in early stages of development. The API is not stable and may change dramatically at any time. Planned possible changes include:
+
+ - Switching to using Bevy’s built-in renderer for desktop/mobile and [`bevy_webgl2`][__link2] for web instead of using our own OpenGL based renderer. This will potentially make Bevy Retrograde more compatible with the larger Bevy ecosystem instead of it creating an island of plugins that only work on Bevy Retro. We will probably wait for the [second iteration][__link3] of the Bevy rendererer to attempt this.
 
 See also [Supported Bevy Version](#supported-bevy-version) below.
 
 
 ## Features & Examples
 
-Check out our [examples][__link2] list to see how to use each Bevy Retrograde feature:
+Check out our [examples][__link4] list to see how to use each Bevy Retrograde feature:
 
  - Supports web and desktop out-of-the-box
- - Integer pixel coordinates
- - Supports sprites and sprite sheets
- - A super-simple hierarchy system
+ - Sprites and sprite sheets
  - Scaled pixel-perfect rendering with three camera modes: fixed width, fixed height, and letter-boxed
- - [LDtk][__link3] map loading and rendering
- - An integration with the [RAUI][__link4] UI library for building in-game user interfaces and HUD
- - Pixel-perfect collision detection
+ - Sprites are pixel-perfectly aligned by default but can be set to non-perfect on a per-sprite basis
+ - [LDtk][__link5] map loading and rendering
+ - An integration with the [RAUI][__link6] UI library for building in-game user interfaces and HUD
+ - Physics and collision detection powered by [Heron][__link7] and [Rapier][__link8] with automatic generation of convex collision shapes from sprite images
  - Text rendering of BDF fonts
  - Custom shaders for post-processing, including a built-in CRT shader
- - Render hooks allowing you to drop down into raw [Luminance][__link5] calls for custom rendering
+ - Render hooks allowing you to drop down into raw [Luminance][__link9] calls for custom rendering
 
 
 ## Supported Bevy Version
@@ -92,7 +93,6 @@ struct Player;
 fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut scene_graph: ResMut<SceneGraph>,
 ) {
     // Load our sprites
     let red_radish_image = asset_server.load("redRadish.png");
@@ -107,16 +107,14 @@ fn setup(
             background_color: Color::new(0.2, 0.2, 0.2, 1.0),
             ..Default::default()
         },
-        position: Position::new(0, 0, 0),
         ..Default::default()
     });
 
     // Spawn a red radish
     let red_radish = commands
-        .spawn()
-        .insert_bundle(SpriteBundle {
+        .spawn_bundle(SpriteBundle {
             image: red_radish_image,
-            position: Position::new(0, 0, 0),
+            transform: Transform::from_xyz(0., 0., 0.),
             sprite: Sprite {
                 flip_x: true,
                 flip_y: false,
@@ -130,13 +128,15 @@ fn setup(
 
     // Spawn a yellow radish
     let yellow_radish = commands
-        .spawn()
-        .insert_bundle(SpriteBundle {
+        .spawn_bundle(SpriteBundle {
             image: yellow_radish_image,
-            position: Position::new(-20, 0, 0),
+            transform: Transform::from_xyz(-20., 0., 0.),
             sprite: Sprite {
-                flip_x: true,
-                flip_y: false,
+                // Flip the sprite upside down 🙃
+                flip_y: true,
+                // By setting a sprite to be non-pixel-perfect you can get smoother movement
+                // for things like characters, like they did in Shovel Knight®.
+                pixel_perfect: false,
                 ..Default::default()
             },
             ..Default::default()
@@ -144,16 +144,13 @@ fn setup(
         .id();
 
     // Make the yellow radish a child of the red radish
-    scene_graph
-        .add_child(red_radish, yellow_radish)
-        // This could fail if the child is an ancestor of the parent
-        .unwrap();
+    commands.entity(red_radish).push_children(&[yellow_radish]);
 
     // Spawn a blue radish
     commands.spawn().insert_bundle(SpriteBundle {
         image: blue_radish_image,
         // Set the blue radish back a layer so that he shows up under the other two
-        position: Position::new(-20, -20, -1),
+        transform: Transform::from_xyz(-20., -20., -1.),
         sprite: Sprite {
             flip_x: true,
             flip_y: false,
@@ -168,8 +165,12 @@ fn setup(
 
  [__link0]: https://bevyengine.org
  [__link1]: https://github.com/katharostech/katharos-license
- [__link2]: https://github.com/katharostech/bevy_retrograde/tree/master/examples#bevy-retro-examples
- [__link3]: https://ldtk.io
- [__link4]: https://raui-labs.github.io/raui/
- [__link5]: https://github.com/phaazon/luminance-rs
+ [__link2]: https://github.com/mrk-its/bevy_webgl2
+ [__link3]: https://github.com/bevyengine/bevy/discussions/2351
+ [__link4]: https://github.com/katharostech/bevy_retrograde/tree/master/examples#bevy-retro-examples
+ [__link5]: https://ldtk.io
+ [__link6]: https://raui-labs.github.io/raui/
+ [__link7]: https://github.com/jcornaz/heron
+ [__link8]: https://rapier.rs/
+ [__link9]: https://github.com/phaazon/luminance-rs
 

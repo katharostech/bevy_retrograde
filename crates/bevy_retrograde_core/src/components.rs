@@ -3,21 +3,16 @@
 use bevy::{prelude::*, reflect::TypeUuid};
 use serde::{Deserialize, Serialize};
 
-mod position;
-pub use position::*;
-
 pub(crate) fn add_components(app: &mut AppBuilder) {
     app.register_type::<Camera>()
         .register_type::<Color>()
         .register_type::<CameraSize>()
-        .register_type::<Position>()
-        .register_type::<WorldPosition>()
         .register_type::<Sprite>()
         .register_type::<SpriteSheet>()
         .register_type::<Visible>();
 }
 
-/// An 8-bit RGBA color
+/// A floating point RGBA color
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Reflect)]
 #[reflect_value(Serialize, Deserialize, PartialEq, Component)]
 pub struct Color {
@@ -136,22 +131,53 @@ impl Default for CameraSize {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct CameraTargetSizes {
+    /// The target retro resolution of the camera
+    pub low: UVec2,
+    /// The target screen-ish resolution of the camera
+    pub high: UVec2,
+}
+
 impl Camera {
     /// Get the size in game pixels ( retro-sized, not screen pixels ) of the camera view
-    pub fn get_target_size(&self, window: &bevy::window::Window) -> UVec2 {
+    pub fn get_target_sizes(&self, window: &bevy::window::Window) -> CameraTargetSizes {
         let window_width = window.width();
         let window_height = window.height();
         let aspect_ratio = window_width / window_height;
-        match self.size {
+        let low_res = match self.size {
             CameraSize::FixedHeight(height) => UVec2::new(
-                (aspect_ratio * height as f32 / self.pixel_aspect_ratio).floor() as u32,
+                // The width must be an even number to keep the alignment with non-pixel-perfect
+                // sprites working ( for some reason I have not yet fully understood )
+                {
+                    let x = (aspect_ratio * height as f32 / self.pixel_aspect_ratio).floor() as u32;
+                    if x % 2 != 0 {
+                        x - 1
+                    } else {
+                        x
+                    }
+                },
                 height,
             ),
-            CameraSize::FixedWidth(width) => UVec2::new(
-                width,
-                (width as f32 / aspect_ratio * self.pixel_aspect_ratio).floor() as u32,
-            ),
+            CameraSize::FixedWidth(width) => UVec2::new(width, {
+                // The width must be an even number to keep the alignment with non-pixel-perfect
+                // sprites working ( for some reason I have not yet fully understood )
+                let y = (width as f32 / aspect_ratio * self.pixel_aspect_ratio).floor() as u32;
+                if y % 2 != 0 {
+                    y - 1
+                } else {
+                    y
+                }
+            }),
             CameraSize::LetterBoxed { width, height } => UVec2::new(width, height),
+        };
+
+        let multiple = (window_width as f32 / low_res.x as f32).ceil() as u32;
+        let high_res = low_res * multiple;
+
+        CameraTargetSizes {
+            low: low_res,
+            high: high_res,
         }
     }
 }
@@ -167,7 +193,10 @@ pub struct Sprite {
     /// Flip the sprite on y
     pub flip_y: bool,
     /// A visual offset for the sprite
-    pub offset: IVec2,
+    pub offset: Vec2,
+    /// Whether or not to constrain the sprite rendering to perfect pixel alignment with the
+    /// virtual, low resolution of the camera
+    pub pixel_perfect: bool,
 }
 
 impl Default for Sprite {
@@ -176,7 +205,8 @@ impl Default for Sprite {
             centered: true,
             flip_x: false,
             flip_y: false,
-            offset: IVec2::default(),
+            offset: Vec2::default(),
+            pixel_perfect: true,
         }
     }
 }

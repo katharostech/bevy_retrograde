@@ -13,8 +13,8 @@ pub struct TextBundle {
     pub text: Text,
     pub sprite: Sprite,
     pub visible: Visible,
-    pub position: Position,
-    pub world_position: WorldPosition,
+    pub transform: Transform,
+    pub global_transform: GlobalTransform,
 }
 
 /// The text inside a text entity or text block

@@ -24,11 +24,7 @@ fn main() {
 
 struct Player;
 
-fn setup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut scene_graph: ResMut<SceneGraph>,
-) {
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Load our sprites
     let red_radish_image = asset_server.load("redRadish.png");
     let yellow_radish_image = asset_server.load("yellowRadish.png");
@@ -58,10 +54,9 @@ fn setup(
 
     // Spawn a red radish
     let red_radish = commands
-        .spawn()
-        .insert_bundle(SpriteBundle {
+        .spawn_bundle(SpriteBundle {
             image: red_radish_image,
-            position: Position::new(0, 0, 0),
+            transform: Transform::from_xyz(0., 0., 0.),
             ..Default::default()
         })
         // Add our player marker component so we can move it
@@ -70,25 +65,21 @@ fn setup(
 
     // Spawn a yellow radish
     let yellow_radish = commands
-        .spawn()
-        .insert_bundle(SpriteBundle {
+        .spawn_bundle(SpriteBundle {
             image: yellow_radish_image,
-            position: Position::new(-20, 0, 0),
+            transform: Transform::from_xyz(-20., 0., 0.),
             ..Default::default()
         })
         .id();
 
     // Make the yellow radish a child of the red radish
-    scene_graph
-        .add_child(red_radish, yellow_radish)
-        // This could fail if the child is an ancestor of the parent
-        .unwrap();
+    commands.entity(red_radish).push_children(&[yellow_radish]);
 
     // Spawn a blue radish
     commands.spawn().insert_bundle(SpriteBundle {
         image: blue_radish_image,
         // Set the blue radish back a layer so that he shows up under the other two
-        position: Position::new(-20, -20, -1),
+        transform: Transform::from_xyz(-20., -20., -1.),
         sprite: Sprite {
             flip_x: true,
             flip_y: false,
@@ -98,30 +89,33 @@ fn setup(
     });
 }
 
-fn move_player(keyboard_input: Res<Input<KeyCode>>, mut query: Query<&mut Position, With<Player>>) {
-    for mut pos in query.iter_mut() {
-        const SPEED: i32 = 1;
+fn move_player(
+    keyboard_input: Res<Input<KeyCode>>,
+    mut query: Query<&mut Transform, With<Player>>,
+) {
+    for mut transform in query.iter_mut() {
+        const SPEED: f32 = 1.;
 
-        let mut direction = IVec3::new(0, 0, 0);
+        let mut direction = Vec3::new(0., 0., 0.);
 
         if keyboard_input.pressed(KeyCode::Left) {
-            direction += IVec3::new(-SPEED, 0, 0);
+            direction += Vec3::new(-SPEED, 0., 0.);
         }
 
         if keyboard_input.pressed(KeyCode::Right) {
-            direction += IVec3::new(SPEED, 0, 0);
+            direction += Vec3::new(SPEED, 0., 0.);
         }
 
         if keyboard_input.pressed(KeyCode::Up) {
-            direction += IVec3::new(0, -SPEED, 0);
+            direction += Vec3::new(0., -SPEED, 0.);
         }
 
         if keyboard_input.pressed(KeyCode::Down) {
-            direction += IVec3::new(0, SPEED, 0);
+            direction += Vec3::new(0., SPEED, 0.);
         }
 
-        if direction != IVec3::new(0, 0, 0) {
-            **pos += direction;
+        if direction != Vec3::new(0., 0., 0.) {
+            transform.translation += direction;
         }
     }
 }
