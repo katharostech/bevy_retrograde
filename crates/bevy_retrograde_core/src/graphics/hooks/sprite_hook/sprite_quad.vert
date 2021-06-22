@@ -59,6 +59,16 @@ SpriteUvAndSize calculate_sprite_uv_and_size() {
   }
 }
 
+// Define our own round function because WebGL1 doesn't come with
+float round_f(float num) {
+  float fractional = num - floor(num);
+  if (fractional >= 0.5) {
+    return ceil(num);
+  } else {
+    return floor(num);
+  }
+}
+
 void main() {
   // Calculate sprite UVs
   SpriteUvAndSize sprite_uv_and_size = calculate_sprite_uv_and_size();
@@ -74,7 +84,11 @@ void main() {
   // Round the sprite position if it is in pixel-perfect mode
   vec3 sprite_pos_adjusted = sprite_position;
   if (pixel_perfect) {
-    sprite_pos_adjusted = floor(sprite_position);
+    sprite_pos_adjusted = vec3(
+      round_f(sprite_position.x),
+      round_f(sprite_position.y),
+      sprite_position.z
+    );
   }
 
   // Get the pixel screen position of the center of the sprite
