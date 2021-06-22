@@ -49,10 +49,10 @@ Check out our [examples][__link4] list to see how to use each Bevy Retrograde fe
  - Sprites are pixel-perfectly aligned by default but can be set to non-perfect on a per-sprite basis
  - [LDtk][__link5] map loading and rendering
  - An integration with the [RAUI][__link6] UI library for building in-game user interfaces and HUD
- - Pixel-perfect collision detection
+ - Physics and collision detection powered by [Heron][__link7] and [Rapier][__link8] with automatic generation of convex collision shapes from sprite images
  - Text rendering of BDF fonts
  - Custom shaders for post-processing, including a built-in CRT shader
- - Render hooks allowing you to drop down into raw [Luminance][__link7] calls for custom rendering
+ - Render hooks allowing you to drop down into raw [Luminance][__link9] calls for custom rendering
 
 
 ## Supported Bevy Version
@@ -170,5 +170,7 @@ fn setup(
  [__link4]: https://github.com/katharostech/bevy_retrograde/tree/master/examples#bevy-retro-examples
  [__link5]: https://ldtk.io
  [__link6]: https://raui-labs.github.io/raui/
- [__link7]: https://github.com/phaazon/luminance-rs
+ [__link7]: https://github.com/jcornaz/heron
+ [__link8]: https://rapier.rs/
+ [__link9]: https://github.com/phaazon/luminance-rs
 

@@ -60,7 +60,8 @@
 //!   basis
 //! - [LDtk](https://ldtk.io) map loading and rendering
 //! - An integration with the [RAUI] UI library for building in-game user interfaces and HUD
-//! - Pixel-perfect collision detection
+//! - Physics and collision detection powered by [Heron] and [Rapier] with automatic generation of
+//!   convex collision shapes from sprite images
 //! - Text rendering of BDF fonts
 //! - Custom shaders for post-processing, including a built-in CRT shader
 //! - Render hooks allowing you to drop down into raw [Luminance] calls for custom rendering
@@ -71,6 +72,10 @@
 //! [luminance]: https://github.com/phaazon/luminance-rs
 //!
 //! [RAUI]: https://raui-labs.github.io/raui/
+//!
+//! [Heron]: https://github.com/jcornaz/heron
+//!
+//! [Rapier]: https://rapier.rs/
 //!
 //! # Supported Bevy Version
 //!
@@ -208,6 +213,9 @@ impl bevy::app::PluginGroup for RetroPlugins {
         #[cfg(feature = "text")]
         group.add(text::RetroTextPlugin);
 
+        #[cfg(feature = "physics")]
+        group.add(physics::RetroPhysicsPlugin);
+
         #[cfg(feature = "ui")]
         group.add(ui::RetroUiPlugin);
     }
@@ -231,6 +239,9 @@ pub mod prelude {
 
     #[cfg(feature = "ui")]
     pub use bevy_retrograde_ui::*;
+
+    #[cfg(feature = "physics")]
+    pub use bevy_retrograde_physics::*;
 }
 
 #[doc(inline)]
@@ -248,6 +259,10 @@ pub use bevy_retrograde_audio as audio;
 #[cfg(feature = "text")]
 #[doc(inline)]
 pub use bevy_retrograde_text as text;
+
+#[cfg(feature = "physics")]
+#[doc(inline)]
+pub use bevy_retrograde_physics as physics;
 
 #[cfg(feature = "ldtk")]
 pub use bevy_retrograde_ldtk as ldtk;

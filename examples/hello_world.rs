@@ -89,7 +89,6 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 
 fn move_player(
-    mut last_direction: Local<Vec3>,
     keyboard_input: Res<Input<KeyCode>>,
     mut query: Query<&mut Transform, With<Player>>,
 ) {
@@ -117,7 +116,5 @@ fn move_player(
         if direction != Vec3::new(0., 0., 0.) {
             transform.translation += direction;
         }
-
-        *last_direction = direction;
     }
 }

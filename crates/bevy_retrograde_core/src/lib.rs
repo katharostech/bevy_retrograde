@@ -8,7 +8,6 @@ pub mod prelude {
     pub use crate::assets::*;
     pub use crate::bevy_extensions::*;
     pub use crate::bundles::*;
-    pub use crate::collisions::*;
     pub use crate::components::*;
     pub use crate::shaders::*;
 }
@@ -22,7 +21,6 @@ pub use luminance;
 pub mod assets;
 pub mod bevy_extensions;
 pub mod bundles;
-pub mod collisions;
 pub mod components;
 pub mod graphics;
 pub mod shaders;
