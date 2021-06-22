@@ -42,13 +42,13 @@ An example of how to use animated sprite sheets.
 
 [spritesheet]: ./spritesheet.rs
 
-### [collisions]
+### [physics]
 
-An example demonstrating how to detect pixel-perfect collisions between sprites
+An example demonstrating how to use the physics system to create collision boxes from sprites.
 
-![collisions](./screenshots/collisions.gif)
+![physics](./screenshots/physics.gif)
 
-[collisions]: ./collisions.rs
+[physics]: ./collisions.rs
 
 ### [text]
 
