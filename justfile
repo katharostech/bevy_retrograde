@@ -1,5 +1,4 @@
 dev_features:="ldtk"
-native_dev_features:="bevy/dynamic"
 
 # List the justfile recipes
 list:
@@ -11,11 +10,11 @@ readme:
 
 # Build Bevy Retrograde
 build:
-    cargo build --features {{dev_features}},{{native_dev_features}}
+    cargo build --features {{dev_features}}
 
 # Run an example
 run-example example='hello_world':
-    cargo run --example {{example}} --features {{dev_features}},{{native_dev_features}}
+    cargo run --example {{example}} --features {{dev_features}}
 
 # Build an example for web and host it on a local webserver
 run-example-web example='hello_world':
