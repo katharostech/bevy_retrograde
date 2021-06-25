@@ -49,6 +49,7 @@ pub(crate) struct SpriteHook {
     sprite_program: Program<(), (), SpriteUniformInterface>,
     sprite_tess: Tess<SpriteVert>,
     current_sprite_batch: Option<Vec<Entity>>,
+    has_displayed_rotation_warning: bool,
 }
 
 impl RenderHook for SpriteHook {
@@ -95,6 +96,7 @@ impl RenderHook for SpriteHook {
             sprite_program,
             sprite_tess,
             current_sprite_batch: None,
+            has_displayed_rotation_warning: false,
         }) as Box<dyn RenderHook>
     }
 
@@ -152,6 +154,7 @@ impl RenderHook for SpriteHook {
             sprite_program,
             sprite_tess,
             current_sprite_batch,
+            has_displayed_rotation_warning,
             ..
         } = self;
 
@@ -289,6 +292,20 @@ impl RenderHook for SpriteHook {
                                     &uniforms.sprite_offset,
                                     [sprite.offset.x, sprite.offset.y],
                                 );
+
+                                // Log a warning if the sprite has any rotation set, because we
+                                // don't handle rotations yet.
+                                if world_transform.rotation != Quat::IDENTITY
+                                    && !*has_displayed_rotation_warning
+                                {
+                                    error!(
+                                        "Detected sprite with rotation set. Bevy Retrograde \
+                                        doesn't render sprites with rotations yet. You can open \
+                                        an issue to help prioritize this if you need this feature: \
+                                        https://github.com/katharostech/bevy_retrograde/issues"
+                                    );
+                                    *has_displayed_rotation_warning = true;
+                                }
 
                                 // Render the sprite
                                 render_gate.render(&render_state, |mut tess_gate| {

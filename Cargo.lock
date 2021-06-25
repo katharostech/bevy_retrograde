@@ -130,10 +130,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "arrayvec"
-version = "0.6.1"
+name = "approx"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "269d0f5e68353a7cab87f81e7c736adc008d279a36ebc6a05dfe01193a89f0c9"
+checksum = "072df7202e63b127ab55acfe16ce97013d5b97bf160489336d3f1840fd78e99e"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
+name = "arrayvec"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "be4dc07131ffa69b8072d35f5007352af944213cde02545e2103680baed38fcd"
 
 [[package]]
 name = "async-channel"
@@ -195,9 +204,9 @@ checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
 name = "basedrop"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e80d37a08696e321155da2faed6008661811fac02bf977afbc2fbefaffcb730"
+checksum = "47611e530cf21bb89fbfe322aa8b1feae1ace33ff65f8ebf40fe3b4b99b7c9a2"
 
 [[package]]
 name = "bevy"
@@ -1541,9 +1550,9 @@ dependencies = [
 
 [[package]]
 name = "hermit-abi"
-version = "0.1.18"
+version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "322f4de77956e22ed0e5032c359a0f1273f1f7f0d79bfa3b8ffbc730d7fbcc5c"
+checksum = "62b467343b94ba476dcb2500d242dadbb39557df889310ac77c5d99100aaac33"
 dependencies = [
  "libc",
 ]
@@ -1551,9 +1560,10 @@ dependencies = [
 [[package]]
 name = "heron"
 version = "0.8.0"
-source = "git+https://github.com/katharostech/heron.git?branch=ktech-patches#c93596d6e655f63d92fc223de539ea16f66cfbc7"
+source = "git+https://github.com/katharostech/heron.git?branch=ktech-patches#3c2fbcd56b7cc694e78ce509100d89626584a077"
 dependencies = [
  "bevy",
+ "cfg_aliases",
  "heron_core",
  "heron_macros",
  "heron_rapier",
@@ -1562,7 +1572,7 @@ dependencies = [
 [[package]]
 name = "heron_core"
 version = "0.8.0"
-source = "git+https://github.com/katharostech/heron.git?branch=ktech-patches#c93596d6e655f63d92fc223de539ea16f66cfbc7"
+source = "git+https://github.com/katharostech/heron.git?branch=ktech-patches#3c2fbcd56b7cc694e78ce509100d89626584a077"
 dependencies = [
  "bevy",
  "duplicate",
@@ -1571,7 +1581,7 @@ dependencies = [
 [[package]]
 name = "heron_macros"
 version = "0.8.0"
-source = "git+https://github.com/katharostech/heron.git?branch=ktech-patches#c93596d6e655f63d92fc223de539ea16f66cfbc7"
+source = "git+https://github.com/katharostech/heron.git?branch=ktech-patches#3c2fbcd56b7cc694e78ce509100d89626584a077"
 dependencies = [
  "heron_core",
  "quote",
@@ -1581,9 +1591,10 @@ dependencies = [
 [[package]]
 name = "heron_rapier"
 version = "0.8.0"
-source = "git+https://github.com/katharostech/heron.git?branch=ktech-patches#c93596d6e655f63d92fc223de539ea16f66cfbc7"
+source = "git+https://github.com/katharostech/heron.git?branch=ktech-patches#3c2fbcd56b7cc694e78ce509100d89626584a077"
 dependencies = [
  "bevy",
+ "cfg_aliases",
  "crossbeam",
  "fnv",
  "heron_core",
@@ -1620,7 +1631,7 @@ dependencies = [
  "gif",
  "jpeg-decoder",
  "num-iter",
- "num-rational",
+ "num-rational 0.3.2",
  "num-traits",
  "png",
  "scoped_threadpool",
@@ -2131,17 +2142,29 @@ dependencies = [
 
 [[package]]
 name = "nalgebra"
-version = "0.26.2"
+version = "0.27.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "476d1d59fe02fe54c86356e91650cd892f392782a1cb9fc524ec84f7aa9e1d06"
+checksum = "462fffe4002f4f2e1f6a9dcf12cc1a6fc0e15989014efc02a941d3e0f5dc2120"
 dependencies = [
- "approx",
+ "approx 0.5.0",
  "matrixmultiply",
+ "nalgebra-macros",
  "num-complex",
- "num-rational",
+ "num-rational 0.4.0",
  "num-traits",
  "simba",
  "typenum",
+]
+
+[[package]]
+name = "nalgebra-macros"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "01fcc0b8149b4632adc89ac3b7b31a12fb6099a0317a4eb2ebff574ef7de7218"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -2299,9 +2322,9 @@ dependencies = [
 
 [[package]]
 name = "num-complex"
-version = "0.3.1"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "747d632c0c558b87dbabbe6a82f3b4ae03720d0646ac5b7b4dae89394be5f2c5"
+checksum = "26873667bbbb7c5182d4a37c1add32cdf09f841af72da53318fdb81543c15085"
 dependencies = [
  "num-traits",
 ]
@@ -2343,6 +2366,17 @@ name = "num-rational"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "12ac428b1cb17fce6f731001d307d351ec70a6d202fc2e60f7d4c5e42d8f4f07"
+dependencies = [
+ "autocfg",
+ "num-integer",
+ "num-traits",
+]
+
+[[package]]
+name = "num-rational"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d41702bd167c2df5520b384281bc111a4b5efcf7fbc4c9c222c815b07e0a6a6a"
 dependencies = [
  "autocfg",
  "num-integer",
@@ -2556,11 +2590,11 @@ dependencies = [
 
 [[package]]
 name = "parry2d"
-version = "0.4.2"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "31276ee11925c02e590cef1652318ed9d0333bd198abd59ccb7ab8d9a1c4dbb9"
+checksum = "75a1e78b7bed6dc97adc6750a041af8715f944d5fb65b29752403a385c86034d"
 dependencies = [
- "approx",
+ "approx 0.5.0",
  "arrayvec",
  "bitflags",
  "downcast-rs",
@@ -2758,11 +2792,11 @@ dependencies = [
 
 [[package]]
 name = "rapier2d"
-version = "0.8.0"
+version = "0.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb322518b8aa2310becccb346895fcc2206d226b5284b414b61328d516adfb4c"
+checksum = "6a7b0e545b614361987f6d5cdd5026111e37266fe673b74075afda1fe2c16af3"
 dependencies = [
- "approx",
+ "approx 0.5.0",
  "arrayvec",
  "bit-vec",
  "bitflags",
@@ -3070,11 +3104,11 @@ checksum = "7fdf1b9db47230893d76faad238fd6097fd6d6a9245cd7a4d90dbd639536bbd2"
 
 [[package]]
 name = "simba"
-version = "0.4.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5132a955559188f3d13c9ba831e77c802ddc8782783f050ed0c52f5988b95f4c"
+checksum = "8e82063457853d00243beda9952e910b82593e4b07ae9f721b9278a99a0d3d5c"
 dependencies = [
- "approx",
+ "approx 0.5.0",
  "num-complex",
  "num-traits",
  "paste",
@@ -3145,9 +3179,9 @@ dependencies = [
 
 [[package]]
 name = "spirv-std-macros"
-version = "0.4.0-alpha.8"
+version = "0.4.0-alpha.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "63a4cdbf70b55dfd68490edac0786ae8324710d4fdeb3697936b56da6438af06"
+checksum = "8b9b334f272ad19ae3e071b0d9d3ca275843c77b39f85e29d3908fa2fb6a7cb8"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -3158,9 +3192,9 @@ dependencies = [
 
 [[package]]
 name = "spirv-types"
-version = "0.4.0-alpha.8"
+version = "0.4.0-alpha.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cffd04779995c5d51af572e1ee6337eb59e253a2825de8775d81be798eeb79d3"
+checksum = "1cfb357212185d2175e5f92c35902f0dc7590cd05121239b22251d360ef01c53"
 
 [[package]]
 name = "standback"
@@ -3529,7 +3563,7 @@ version = "0.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "406232f6fe819cbaa5b04c5004deabb870346e83262d29e52970260fca3e5c3b"
 dependencies = [
- "approx",
+ "approx 0.4.0",
  "num-integer",
  "num-traits",
  "rustc_version",
