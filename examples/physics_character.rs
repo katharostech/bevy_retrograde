@@ -1,14 +1,10 @@
-//! Physics in Bevy Retrograde currently just leverages the heron crate for almost
-//! everything. The only difference is the use of the `TesselatedCollider` component that can be
-//! used to create a convex hull collision shape from a sprite image.
-
 use bevy::{core::FixedTimestep, prelude::*};
 use bevy_retrograde::prelude::*;
 
 fn main() {
     App::build()
         .insert_resource(WindowDescriptor {
-            title: "Bevy Retrograde Physics".into(),
+            title: "Bevy Retrograde Physics Character".into(),
             ..Default::default()
         })
         .add_plugins(RetroPlugins)
@@ -89,25 +85,31 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             transform: Transform::from_xyz(-50., -60., 0.),
             ..Default::default()
         })
-        .insert(TesselatedCollider {
-            image: triangle,
-            // For this obstacle we provide a custom configuration for the tesselator
-            tesselator_config: TesselatedColliderConfig {
-                // This points separation value sets the closest that any two tesselated vertices
-                // are allowed to be to each-other. In other words, the higher this value, the less
-                // acurate your collision box will be, but less compute expensive the collisions
-                // will be.
-                //
-                // By setting the separation to 0., the collision shape should be as close as
-                // possible to the actual pixel shape.
-                //
-                // The default value is 10.
-                points_separation: PointsSeparation::Constant(30.),
-                ..Default::default()
-            },
-            ..Default::default()
-        })
-        .insert(RigidBody::Static);
+        .insert(RigidBody::Static)
+        .with_children(|parent| {
+            parent.spawn().insert_bundle((
+                Transform::default(),
+                GlobalTransform::default(),
+                TesselatedCollider {
+                    image: triangle,
+                    // For this obstacle we provide a custom configuration for the tesselator
+                    tesselator_config: TesselatedColliderConfig {
+                        // This vertice separation value sets the closest that any two tesselated vertices
+                        // are allowed to be to each-other. In other words, the higher this value, the less
+                        // acurate your collision box will be, but less compute expensive the collisions
+                        // will be.
+                        //
+                        // By setting the separation to 0., the collision shape should be as close as
+                        // possible to the actual pixel shape.
+                        //
+                        // The default value is 10.
+                        vertice_separation: 30.,
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
+            ));
+        });
 
     // Spawn the player
     commands
@@ -124,7 +126,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             image: red_radish.clone(),
             tesselator_config: TesselatedColliderConfig {
                 // We want the collision shape for the player to be highly accurate
-                points_separation: PointsSeparation::Constant(0.),
+                vertice_separation: 0.,
                 ..Default::default()
             },
             ..Default::default()

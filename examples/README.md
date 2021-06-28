@@ -42,13 +42,21 @@ An example of how to use animated sprite sheets.
 
 [spritesheet]: ./spritesheet.rs
 
-### [physics]
+### [physics_character]
 
-An example demonstrating how to use the physics system to create collision boxes from sprites.
+An example demonstrating how to use the physics system to create collision boxes from sprites and how to do simple character movement.
 
-![physics](./screenshots/physics.gif)
+![physics_character](./screenshots/physics_character.gif)
 
-[physics]: ./collisions.rs
+[physics_character]: ./physics_character.rs
+
+### [physics_map]
+
+An example demonstrating how to create collision shapes for an LDtk map. 
+
+![physics_map](./screenshots/physics_map.gif)
+
+[physics_map]: ./physics_map.rs
 
 ### [text]
 

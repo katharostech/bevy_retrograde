@@ -17,10 +17,16 @@ categories = [
     "wasm"
 ]
 
+[features]
+default = []
+# Debug rendering does not work yet
+# debug = ["raqote"]
+
 [dependencies]
 bevy = { version = "0.5", default-features = false }
 bevy_retrograde_core = { version = "0.1", path = "../bevy_retrograde_core" }
-heron = { git = "https://github.com/katharostech/heron.git", branch = "ktech-patches", features = ["2d"], default-features = false }
+heron = { git = "https://github.com/katharostech/heron.git", branch = "feature/rounded-shapes", features = ["2d"], default-features = false }
 density-mesh-core = "1.5.0"
 density-mesh-image = "1.5.0"
 image = "0.23.14"
+# raqote = { version = "0.8.0", optional = true }
