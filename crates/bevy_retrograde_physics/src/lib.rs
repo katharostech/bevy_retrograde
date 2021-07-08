@@ -7,7 +7,9 @@ use bevy_retrograde_core::prelude::Color;
 use bevy_retrograde_core::prelude::Image;
 use density_mesh_core::prelude::GenerateDensityMeshSettings;
 use density_mesh_core::prelude::PointsSeparation;
-pub use heron::*;
+
+pub use heron::prelude::*;
+pub use heron;
 
 #[doc(hidden)]
 pub mod prelude {
