@@ -1,4 +1,4 @@
-//! The Bevy Retrograde text rendering plugin
+//! Bevy Retrograde text rendering plugin
 
 #![allow(clippy::type_complexity)]
 

@@ -35,7 +35,7 @@ pub enum RetroCoreStage {
 
 use crate::{graphics::*, prelude::*, renderer::*};
 
-/// The Bevy Retrograde Core plugin
+/// Bevy Retrograde Core plugin
 #[derive(Default)]
 pub struct RetroCorePlugin;
 
