@@ -82,10 +82,7 @@ impl RenderManager {
         let window_created_events = world.get_resource::<Events<WindowCreated>>().unwrap();
 
         // Loop through each window creation event
-        for window_created_event in self
-            .window_created_event_reader
-            .iter(window_created_events)
-        {
+        for window_created_event in self.window_created_event_reader.iter(window_created_events) {
             // Get the window that was created
             let window_id = window_created_event.id;
             let window = windows
@@ -164,10 +161,7 @@ impl RenderManager {
             .unwrap();
 
         // for every window resize event
-        for event in self
-            .window_resized_event_reader
-            .iter(window_resized_events)
-        {
+        for event in self.window_resized_event_reader.iter(window_resized_events) {
             let renderer = self.renderers.get_mut(&event.id).unwrap();
             renderer
                 .surface

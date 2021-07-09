@@ -1,4 +1,4 @@
-dev_features:="ldtk"
+dev_features:="ldtk,epaint"
 
 # List the justfile recipes
 list:

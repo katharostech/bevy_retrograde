@@ -210,6 +210,9 @@ impl bevy::app::PluginGroup for RetroPlugins {
         #[cfg(feature = "ldtk")]
         group.add(ldtk::LdtkPlugin);
 
+        #[cfg(feature = "epaint")]
+        group.add(epaint::RetroEpaintPlugin);
+
         #[cfg(feature = "text")]
         group.add(text::RetroTextPlugin);
 
@@ -239,6 +242,9 @@ pub mod prelude {
 
     #[cfg(feature = "ui")]
     pub use bevy_retrograde_ui::*;
+
+    #[cfg(feature = "epaint")]
+    pub use bevy_retrograde_epaint::prelude::*;
 
     #[cfg(feature = "physics")]
     pub use bevy_retrograde_physics::*;
@@ -270,3 +276,7 @@ pub use bevy_retrograde_ldtk as ldtk;
 #[cfg(feature = "ui")]
 #[doc(inline)]
 pub use bevy_retrograde_ui as ui;
+
+#[cfg(feature = "epaint")]
+#[doc(inline)]
+pub use bevy_retrograde_epaint as epaint;
