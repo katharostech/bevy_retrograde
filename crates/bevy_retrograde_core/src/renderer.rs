@@ -84,7 +84,7 @@ impl RenderManager {
         // Loop through each window creation event
         for window_created_event in self
             .window_created_event_reader
-            .iter(&window_created_events)
+            .iter(window_created_events)
         {
             // Get the window that was created
             let window_id = window_created_event.id;
@@ -166,7 +166,7 @@ impl RenderManager {
         // for every window resize event
         for event in self
             .window_resized_event_reader
-            .iter(&window_resized_events)
+            .iter(window_resized_events)
         {
             let renderer = self.renderers.get_mut(&event.id).unwrap();
             renderer

@@ -208,7 +208,7 @@ impl Renderer {
         let window_height = bevy_window.height();
 
         // Get the camera target sizes
-        let target_sizes = camera.get_target_sizes(&bevy_window);
+        let target_sizes = camera.get_target_sizes(bevy_window);
 
         // If the camera has a different custom shader, rebuild our screen shader program
         if camera.custom_shader != self.custom_shader {
@@ -230,7 +230,7 @@ impl Renderer {
         surface
             .new_pipeline_gate()
             .pipeline(
-                &staging_framebuffer,
+                staging_framebuffer,
                 &PipelineState::default().set_clear_color(color_to_array(camera.background_color)),
                 |_, _| Ok(()),
             )
@@ -289,7 +289,7 @@ impl Renderer {
                             surface,
                             texture_cache,
                             &frame_context,
-                            &staging_framebuffer,
+                            staging_framebuffer,
                             &batch_renderables,
                         );
 
@@ -311,7 +311,7 @@ impl Renderer {
                 surface,
                 texture_cache,
                 &frame_context,
-                &staging_framebuffer,
+                staging_framebuffer,
                 &batch_renderables,
             );
 
@@ -423,7 +423,7 @@ impl Renderer {
         *pending_textures = new_pending_textures;
 
         // for every image asset event
-        for event in image_asset_event_reader.iter(&image_asset_events) {
+        for event in image_asset_event_reader.iter(image_asset_events) {
             match event {
                 AssetEvent::Created { handle } => {
                     if let Some(image) = image_assets.get(handle) {

@@ -51,7 +51,7 @@ impl BevyInteractionsEngine {
 
         // Process cursor move events
         let cursor_moved_events = world.get_resource::<Events<CursorMoved>>().unwrap();
-        for event in self.cursor_moved_event_reader.iter(&cursor_moved_events) {
+        for event in self.cursor_moved_event_reader.iter(cursor_moved_events) {
             let window = windows.get(event.id).unwrap();
             let coords_mapping = CoordsMapping::new_scaling(
                 Rect {
@@ -80,7 +80,7 @@ impl BevyInteractionsEngine {
 
         // Process mouse button events
         let mouse_button_events = world.get_resource::<Events<MouseButtonInput>>().unwrap();
-        for event in self.mouse_button_event_reader.iter(&mouse_button_events) {
+        for event in self.mouse_button_event_reader.iter(mouse_button_events) {
             let button = match event.button {
                 bevy::prelude::MouseButton::Left => raui::prelude::PointerButton::Trigger,
                 bevy::prelude::MouseButton::Right => raui::prelude::PointerButton::Context,
@@ -99,7 +99,7 @@ impl BevyInteractionsEngine {
 
         // Process mouse scroll events
         let mouse_scroll_events = world.get_resource::<Events<MouseWheel>>().unwrap();
-        for event in self.mouse_scroll_event_reader.iter(&mouse_scroll_events) {
+        for event in self.mouse_scroll_event_reader.iter(mouse_scroll_events) {
             let multiplier = match event.unit {
                 bevy::input::mouse::MouseScrollUnit::Line => 10.,
                 bevy::input::mouse::MouseScrollUnit::Pixel => 1.,
@@ -120,7 +120,7 @@ impl BevyInteractionsEngine {
         let character_input_events = world.get_resource::<Events<ReceivedCharacter>>().unwrap();
         for event in self
             .character_input_event_reader
-            .iter(&character_input_events)
+            .iter(character_input_events)
         {
             if self.engine.focused_text_input().is_some() {
                 self.engine
@@ -132,7 +132,7 @@ impl BevyInteractionsEngine {
 
         // Process keyboard events
         let keyboard_events = world.get_resource::<Events<KeyboardInput>>().unwrap();
-        for event in self.keyboard_event_reader.iter(&keyboard_events) {
+        for event in self.keyboard_event_reader.iter(keyboard_events) {
             match event.state {
                 bevy::input::ElementState::Pressed => {
                     if self.engine.focused_text_input().is_some() {
