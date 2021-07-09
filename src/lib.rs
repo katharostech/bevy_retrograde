@@ -8,8 +8,8 @@
 //! create 2D games. Sprites and their coordinates are based on pixel positions in a
 //! retro-resolution scene.
 //!
-//! Bevy Retrograde replaces almost all of the out-of-the-box Bevy components and Bundles that you
-//! would normally use ( `Transform`, `Camera2DBundle`, etc. ) and comes with its own `Position`,
+//! Bevy Retrograde replaces many of the out of the out-of-the-box Bevy components and Bundles that
+//! you would normally use ( `SpriteBundle`, `Camera2DBundle`, etc. ) and comes with its own
 //! `Camera`, `Image`, `Sprite`, etc. components and bundles. Bevy Retrograde tries to provide a
 //! focused 2D-centric experience on top of Bevy that helps take out some of the pitfalls and makes
 //! it easier to think about your game when all you need is 2D.
@@ -186,7 +186,7 @@
 //! }
 //! ```
 
-/// The Bevy Retrograde default plugins
+/// Bevy Retrograde default plugins
 pub struct RetroPlugins;
 
 impl bevy::app::PluginGroup for RetroPlugins {
@@ -210,6 +210,9 @@ impl bevy::app::PluginGroup for RetroPlugins {
         #[cfg(feature = "ldtk")]
         group.add(ldtk::LdtkPlugin);
 
+        #[cfg(feature = "epaint")]
+        group.add(epaint::RetroEpaintPlugin);
+
         #[cfg(feature = "text")]
         group.add(text::RetroTextPlugin);
 
@@ -221,7 +224,7 @@ impl bevy::app::PluginGroup for RetroPlugins {
     }
 }
 
-/// The Bevy Retrograde prelude
+/// Bevy Retrograde prelude
 #[doc(hidden)]
 pub mod prelude {
     pub use crate::*;
@@ -239,6 +242,9 @@ pub mod prelude {
 
     #[cfg(feature = "ui")]
     pub use bevy_retrograde_ui::*;
+
+    #[cfg(feature = "epaint")]
+    pub use bevy_retrograde_epaint::prelude::*;
 
     #[cfg(feature = "physics")]
     pub use bevy_retrograde_physics::*;
@@ -270,3 +276,7 @@ pub use bevy_retrograde_ldtk as ldtk;
 #[cfg(feature = "ui")]
 #[doc(inline)]
 pub use bevy_retrograde_ui as ui;
+
+#[cfg(feature = "epaint")]
+#[doc(inline)]
+pub use bevy_retrograde_epaint as epaint;

@@ -18,7 +18,7 @@ Bevy Retrograde is a 2D, pixel-perfect renderer for [Bevy][__link0] that can tar
 
 Bevy Retrograde is focused on providing an easy and ergonomic way to write 2D, pixel-perfect games. Compared to the out-of-the-box Bevy setup, you do not have to work with a 3D scene to create 2D games. Sprites and their coordinates are based on pixel positions in a retro-resolution scene.
 
-Bevy Retrograde replaces almost all of the out-of-the-box Bevy components and Bundles that you would normally use ( `Transform`, `Camera2DBundle`, etc. ) and comes with its own `Position`, `Camera`, `Image`, `Sprite`, etc. components and bundles. Bevy Retrograde tries to provide a focused 2D-centric experience on top of Bevy that helps take out some of the pitfalls and makes it easier to think about your game when all you need is 2D.
+Bevy Retrograde replaces many of the out of the out-of-the-box Bevy components and Bundles that you would normally use ( `SpriteBundle`, `Camera2DBundle`, etc. ) and comes with its own `Camera`, `Image`, `Sprite`, etc. components and bundles. Bevy Retrograde tries to provide a focused 2D-centric experience on top of Bevy that helps take out some of the pitfalls and makes it easier to think about your game when all you need is 2D.
 
 We want to provide a batteries-included plugin that comes with almost everything you need to make a 2D pixel game with Bevy including, collisions, sound, saving data, etc. While adding these features we will try to maintain full web compatibility, but it can’t be guaranteed that all features will be feasible to implement for web.
 

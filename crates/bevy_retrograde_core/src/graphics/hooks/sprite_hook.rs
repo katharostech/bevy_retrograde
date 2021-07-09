@@ -190,7 +190,7 @@ impl RenderHook for SpriteHook {
             .new_pipeline_gate()
             .pipeline(
                 // Render to the scene framebuffer
-                &target_framebuffer,
+                target_framebuffer,
                 &PipelineState::default()
                     .enable_clear_color(false)
                     .enable_clear_depth(false),
@@ -308,7 +308,7 @@ impl RenderHook for SpriteHook {
                                 }
 
                                 // Render the sprite
-                                render_gate.render(&render_state, |mut tess_gate| {
+                                render_gate.render(render_state, |mut tess_gate| {
                                     tess_gate.render(&*sprite_tess)
                                 })?;
                             }

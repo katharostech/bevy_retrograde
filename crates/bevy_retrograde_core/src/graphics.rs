@@ -69,7 +69,7 @@ pub trait RenderHook {
         vec![]
     }
 
-    /// This function is called after [`prepare_low_res`][`RenderHook::prepare_low_res`] is called, possibly multiple times, once
+    /// This function is called after [`prepare_low_res`][`RenderHook::prepare`] is called, possibly multiple times, once
     /// for every batch of renderables that are grouped after depth sorting with all the other
     /// renderables produced by other render hookds. It is passed a framebuffer and a list of
     /// renderables that should be rendered by this hook in this pass.

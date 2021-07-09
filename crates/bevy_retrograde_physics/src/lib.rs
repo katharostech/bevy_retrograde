@@ -1,4 +1,4 @@
-//! The Bevy Retrograde text rendering plugin
+//! Bevy Retrograde physics plugin
 
 use bevy::{ecs::component::ComponentDescriptor, prelude::*};
 #[cfg(feature = "debug")]
@@ -7,7 +7,9 @@ use bevy_retrograde_core::prelude::Color;
 use bevy_retrograde_core::prelude::Image;
 use density_mesh_core::prelude::GenerateDensityMeshSettings;
 use density_mesh_core::prelude::PointsSeparation;
-pub use heron::*;
+
+pub use heron;
+pub use heron::prelude::*;
 
 #[doc(hidden)]
 pub mod prelude {
@@ -49,7 +51,7 @@ impl Plugin for RetroPhysicsPlugin {
     }
 }
 
-/// Create a convex hull [`ColliderShape`] from a sprite image based on it's alpha channel
+/// Create a convex hull [`CollisionShape`] from a sprite image based on it's alpha channel
 ///
 /// Returns [`None`] if a mesh for the given image could not be generated
 pub fn create_convex_collider(
@@ -155,7 +157,7 @@ impl Default for TesselatedColliderConfig {
     }
 }
 
-/// A component used to automatically add a [`ColliderBundle`] to an entity that is generated
+/// A component used to automatically add a [`CollisionShape`] to an entity that is generated
 /// automatically by tesselating [`Image`] collision shape based on it's alpha channel
 #[derive(Default)]
 pub struct TesselatedCollider {

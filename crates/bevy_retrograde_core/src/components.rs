@@ -55,7 +55,7 @@ pub struct Camera {
     /// The size of the camera along the fixed axis, which is by default the vertical axis
     pub size: CameraSize,
     /// Whether the camera should be centered about it's position. Defaults to `true`. If set to
-    /// false `false`, the top-left corner of the camera will be at its [`Position`].
+    /// false `false`, the top-left corner of the camera will be at its [`Transform`].
     pub centered: bool,
     /// The background color of the camera
     ///

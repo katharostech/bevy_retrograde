@@ -18,7 +18,7 @@ cargo run --example ui
 ```
 
 When running the web examples it will try to use [`basic-http-server`] to host the example on port
-http://localhost:4000. You can install [`basic-http-server`] or you can modify the justfile to use
+<http://localhost:4000>. You can install [`basic-http-server`] or you can modify the justfile to use
 whatever your favorite development http server is.
 
 [just]: https://github.com/casey/just
@@ -44,7 +44,8 @@ An example of how to use animated sprite sheets.
 
 ### [physics_character]
 
-An example demonstrating how to use the physics system to create collision boxes from sprites and how to do simple character movement.
+An example demonstrating how to use the physics system to create collision boxes from sprites and
+how to do simple character movement.
 
 ![physics_character](./screenshots/physics_character.gif)
 
@@ -52,7 +53,7 @@ An example demonstrating how to use the physics system to create collision boxes
 
 ### [physics_map]
 
-An example demonstrating how to create collision shapes for an LDtk map. 
+An example demonstrating how to create collision shapes for an LDtk map.
 
 ![physics_map](./screenshots/physics_map.gif)
 
@@ -62,7 +63,10 @@ An example demonstrating how to create collision shapes for an LDtk map.
 
 An example showing how to render text using BDF font files.
 
-> **Note:** This example shows how to render text, _without_ using the UI system, by creating text entities. This doesn't allow you to do any sort of layout other than positioning the text in the scene like you would any sprite. See the UI example below to see how to use the UI system to render text.
+> **Note:** This example shows how to render text, _without_ using the UI system, by creating text
+> entities. This doesn't allow you to do any sort of layout other than positioning the text in the
+> scene like you would any sprite. See the UI example below to see how to use the UI system to
+> render text.
 
 ![text](./screenshots/text.png)
 
@@ -78,7 +82,9 @@ An example showing you how to load and display an LDtk map file.
 
 ### [ui]
 
-An example demonstrating the [RAUI] UI integration. It shows how to create UI elements that can resize with the screen and how to create theme-able buttons and interact with the ECS world from the UI.
+An example demonstrating the [RAUI] UI integration. It shows how to create UI elements that can
+resize with the screen and how to create theme-able buttons and interact with the ECS world from the
+UI.
 
 [raui]: https://raui-labs.github.io/raui/
 
@@ -94,16 +100,27 @@ An example demonstrating how to play sounds and play music on loop.
 
 ### [post_processing]
 
-An example demonstrating how to add post-processing, using either the built-in CRT or your own custom shaders.
+An example demonstrating how to add post-processing, using either the built-in CRT or your own
+custom shaders.
 
 ![post_processing](./screenshots/post_processing.png)
 
 [post_processing]: ./post_processing.rs
 
+### [epaint]
+
+An example demonstrating how to use the [`epaint`](https://docs.rs/epaint) integration to draw
+simple shapes for debug rendering.
+
+![epaint](./screenshots/epaint.png)
+
+[epaint]: ./epaint.rs
+
 ### [custom_rendering]
 
 An advanced example that shows how to do fully custom rendering of your own objects. This utilizes
-raw calls to the [Luminance] graphics API allowing you to render _any_ kind of object, even 3D if you wanted to.
+raw calls to the [Luminance] graphics API allowing you to render _any_ kind of object, even 3D if
+you wanted to.
 
 ![custom_rendering](./screenshots/custom_rendering.gif)
 
@@ -112,7 +129,8 @@ raw calls to the [Luminance] graphics API allowing you to render _any_ kind of o
 
 ### [radishmark]
 
-A bunnymark style benchmark that also demonstrates how to use the UI system to render frames-per-second diagnostics.
+A bunnymark style benchmark that also demonstrates how to use the UI system to render
+frames-per-second diagnostics.
 
 ![radishmark](./screenshots/radishmark.gif)
 

@@ -51,7 +51,7 @@ fn get_handle_sound_events_system() -> impl FnMut(&mut World) {
                 }
             }
             SoundEvent::PlaySound(sound, settings) => {
-                if let Some(sound_handle) = sound_to_handle_map.get_mut(&sound) {
+                if let Some(sound_handle) = sound_to_handle_map.get_mut(sound) {
                     sound_handle.play(*settings).unwrap();
                     true
                 } else {
@@ -59,7 +59,7 @@ fn get_handle_sound_events_system() -> impl FnMut(&mut World) {
                 }
             }
             SoundEvent::PauseSound(sound, settings) => {
-                if let Some(sound_handle) = sound_to_handle_map.get_mut(&sound) {
+                if let Some(sound_handle) = sound_to_handle_map.get_mut(sound) {
                     sound_handle.pause(*settings).unwrap();
                     true
                 } else {
@@ -67,7 +67,7 @@ fn get_handle_sound_events_system() -> impl FnMut(&mut World) {
                 }
             }
             SoundEvent::ResumeSound(sound, settings) => {
-                if let Some(sound_handle) = sound_to_handle_map.get_mut(&sound) {
+                if let Some(sound_handle) = sound_to_handle_map.get_mut(sound) {
                     sound_handle.resume(*settings).unwrap();
                     true
                 } else {
@@ -75,7 +75,7 @@ fn get_handle_sound_events_system() -> impl FnMut(&mut World) {
                 }
             }
             SoundEvent::StopSound(sound, settings) => {
-                if let Some(sound_handle) = sound_to_handle_map.get_mut(&sound) {
+                if let Some(sound_handle) = sound_to_handle_map.get_mut(sound) {
                     sound_handle.stop(*settings).unwrap();
                     true
                 } else {

@@ -1,3 +1,5 @@
+//! Bevy Retrograde UI plugin
+
 use bevy::prelude::*;
 
 use bevy_retrograde_core::prelude::AppBuilderRenderHookExt;

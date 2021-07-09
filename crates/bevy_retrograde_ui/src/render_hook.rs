@@ -194,9 +194,9 @@ impl RenderHook for UiRenderHook {
                     &image_sizes,
                 )
                 .render(
-                    &self.app.rendered_tree(),
+                    self.app.rendered_tree(),
                     &coords_mapping,
-                    &self.app.layout_data(),
+                    self.app.layout_data(),
                 )
                 .expect("Could not tesselate UI");
 
@@ -404,7 +404,7 @@ impl RenderHook for UiRenderHook {
             .new_pipeline_gate()
             .pipeline(
                 // Render to the scene framebuffer
-                &target_framebuffer,
+                target_framebuffer,
                 &PipelineState::default().enable_clear_color(false),
                 |pipeline, mut shading_gate| {
                     shading_gate.shade(
