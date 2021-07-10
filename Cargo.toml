@@ -61,8 +61,19 @@ debug = 0
 [profile.release]
 lto = true
 
-# Add LDtk example explicitly so we can say it requires the ldtk feature
+# Add some examples explicitly so we can say they requires the extra `ldtk`
+# or `epaint` features.
 [[example]]
 name = "ldtk_map"
 path = "examples/ldtk_map.rs"
 required-features = ["ldtk"]
+
+[[example]]
+name = "physics_map"
+path = "examples/physics_map.rs"
+required-features = ["ldtk"]
+
+[[example]]
+name = "epaint"
+path = "examples/epaint.rs"
+required-features = ["epaint"]
