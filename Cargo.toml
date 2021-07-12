@@ -58,9 +58,6 @@ rand = "0.8.3"
 opt-level = 1
 debug = 0
 
-[profile.release]
-lto = true
-
 # Add some examples explicitly so we can say they requires the extra `ldtk`
 # or `epaint` features.
 [[example]]
