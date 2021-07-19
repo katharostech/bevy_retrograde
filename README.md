@@ -66,7 +66,7 @@ When depending on the `bevy` crate, you must be sure to set `default-features` t
 
 ```toml
 bevy = { version = "0.5", default-features = false }
-bevy_retrograde = "0.1.0"
+bevy_retrograde = "0.2.0"
 ```
 
 

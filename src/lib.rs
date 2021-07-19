@@ -94,7 +94,7 @@
 //! # Be sure to turn off the default features of Bevy to avoid conflicts with the
 //! # Bevy Retrograde renderer types.
 //! bevy = { version = "0.5", default-features = false }
-//! bevy_retrograde = "0.1.0"
+//! bevy_retrograde = "0.2.0"
 //! ```
 //! # Sample
 //!

@@ -3,7 +3,6 @@
 use bevy::{ecs::component::ComponentDescriptor, prelude::*};
 #[cfg(feature = "debug")]
 use bevy_retrograde_core::prelude::AppBuilderRenderHookExt;
-use bevy_retrograde_core::prelude::Color;
 use bevy_retrograde_core::prelude::Image;
 use density_mesh_core::prelude::GenerateDensityMeshSettings;
 use density_mesh_core::prelude::PointsSeparation;
@@ -24,12 +23,16 @@ use render_hook::PhysicsDebugRenderHook;
 /// Physics plugin for Bevy Retrograde
 pub struct RetroPhysicsPlugin;
 
+#[cfg(feature = "debug")]
+use bevy_retrograde_core::prelude::Color;
+#[cfg(feature = "debug")]
 #[derive(Clone, Debug)]
 pub enum PhysicsDebugRendering {
     Disabled,
     Enabled { color: Color },
 }
 
+#[cfg(feature = "debug")]
 impl Default for PhysicsDebugRendering {
     fn default() -> Self {
         Self::Disabled
@@ -38,11 +41,11 @@ impl Default for PhysicsDebugRendering {
 
 impl Plugin for RetroPhysicsPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_plugin(PhysicsPlugin::default())
-            .init_resource::<PhysicsDebugRendering>();
+        app.add_plugin(PhysicsPlugin::default());
 
         #[cfg(feature = "debug")]
-        app.add_render_hook::<PhysicsDebugRenderHook>();
+        app.add_render_hook::<PhysicsDebugRenderHook>()
+            .init_resource::<PhysicsDebugRendering>();
 
         app.register_component(ComponentDescriptor::new::<TesselatedColliderHasLoaded>(
             bevy::ecs::component::StorageType::SparseSet,

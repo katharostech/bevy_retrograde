@@ -1,6 +1,6 @@
 [package]
 name = "bevy_retrograde_epaint"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Katharos Technology LLC"]
 edition = "2018"
 
@@ -19,6 +19,6 @@ categories = [
 
 [dependencies]
 bevy = { version = "0.5", features = ["bevy_winit"], default-features = false }
-bevy_retrograde_core = { version = "0.1", path = "../bevy_retrograde_core" }
-bevy_retrograde_macros = { version = "0.1", path = "../bevy_retrograde_macros" }
+bevy_retrograde_core = { version = "0.2", path = "../bevy_retrograde_core" }
+bevy_retrograde_macros = { version = "0.2", path = "../bevy_retrograde_macros" }
 epaint = "0.13.0"
