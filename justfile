@@ -32,13 +32,15 @@ doc *args:
 # Publish all of the crates
 publish confirm="":
     @if [ "{{confirm}}" = "yes I'm sure" ]; then \
-        cd crates/bevy_retrograde_macros && cargo publish && cd ../../ && \
-        cd crates/bevy_retrograde_core && cargo publish && cd ../../ && \
-        cd crates/bevy_retrograde_audio && cargo publish && cd ../../ && \
-        cd crates/bevy_retrograde_text && cargo publish && cd ../../ && \
-        cd crates/bevy_retrograde_ui && cargo publish && cd ../../ && \
-        cd crates/bevy_retrograde_ldtk && cargo publish && cd ../../ && \
-        cargo publish; \
+        cd crates/bevy_retrograde_macros && cargo publish --no-verify && cd ../../ && \
+        cd crates/bevy_retrograde_core && cargo publish --no-verify && cd ../../ && \
+        cd crates/bevy_retrograde_physics && cargo publish --no-verify && cd ../../ && \
+        cd crates/bevy_retrograde_epaint && cargo publish --no-verify && cd ../../ && \
+        cd crates/bevy_retrograde_audio && cargo publish --no-verify && cd ../../ && \
+        cd crates/bevy_retrograde_text && cargo publish --no-verify && cd ../../ && \
+        cd crates/bevy_retrograde_ui && cargo publish --no-verify && cd ../../ && \
+        cd crates/bevy_retrograde_ldtk && cargo publish --no-verify && cd ../../ && \
+        cargo publish --no-verify; \
     else \
         echo "You must provide argument 'yes I'm sure'"; \
     fi
