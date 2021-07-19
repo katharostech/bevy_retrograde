@@ -521,7 +521,7 @@ version = "0.2.0"
 
 [[package]]
 name = "bevy_retrograde_physics"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "bevy",
  "bevy_retrograde_core",
@@ -1599,9 +1599,9 @@ dependencies = [
 
 [[package]]
 name = "heron"
-version = "0.10.1"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a9ee8ef1ef98114eb27d3534cc910902232a5abaaa14893317575891119dfe48"
+checksum = "f82f36ae10549fe8505e30ffa90c1a125cdc96e642b629d47321e92158fecdae"
 dependencies = [
  "bevy",
  "cfg_aliases",
@@ -1612,9 +1612,9 @@ dependencies = [
 
 [[package]]
 name = "heron_core"
-version = "0.10.1"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c60840ee87f81b3dbea5b4461d48b51a3611cc0355ce9faf3ff7cb54ce15baf"
+checksum = "bc10eba00b39f2926bf2ec3c5eb6bb71b9ed0373b0ff82df006e1c97c6c2150f"
 dependencies = [
  "bevy",
  "duplicate",
@@ -1622,9 +1622,9 @@ dependencies = [
 
 [[package]]
 name = "heron_macros"
-version = "0.10.1"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42c0927dddbba0571c826a5507d1bedea2875080d0329331c098d3dd46a2e1af"
+checksum = "88952fde3d8d6a2bfa189475f9e33b5ee181abdc010c14bd4077c8e79c7d8013"
 dependencies = [
  "heron_core",
  "quote",
@@ -1633,9 +1633,9 @@ dependencies = [
 
 [[package]]
 name = "heron_rapier"
-version = "0.10.1"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bfb1c7faa2c07dcbafd88931f111fb5e7decb40409233c5a078a4efd6b9de476"
+checksum = "2bc14014f432b69e685248c2e277aad8d0a1fb9aee7ff516b33708dcfbb9db6c"
 dependencies = [
  "bevy",
  "cfg_aliases",
