@@ -168,10 +168,6 @@ fn move_player(keyboard_input: Res<Input<KeyCode>>, mut query: Query<&mut Veloci
             direction += Vec3::new(0., SPEED, 0.);
         }
 
-        if direction.length() > f32::EPSILON {
-            *velocity = Velocity::from_linear(direction);
-        } else {
-            *velocity = Velocity::from_linear(direction);
-        }
+        *velocity = Velocity::from_linear(direction);
     }
 }
