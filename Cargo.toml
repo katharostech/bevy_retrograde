@@ -24,14 +24,6 @@ exclude = [
 
 [workspace]
 members = ["crates/*"]
-exclude = [
-    "crates/bevy_retrograde_physics",
-    "crates/bevy_retrograde_epaint",
-    "crates/bevy_retrograde_ldtk",
-    "crates/bevy_retrograde_text",
-    "crates/bevy_retrograde_ui",
-    "crates/bevy_retrograde_audio",
-]
 
 [features]
 default = [
@@ -45,10 +37,9 @@ default = [
 audio = ["bevy_retrograde_audio"]
 text = ["bevy_retrograde_text"]
 # ui = ["bevy_retrograde_ui"]
-# epaint = ["bevy_retrograde_epaint"]
 physics = ["bevy_retrograde_physics"]
 
-# ldtk = ["bevy_retrograde_ldtk"]
+ldtk = ["bevy_retrograde_ldtk"]
 
 [dependencies.bevy]
 git = "https://github.com/katharostech/bevy"
@@ -64,7 +55,7 @@ features = [
 [dependencies]
 bevy_retrograde_macros = { version = "0.2", path = "crates/bevy_retrograde_macros" }
 bevy_retrograde_audio = { version = "0.2", path = "crates/bevy_retrograde_audio", optional = true }
-# bevy_retrograde_ldtk = { version = "0.2", path = "crates/bevy_retrograde_ldtk", optional = true }
+bevy_retrograde_ldtk = { version = "0.2", path = "crates/bevy_retrograde_ldtk", optional = true }
 bevy_retrograde_text = { version = "0.2", path = "crates/bevy_retrograde_text", optional = true }
 # bevy_retrograde_ui = { version = "0.2", path = "crates/bevy_retrograde_ui", optional = true }
 bevy_retrograde_physics = { version = "0.2", path = "crates/bevy_retrograde_physics", optional = true }
@@ -72,9 +63,10 @@ bevy_retrograde_physics = { version = "0.2", path = "crates/bevy_retrograde_phys
 [dev-dependencies]
 hex = "0.4.3"
 rand = "0.8.3"
+image = "0.23.14"
 
 [profile.dev]
-opt-level = 1
+opt-level = 2
 debug = 0
 
 # Add some examples explicitly so we can say they requires the extra `ldtk`
@@ -82,14 +74,12 @@ debug = 0
 [[example]]
 name = "ldtk_map"
 path = "examples/ldtk_map.rs"
-# required-features = ["ldtk"]
+required-features = ["ldtk"]
 
 [[example]]
 name = "physics_map"
 path = "examples/physics_map.rs"
-# required-features = ["ldtk"]
+required-features = ["ldtk"]
 
-[[example]]
-name = "epaint"
-path = "examples/epaint.rs"
-# required-features = ["epaint"]
+[patch.'https://github.com/katharostech/bevy']
+bevy = { path = "../../other/bevy" }

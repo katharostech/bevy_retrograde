@@ -2,9 +2,10 @@ use bevy::{
     asset::{AssetLoader, AssetPath, LoadContext, LoadedAsset},
     prelude::*,
     reflect::TypeUuid,
+    render2::texture::Image,
+    sprite2::TextureAtlas,
     utils::{BoxedFuture, HashMap},
 };
-use bevy_retrograde_core::assets::Image;
 
 /// An LDtk map asset
 #[derive(TypeUuid)]
@@ -12,12 +13,12 @@ use bevy_retrograde_core::assets::Image;
 pub struct LdtkMap {
     /// The full project structure for the LDtk map
     pub project: ldtk::Project,
-    /// A mapping of Tileset identifiers to their texture handles
-    pub tile_sets: HashMap<String, Handle<Image>>,
+    // /// A mapping of Tileset uids to their texture handles
+    pub texture_atlases: HashMap<i32, Handle<TextureAtlas>>,
 }
 
 /// Add asset types and asset loader to the app builder
-pub(crate) fn add_assets(app: &mut AppBuilder) {
+pub(crate) fn add_assets(app: &mut App) {
     app.add_asset::<LdtkMap>()
         .init_asset_loader::<LdtkMapLoader>();
 }
@@ -60,7 +61,7 @@ async fn load_ldtk<'a, 'b>(
     // Create a map asset
     let mut map = LdtkMap {
         project,
-        tile_sets: Default::default(),
+        texture_atlases: Default::default(),
     };
 
     // Create our dependency list
@@ -74,17 +75,35 @@ async fn load_ldtk<'a, 'b>(
             .parent()
             .unwrap()
             .join(&tileset.rel_path);
-        let asset_path = AssetPath::new(file_path.clone(), None);
+        let tileset_image_asset_path = AssetPath::new(file_path.clone(), None);
 
         // Add asset to our dependencies list to make sure it is loaded by the asset
         // server when our map is.
-        dependencies.push(asset_path.clone());
+        dependencies.push(tileset_image_asset_path.clone());
 
         // Obtain a handle to the tileset image asset
-        let handle: Handle<Image> = load_context.get_handle(asset_path.clone());
+        let handle: Handle<Image> = load_context.get_handle(tileset_image_asset_path.clone());
 
-        // Add the tileset handle to the map asset
-        map.tile_sets.insert(tileset.identifier.clone(), handle);
+        // Create a new texture atlas
+        let texture_atlas = TextureAtlas::from_grid(
+            handle,
+            IVec2::new(
+                tileset.px_wid / tileset.__c_wid,
+                tileset.px_hei / tileset.__c_hei,
+            )
+            .as_f32(),
+            tileset.__c_wid as usize,
+            tileset.__c_hei as usize,
+        );
+
+        // Add the tileset as a labled asset
+        let atlas_uid = tileset.uid;
+        let atlas_handle = load_context.set_labeled_asset(
+            &format!("atlas_{}", atlas_uid),
+            LoadedAsset::new(texture_atlas).with_dependency(tileset_image_asset_path),
+        );
+
+        map.texture_atlases.insert(atlas_uid, atlas_handle);
     }
 
     // Set the loaded map as the default asset for this file

@@ -19,8 +19,7 @@ categories = [
 default = []
 
 [dependencies]
-bevy = "0.5"
-bevy_retrograde_core = { version = "0.2", path = "../bevy_retrograde_core" }
+bevy = { git = "https://github.com/katharostech/bevy", branch = "bevy_retrograde_0.3", default-features = false }
 ldtk = { version = "0.4", features = ["ldtk-v0-9-3"] }
 anyhow = "1.0.37"
 serde_json = "1.0.61"

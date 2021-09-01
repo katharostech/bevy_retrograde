@@ -29,21 +29,20 @@ use bevy::prelude::*;
 
 mod asset;
 mod components;
-mod system;
+mod systems;
 
 pub use asset::*;
 pub use components::*;
-
-use system::add_systems;
+use systems::*;
 
 /// Bevy plugin that adds support for loading LDtk tile maps
 #[derive(Default)]
 pub struct LdtkPlugin;
 
 impl Plugin for LdtkPlugin {
-    fn build(&self, app: &mut AppBuilder) {
-        // Add asssets, systems, and graphics pipeline
+    fn build(&self, app: &mut App) {
         add_assets(app);
+        
         add_systems(app);
     }
 }

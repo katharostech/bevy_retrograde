@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use ldtk::LayerInstance;
 
 use crate::asset::LdtkMap;
 
@@ -14,9 +13,9 @@ pub struct LdtkMapBundle {
     pub global_transform: GlobalTransform,
 }
 
-/// Component added to spawned map layers
-pub struct LdtkMapLayer {
+/// Component added to each tile sprite spawned when loading the map
+pub struct LdtkMapTile {
     pub map: Handle<LdtkMap>,
-    pub level_identifier: String,
-    pub layer_instance: LayerInstance,
+    pub level_uid: i32,
+    pub layer_instance_index: usize,
 }

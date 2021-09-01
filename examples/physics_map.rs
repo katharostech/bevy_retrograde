@@ -2,15 +2,20 @@
 //! everything. The only difference is the use of the `TesselatedCollider` component that can be
 //! used to create a convex hull collision shape from a sprite image.
 
-use bevy_retrograde::core::image::DynamicImage;
-
-use bevy_retrograde::core::image::GenericImageView;
-
-use bevy::{core::FixedTimestep, prelude::*};
+use bevy::{
+    prelude::*,
+    render2::{
+        camera::{DepthCalculation, OrthographicCameraBundle, OrthographicProjection, ScalingMode},
+        texture::Image,
+    },
+    sprite2::{PipelinedSpriteBundle, TextureAtlas, TextureAtlasSprite},
+};
 use bevy_retrograde::prelude::*;
 
+use image::GenericImageView;
+
 fn main() {
-    App::build()
+    App::new()
         .insert_resource(WindowDescriptor {
             title: "Bevy Retrograde Physics Map".into(),
             ..Default::default()
@@ -18,27 +23,24 @@ fn main() {
         .add_plugins(RetroPlugins)
         .add_startup_system(setup.system())
         .add_system(update_map_collisions.system())
-        .add_stage(
-            "game_stage",
-            SystemStage::parallel().with_run_criteria(FixedTimestep::step(0.015)),
-        )
         .run();
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     asset_server.watch_for_changes().unwrap();
 
-    commands.insert_resource(Gravity::from(Vec3::new(0., 9.8 * 16., 0.)));
+    commands.insert_resource(Gravity::from(Vec3::new(0., -9.8 * 16., 0.)));
 
     // Spawn the camera
-    commands.spawn_bundle(RetroCameraBundle {
-        camera: RetroCamera {
-            size: CameraSize::FixedHeight(160),
-            background_color: Color::new(0.2, 0.2, 0.2, 1.0),
+    const CAMERA_HEIGHT: f32 = 160.0;
+    commands.spawn_bundle(OrthographicCameraBundle {
+        orthographic_projection: OrthographicProjection {
+            scale: CAMERA_HEIGHT / 2.0,
+            scaling_mode: ScalingMode::FixedVertical,
+            depth_calculation: DepthCalculation::ZDifference,
             ..Default::default()
         },
-        transform: Transform::from_xyz(0., 0., 0.),
-        ..Default::default()
+        ..OrthographicCameraBundle::new_2d()
     });
 
     // Spawn the map
@@ -58,17 +60,13 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         for x in -10..=10 {
             let sprite_image = radish_images[((x as i32).abs() % 3) as usize].clone();
             commands
-                .spawn_bundle(SpriteBundle {
-                    image: sprite_image.clone(),
-                    sprite: Sprite {
-                        pixel_perfect: false,
-                        ..Default::default()
-                    },
-                    transform: Transform::from_xyz(x as f32 * 12., -80. - y as f32 * 20., 0.),
+                .spawn_bundle(PipelinedSpriteBundle {
+                    texture: sprite_image.clone(),
+                    transform: Transform::from_xyz(x as f32 * 12., 80. + y as f32 * 20., 0.),
                     ..Default::default()
                 })
                 .insert(TesselatedCollider {
-                    image: sprite_image,
+                    texture: sprite_image,
                     tesselator_config: TesselatedColliderConfig {
                         // We want the collision shape for the player to be highly accurate
                         vertice_separation: 0.,
@@ -76,12 +74,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                     },
                     ..Default::default()
                 })
-                // The player is also a dynamic body with rotations locked
+                // The player is also a dynamic body
                 .insert(RigidBody::Dynamic)
-                // WARNING: Rotations are not rendered in Bevy Retrograde yet, so if you don't lock the
-                // rotation of dynamic bodies, the sprite will _look_ un-rotated, but the physics engine
-                // will calculate it like it _is_ rotated.
-                .insert(RotationConstraints::lock())
                 // Disable friction and bounciness
                 .insert(PhysicMaterial {
                     friction: 0.2,
@@ -95,69 +89,89 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     }
 }
 
-struct MapLayerLoaded;
+struct MapTileLoaded;
+
 /// This system will go through each layer in spawned maps and generate a collision shape for each tile
 fn update_map_collisions(
     mut commands: Commands,
-    map_layers: Query<(Entity, &LdtkMapLayer, &Handle<Image>), Without<MapLayerLoaded>>,
+    map_tiles: Query<
+        (Entity, &Handle<TextureAtlas>, &TextureAtlasSprite),
+        (Without<MapTileLoaded>, With<LdtkMapTile>),
+    >,
+    texture_atlas_assets: Res<Assets<TextureAtlas>>,
     image_assets: Res<Assets<Image>>,
 ) {
-    for (layer_ent, map_layer, image_handle) in map_layers.iter() {
-        // ( which should be fixed eventually by rust-analyzer )
-        let map_layer: &LdtkMapLayer = map_layer;
-
-        let image = if let Some(image) = image_assets.get(image_handle) {
+    for (tile_ent, atlas_handle, sprite) in map_tiles.iter() {
+        // Get the texture atlas
+        let atlas = if let Some(atlas) = texture_atlas_assets.get(atlas_handle) {
+            atlas
+        } else {
+            continue;
+        };
+        // Get the texture atlas image
+        let image = if let Some(image) = image_assets.get(&atlas.texture) {
             image
         } else {
             continue;
         };
 
-        // Get the tile size of the map
-        let tile_size = map_layer.layer_instance.__grid_size as u32;
+        let mut tile_commands = commands.entity(tile_ent);
 
-        let mut layer_commands = commands.entity(layer_ent);
+        // Create an image reference to the raw texture data
+        let image_ref = image::flat::FlatSamples {
+            samples: image.data.as_slice(),
+            layout: image::flat::SampleLayout::row_major_packed(
+                4,
+                image.texture_descriptor.size.width,
+                image.texture_descriptor.size.height,
+            ),
+            color_hint: Some(image::ColorType::Rgba8),
+        };
+        let image_view = image_ref.as_view().unwrap();
 
-        // For every tile grid
-        for tile_x in 0u32..map_layer.layer_instance.__c_wid as u32 {
-            for tile_y in 0u32..map_layer.layer_instance.__c_hei as u32 {
-                // Get the tile image
-                let tile_img = image
-                    .view(tile_x * tile_size, tile_y * tile_size, tile_size, tile_size)
-                    .to_image();
+        // Get the section of the texture atlas for this tile in the map
+        let rect = atlas.textures.get(sprite.index as usize).unwrap();
 
-                // Try to generate a convex collision mesh from the tile
-                let mesh = create_convex_collider(
-                    DynamicImage::ImageRgba8(tile_img),
-                    &TesselatedColliderConfig {
-                        // The maximum accuracy for collision mesh generation
-                        vertice_separation: 0.,
-                        ..Default::default()
-                    },
-                );
+        // Get the portion of the atlas image for this tile
+        let sub_img = image_view.view(
+            rect.min.x as u32,
+            rect.min.y as u32,
+            rect.width() as u32,
+            rect.height() as u32,
+        );
 
-                // If mesh generation was successful ( wouldn't be fore empty tiles, etc. )
-                if let Some(mesh) = mesh {
-                    // Spawn a collider as a child of the map layer
-                    layer_commands.with_children(|layer| {
-                        layer.spawn().insert_bundle((
-                            mesh,
-                            Transform::from_xyz(
-                                (tile_x * tile_size + tile_size / 2) as f32,
-                                (tile_y * tile_size + tile_size / 2) as f32,
-                                0.,
-                            ),
-                            GlobalTransform::default(),
-                        ));
-                    });
-                }
+        // Copy the portion of the image for this tile into a new image buffer
+        let mut image_buffer = image::ImageBuffer::new(sub_img.width(), sub_img.height());
+        for y in 0..sub_img.height() {
+            for x in 0..sub_img.width() {
+                let p = sub_img.get_pixel(x, y);
+                image_buffer.put_pixel(x, y, p);
             }
         }
 
-        layer_commands
-            // Make layer a static body
+        // Try to generate a convex collision mesh from the tile image buffer
+        let mesh = create_convex_collider(
+            image::DynamicImage::ImageRgba8(image_buffer),
+            &TesselatedColliderConfig {
+                // The maximum accuracy for collision mesh generation
+                vertice_separation: 0.,
+                ..Default::default()
+            },
+        );
+
+        // If mesh generation was successful ( wouldn't be for empty tiles, etc. )
+        if let Some(mesh) = mesh {
+            // Spawn a collider as a child of the map layer
+            tile_commands.with_children(|tile| {
+                tile.spawn_bundle((mesh, Transform::default(), GlobalTransform::default()));
+            });
+        }
+
+        tile_commands
+            // Make tile a static body
             .insert(RigidBody::Static)
             // Mark as loaded
-            .insert(MapLayerLoaded);
+            .insert(MapTileLoaded);
     }
 }
 

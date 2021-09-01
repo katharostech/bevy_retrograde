@@ -3,7 +3,9 @@ use bevy::{
     render2::camera::{
         DepthCalculation, OrthographicCameraBundle, OrthographicProjection, ScalingMode,
     },
-    sprite2::{PipelinedSpriteBundle, Sprite},
+    sprite2::{
+        PipelinedSpriteBundle, PipelinedSpriteSheetBundle, Sprite, TextureAtlas, TextureAtlasSprite,
+    },
 };
 use bevy_retrograde::prelude::*;
 
@@ -25,7 +27,11 @@ fn main() {
 
 struct Player;
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut texture_atlas_assets: ResMut<Assets<TextureAtlas>>,
+) {
     // Load our sprites
     let red_radish_image = asset_server.load("redRadish.png");
     let yellow_radish_image = asset_server.load("yellowRadish.png");
@@ -76,8 +82,14 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.entity(red_radish).push_children(&[yellow_radish]);
 
     // Spawn a blue radish
-    commands.spawn_bundle(PipelinedSpriteBundle {
-        texture: blue_radish_image,
+    commands.spawn_bundle(PipelinedSpriteSheetBundle {
+        sprite: TextureAtlasSprite::new(0),
+        texture_atlas: texture_atlas_assets.add(TextureAtlas::from_grid(
+            blue_radish_image,
+            Vec2::splat(16.0),
+            1,
+            1,
+        )),
         // Set the blue radish back a layer so that he shows up under the other two
         transform: Transform::from_xyz(-20.0, 20.0, 1.0),
         ..Default::default()

@@ -1,4 +1,4 @@
-dev_features:=""
+dev_features:="ldtk"
 
 # List the justfile recipes
 list:
@@ -14,7 +14,7 @@ build:
 
 # Run an example
 run-example example='hello_world':
-    cargo run --example {{example}}
+    cargo run --example {{example}} --features {{dev_features}}
 
 # Build an example for web and host it on a local webserver
 run-example-web example='hello_world':
