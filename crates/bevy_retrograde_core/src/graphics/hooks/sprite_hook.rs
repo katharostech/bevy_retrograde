@@ -225,9 +225,8 @@ impl RenderHook for SpriteHook {
                                 let (image_handle, sprite, sprite_sheet_handle, world_transform) =
                                     sprites.get(world, *sprite_entity).unwrap();
 
-                                let sprite_sheet = sprite_sheet_handle
-                                    .map(|x| sprite_sheet_assets.get(x))
-                                    .flatten();
+                                let sprite_sheet =
+                                    sprite_sheet_handle.and_then(|x| sprite_sheet_assets.get(x));
 
                                 // Get the texture using the image handle
                                 let texture =
