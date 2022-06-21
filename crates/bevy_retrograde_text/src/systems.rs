@@ -1,5 +1,5 @@
 use bdf::Glyph;
-use bevy::render2::{
+use bevy::render::{
     render_resource::{Extent3d, TextureDimension, TextureFormat},
     texture::Image,
 };

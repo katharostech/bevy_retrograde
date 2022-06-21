@@ -28,42 +28,44 @@ members = ["crates/*"]
 [features]
 default = [
     "audio",
-    "text",
+    "ldtk",
+    # "text",
     # "ui",
     "physics",
     "bevy/png",
     "bevy/x11",
+    "bevy/filesystem_watcher"
 ]
-audio = ["bevy_retrograde_audio"]
-text = ["bevy_retrograde_text"]
+audio = ["bevy_kira_audio"]
+# text = ["bevy_retrograde_text"]
 # ui = ["bevy_retrograde_ui"]
 physics = ["bevy_retrograde_physics"]
-
-ldtk = ["bevy_retrograde_ldtk"]
+ldtk = ["bevy_ecs_ldtk"]
+physics_debug = ["bevy_retrograde_physics/debug"]
 
 [dependencies.bevy]
-git = "https://github.com/katharostech/bevy"
-branch = "bevy_retrograde_0.3"
+version = "0.7.0"
 default-features = false
 features = [
     "bevy_core_pipeline",
-    "bevy_render2",
-    "bevy_sprite2",
     "bevy_winit",
 ]
 
 [dependencies]
 bevy_retrograde_macros = { version = "0.2", path = "crates/bevy_retrograde_macros" }
-bevy_retrograde_audio = { version = "0.2", path = "crates/bevy_retrograde_audio", optional = true }
-bevy_retrograde_ldtk = { version = "0.2", path = "crates/bevy_retrograde_ldtk", optional = true }
+bevy_kira_audio = { version = "0.10.0", optional = true }
+bevy_ecs_ldtk = { version = "0.3.0", optional = true }
 bevy_retrograde_text = { version = "0.2", path = "crates/bevy_retrograde_text", optional = true }
 # bevy_retrograde_ui = { version = "0.2", path = "crates/bevy_retrograde_ui", optional = true }
 bevy_retrograde_physics = { version = "0.2", path = "crates/bevy_retrograde_physics", optional = true }
+ron = "0.7.1"
 
 [dev-dependencies]
 hex = "0.4.3"
 rand = "0.8.3"
-image = "0.23.14"
+image = "0.23.0"
+serde = { version = "1.0.137", features = ["derive"] }
+serde_yaml = "0.8.24"
 
 [profile.dev]
 opt-level = 2
@@ -80,6 +82,3 @@ required-features = ["ldtk"]
 name = "physics_map"
 path = "examples/physics_map.rs"
 required-features = ["ldtk"]
-
-[patch.'https://github.com/katharostech/bevy']
-bevy = { path = "../../other/bevy" }

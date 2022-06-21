@@ -1,9 +1,11 @@
-use bevy::{prelude::*, sprite2::Sprite};
+use bevy::prelude::*;
 
 use crate::prelude::*;
 
 /// Marker component indicating that a text entity needs to be updated but hasn't yet because it's
 /// assets are not loaded.
+#[derive(Component)]
+#[component(storage = "SparseSet")]
 pub(crate) struct TextNeedsUpdate;
 
 #[derive(Bundle, Default, Debug, Clone)]
@@ -11,13 +13,13 @@ pub struct TextBundle {
     pub font: Handle<Font>,
     pub text: Text,
     pub sprite: Sprite,
-    pub visible: Visible,
+    pub visible: Visibility,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
 }
 
 /// The text inside a text entity or text block
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Component)]
 pub struct Text {
     pub text: String,
     pub color: Color,
@@ -33,7 +35,7 @@ impl Default for Text {
 }
 
 /// The configuration for a text block
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Component)]
 pub struct TextBlock {
     pub width: u32,
     pub horizontal_align: TextHorizontalAlign,

@@ -1,11 +1,9 @@
 use bevy::{
     prelude::*,
-    render2::camera::{
+    render::camera::{
         DepthCalculation, OrthographicCameraBundle, OrthographicProjection, ScalingMode,
     },
-    sprite2::{
-        PipelinedSpriteBundle, PipelinedSpriteSheetBundle, Sprite, TextureAtlas, TextureAtlasSprite,
-    },
+    sprite::{Sprite, TextureAtlas, TextureAtlasSprite},
 };
 use bevy_retrograde::prelude::*;
 
@@ -19,12 +17,13 @@ fn main() {
             title: "Bevy Retrograde Hello World".into(),
             ..Default::default()
         })
-        .add_plugins(RetroPlugins)
-        .add_startup_system(setup.system())
-        .add_system(move_player.system())
+        .add_plugins(RetroPlugins::default())
+        .add_startup_system(setup)
+        .add_system(move_player)
         .run();
 }
 
+#[derive(Component)]
 struct Player;
 
 fn setup(
@@ -55,7 +54,7 @@ fn setup(
 
     // Spawn a red radish
     let red_radish = commands
-        .spawn_bundle(PipelinedSpriteBundle {
+        .spawn_bundle(SpriteBundle {
             texture: red_radish_image,
             transform: Transform::from_xyz(0., 0., 0.),
             ..Default::default()
@@ -66,7 +65,7 @@ fn setup(
 
     // Spawn a yellow radish
     let yellow_radish = commands
-        .spawn_bundle(PipelinedSpriteBundle {
+        .spawn_bundle(SpriteBundle {
             texture: yellow_radish_image,
             transform: Transform::from_xyz(-20., 0., 0.),
             sprite: Sprite {
@@ -82,7 +81,7 @@ fn setup(
     commands.entity(red_radish).push_children(&[yellow_radish]);
 
     // Spawn a blue radish
-    commands.spawn_bundle(PipelinedSpriteSheetBundle {
+    commands.spawn_bundle(SpriteSheetBundle {
         sprite: TextureAtlasSprite::new(0),
         texture_atlas: texture_atlas_assets.add(TextureAtlas::from_grid(
             blue_radish_image,

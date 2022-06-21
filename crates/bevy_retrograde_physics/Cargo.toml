@@ -18,14 +18,14 @@ categories = [
 ]
 
 [features]
-default = []
-# Debug rendering does not work yet
-# debug = ["raqote"]
+default = ["simd-stable"]
+debug = ["bevy_rapier2d/debug-render"]
+simd-stable = ["bevy_rapier2d/simd-stable"]
+simd-nightly = ["bevy_rapier2d/simd-nightly"]
 
 [dependencies]
-bevy = { git = "https://github.com/katharostech/bevy", branch = "bevy_retrograde_0.3", default-features = false }
-heron = { git = "https://github.com/katharostech/heron", branch = "bevy-0.6", features = ["2d"], default-features = false }
+bevy = { version = "0.7", default-features = false }
+bevy_rapier2d = { version = "0.14.1", features = ["parallel"] }
 density-mesh-core = "1.5.0"
 density-mesh-image = "1.5.0"
-image = "0.23.14"
-# raqote = { version = "0.8.0", optional = true }
+image = "0.23.0"

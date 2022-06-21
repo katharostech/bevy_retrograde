@@ -1,9 +1,8 @@
 use bevy::{
     prelude::*,
-    render2::camera::{
+    render::camera::{
         DepthCalculation, OrthographicCameraBundle, OrthographicProjection, ScalingMode,
     },
-    sprite2::PipelinedSpriteBundle,
 };
 use bevy_retrograde::prelude::*;
 
@@ -13,12 +12,17 @@ fn main() {
             title: "Bevy Retrograde Physics Character".into(),
             ..Default::default()
         })
-        .add_plugins(RetroPlugins)
-        .add_startup_system(setup.system())
+        .add_plugins(RetroPlugins::default())
+        .add_startup_system(setup)
         .add_system(move_player)
+        .insert_resource(RapierConfiguration {
+            gravity: Vec2::ZERO,
+            ..Default::default()
+        })
         .run();
 }
 
+#[derive(Component)]
 struct Player;
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -43,7 +47,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Spawn a collider block that will just sit there and be an obstacle
     commands
         // First we spawn a sprite bundle like normal
-        .spawn_bundle(PipelinedSpriteBundle {
+        .spawn_bundle(SpriteBundle {
             texture: block.clone(),
             ..Default::default()
         })
@@ -55,11 +59,11 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..Default::default()
         })
         // Make it a static body
-        .insert(RigidBody::Static);
+        .insert(RigidBody::Fixed);
 
     // Spawn a couple more blocks at different positions
     commands
-        .spawn_bundle(PipelinedSpriteBundle {
+        .spawn_bundle(SpriteBundle {
             texture: block.clone(),
             transform: Transform::from_xyz(200., 24., 0.),
             ..Default::default()
@@ -68,9 +72,10 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             texture: block.clone(),
             ..Default::default()
         })
-        .insert(RigidBody::Static);
+        .insert(RigidBody::Fixed);
+
     commands
-        .spawn_bundle(PipelinedSpriteBundle {
+        .spawn_bundle(SpriteBundle {
             texture: block.clone(),
             transform: Transform::from_xyz(-200., 24., 0.),
             ..Default::default()
@@ -79,44 +84,38 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             texture: block.clone(),
             ..Default::default()
         })
-        .insert(RigidBody::Static);
+        .insert(RigidBody::Fixed);
 
     // Spawn a triangle obstacle
     commands
-        .spawn_bundle(PipelinedSpriteBundle {
+        .spawn_bundle(SpriteBundle {
             texture: triangle.clone(),
             transform: Transform::from_xyz(-50., 60., 0.),
             ..Default::default()
         })
-        .insert(RigidBody::Static)
-        .with_children(|parent| {
-            parent.spawn().insert_bundle((
-                Transform::default(),
-                GlobalTransform::default(),
-                TesselatedCollider {
-                    texture: triangle,
-                    // For this obstacle we provide a custom configuration for the tesselator
-                    tesselator_config: TesselatedColliderConfig {
-                        // This vertice separation value sets the closest that any two tesselated vertices
-                        // are allowed to be to each-other. In other words, the higher this value, the less
-                        // acurate your collision box will be, but less compute expensive the collisions
-                        // will be.
-                        //
-                        // By setting the separation to 0., the collision shape should be as close as
-                        // possible to the actual pixel shape.
-                        //
-                        // The default value is 10.
-                        vertice_separation: 30.,
-                        ..Default::default()
-                    },
-                    ..Default::default()
-                },
-            ));
+        .insert(RigidBody::Fixed)
+        .insert(TesselatedCollider {
+            texture: triangle,
+            // For this obstacle we provide a custom configuration for the tesselator
+            tesselator_config: TesselatedColliderConfig {
+                // This vertice separation value sets the closest that any two tesselated vertices
+                // are allowed to be to each-other. In other words, the higher this value, the less
+                // acurate your collision box will be, but less compute expensive the collisions
+                // will be.
+                //
+                // By setting the separation to 0., the collision shape should be as close as
+                // possible to the actual pixel shape.
+                //
+                // The default value is 10.
+                vertice_separation: 30.,
+                ..Default::default()
+            },
+            ..Default::default()
         });
 
     // Spawn the player
     commands
-        .spawn_bundle(PipelinedSpriteBundle {
+        .spawn_bundle(SpriteBundle {
             texture: red_radish.clone(),
             transform: Transform::from_xyz(0., 50., 0.),
             ..Default::default()
@@ -132,15 +131,9 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         })
         // The player is also a dynamic body with rotations locked
         .insert(RigidBody::Dynamic)
-        .insert(RotationConstraints::lock())
-        // Disable friction and bounciness
-        .insert(PhysicMaterial {
-            friction: 0.,
-            restitution: 0.,
-            ..Default::default()
-        })
+        .insert(LockedAxes::ROTATION_LOCKED)
         // Set the player speed to 0 initially
-        .insert(Velocity::from_linear(Vec3::default()))
+        .insert(Velocity::linear(Vec2::default()))
         .insert(Player);
 }
 
@@ -153,24 +146,28 @@ fn move_player(
     for mut velocity in query.iter_mut() {
         let speed: f32 = 10.0 * time.delta().as_millis() as f32;
 
-        let mut direction = Vec3::new(0., 0., 0.);
+        let mut direction = Vec2::new(0., 0.);
 
         if keyboard_input.pressed(KeyCode::Left) {
-            direction += Vec3::new(-speed, 0., 0.);
+            direction += Vec2::new(-1.0, 0.);
         }
 
         if keyboard_input.pressed(KeyCode::Right) {
-            direction += Vec3::new(speed, 0., 0.);
+            direction += Vec2::new(1.0, 0.);
         }
 
         if keyboard_input.pressed(KeyCode::Up) {
-            direction += Vec3::new(0., speed, 0.);
+            direction += Vec2::new(0., 1.0);
         }
 
         if keyboard_input.pressed(KeyCode::Down) {
-            direction += Vec3::new(0., -speed, 0.);
+            direction += Vec2::new(0., -1.0);
         }
 
-        *velocity = Velocity::from_linear(direction);
+        if direction.length() != 0.0 {
+            direction = direction.normalize() * speed;
+        }
+
+        *velocity = Velocity::linear(direction);
     }
 }

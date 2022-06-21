@@ -2,7 +2,7 @@
 
 #![allow(clippy::type_complexity)]
 
-use bevy::{asset::AssetStage, ecs::component::ComponentDescriptor, prelude::*};
+use bevy::{asset::AssetStage, prelude::*};
 
 #[doc(hidden)]
 pub mod prelude {
@@ -33,10 +33,6 @@ pub struct RetroTextPlugin;
 impl Plugin for RetroTextPlugin {
     fn build(&self, app: &mut App) {
         app
-            // use sparce storage for marker components
-            .register_component(ComponentDescriptor::new::<TextNeedsUpdate>(
-                bevy::ecs::component::StorageType::SparseSet,
-            ))
             // Add our font asset
             .add_asset::<Font>()
             // Add our font asset loader
@@ -46,7 +42,7 @@ impl Plugin for RetroTextPlugin {
                 // We have to run before assets are uploaded to prevent frame delays on text updates
                 AssetStage::LoadAssets,
                 RetroTextStage,
-                SystemStage::single(font_rendering.system()),
+                SystemStage::single(font_rendering),
             );
     }
 }

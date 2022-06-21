@@ -68,15 +68,26 @@
 //! ```
 
 /// Bevy Retrograde default plugins
-pub struct RetroPlugins;
+pub struct RetroPlugins {
+    /// Used to calculate the physics scale, if the physics feature is enabled.
+    pub pixels_per_meter: f32,
+}
+
+impl Default for RetroPlugins {
+    fn default() -> Self {
+        Self {
+            pixels_per_meter: 8.0,
+        }
+    }
+}
 
 impl bevy::app::PluginGroup for RetroPlugins {
     fn build(&mut self, group: &mut bevy::app::PluginGroupBuilder) {
         // Add the plugins we need from Bevy
-        bevy::PipelinedDefaultPlugins.build(group);
+        bevy::DefaultPlugins.build(group);
 
         #[cfg(feature = "audio")]
-        group.add(audio::RetroAudioPlugin);
+        group.add(audio::AudioPlugin);
 
         #[cfg(feature = "ldtk")]
         group.add(ldtk::LdtkPlugin);
@@ -85,7 +96,9 @@ impl bevy::app::PluginGroup for RetroPlugins {
         group.add(text::RetroTextPlugin);
 
         #[cfg(feature = "physics")]
-        group.add(physics::RetroPhysicsPlugin);
+        group.add(physics::RetroPhysicsPlugin {
+            pixels_per_meter: self.pixels_per_meter,
+        });
 
         #[cfg(feature = "ui")]
         group.add(ui::RetroUiPlugin);
@@ -99,13 +112,13 @@ pub mod prelude {
     pub use bevy_retrograde_macros::impl_deref;
 
     #[cfg(feature = "audio")]
-    pub use bevy_retrograde_audio::*;
+    pub use bevy_kira_audio::*;
 
     #[cfg(feature = "text")]
     pub use bevy_retrograde_text::prelude::*;
 
     #[cfg(feature = "ldtk")]
-    pub use bevy_retrograde_ldtk::*;
+    pub use bevy_ecs_ldtk::*;
 
     #[cfg(feature = "ui")]
     pub use bevy_retrograde_ui::*;
@@ -124,7 +137,7 @@ pub use bevy_retrograde_macros::impl_deref;
 
 #[cfg(feature = "audio")]
 #[doc(inline)]
-pub use bevy_retrograde_audio as audio;
+pub use bevy_kira_audio as audio;
 
 #[cfg(feature = "text")]
 #[doc(inline)]
@@ -135,7 +148,7 @@ pub use bevy_retrograde_text as text;
 pub use bevy_retrograde_physics as physics;
 
 #[cfg(feature = "ldtk")]
-pub use bevy_retrograde_ldtk as ldtk;
+pub use bevy_ecs_ldtk as ldtk;
 
 #[cfg(feature = "ui")]
 #[doc(inline)]
