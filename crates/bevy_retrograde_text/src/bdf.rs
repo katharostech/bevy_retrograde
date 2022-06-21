@@ -56,7 +56,6 @@ mod ast {
     #[derive(Debug, Clone)]
     pub struct Bitmap {
         width: u32,
-        height: u32,
         bits: Vec<bool>,
     }
 
@@ -64,7 +63,6 @@ mod ast {
         pub fn new(width: u32, height: u32) -> Self {
             Self {
                 width,
-                height,
                 bits: vec![false; (width * height) as usize],
             }
         }

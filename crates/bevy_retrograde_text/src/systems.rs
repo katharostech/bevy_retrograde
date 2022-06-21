@@ -161,7 +161,7 @@ pub fn rasterize_text_block(
     let lines_height = line_height * lines.len() as u32;
 
     // Calculate the height and width of the text block image
-    let image_height = lines_height.max(text_block.map(|x| x.height).flatten().unwrap_or(0));
+    let image_height = lines_height.max(text_block.and_then(|x| x.height).unwrap_or(0));
     let image_width = lines.iter().fold(0, |width, line| {
         let line_width = line
             .iter()
