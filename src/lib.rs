@@ -43,7 +43,7 @@
 //!
 //! # Supported Bevy Version
 //!
-//! 
+//!
 //! | bevy | bevy_retrograde |
 //! |------|-----------------|
 //! | 0.7  | 0.3             |
@@ -56,6 +56,8 @@
 //! bevy = { version = "0.7", default-features = false }
 //! bevy_retrograde = "0.3.0"
 //! ```
+
+mod core;
 
 /// Bevy Retrograde default plugins
 pub struct RetroPlugins {
@@ -92,6 +94,8 @@ impl bevy::app::PluginGroup for RetroPlugins {
 
         #[cfg(feature = "ui")]
         group.add(ui::RetroUiPlugin);
+
+        group.add(core::RetroCorePlugin);
     }
 }
 
