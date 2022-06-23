@@ -44,7 +44,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         ldtk_handle: map,
         // We offset the map a little to move it more to the center of the screen, because maps are
         // spawned with (0, 0) as the top-left corner of the map
-        transform: Transform::from_xyz(-175., 100., 0.),
+        transform: Transform::from_xyz(-175., -100., 0.),
         ..Default::default()
     });
 }

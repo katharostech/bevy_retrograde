@@ -28,19 +28,13 @@ whatever your favorite development http server is.
 
 ### [hello_world]
 
-A good intro into Bevy Retrograde that also shows how to use the hierarchy system.
+A quick intro. It's just normal bevy, but it shows how to setup the camera with a fixed pixe-height viewport and an automatic width.
+
+Eventually there will be a utility for setting up the camera.
 
 ![hello_world](./screenshots/hello_world.gif)
 
 [hello_world]: ./hello_world.rs
-
-### [spritesheet]
-
-An example of how to use animated sprite sheets.
-
-![spritesheet](./screenshots/spritesheet.gif)
-
-[spritesheet]: ./spritesheet.rs
 
 ### [physics_character]
 
@@ -69,16 +63,18 @@ An example demonstrating how to create collision shapes for an LDtk map.
 
 ### [ui]
 
-An example demonstrating the [Egui] UI integration, and the Bevy Retrograde UI components for 9-patch style UI's.
+An example demonstrating the [Egui] UI integration, and the Bevy Retrograde UI components for 9-patch style UI's and bitmap fonts.
 
 [raui]: https://github.com/emilk/egui
 
 ![ui](./screenshots/ui.gif)
 
 [ui]: ./ui.rs
+[Egui]: https://github.com/emilk/egui
 
 ### [audio]
 
-An example demonstrating how to play sounds and play music on loop.
+An example demonstrating how to play sounds and play music on loop using [Bevy Kira Audio][bevy-kira]
 
 [audio]: ./audio.rs
+[bevy-kira]: https://github.com/NiklasEi/bevy_kira_audio

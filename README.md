@@ -26,7 +26,7 @@ Bevy Retrograde LDtk is licensed under the [Katharos License][__link1] which pla
 
 ## Development Status
 
-Bevy Retrograde is in early stages of development. The API is not stable and may change dramatically at any time.
+Bevy Retrograde is in early stages of development. The API is not stable and may change dramatically at any time. We have just made a major update, migrating from Bevy 0.5 and a custom
 
 See also [Supported Bevy Version](#supported-bevy-version) below.
 
@@ -36,24 +36,26 @@ See also [Supported Bevy Version](#supported-bevy-version) below.
 Check out our [examples][__link2] list to see how to use each Bevy Retrograde feature:
 
  - Supports web and desktop out-of-the-box
- - [LDtk][__link3] map loading and rendering
- - An integration with the [RAUI][__link4] UI library for building in-game user interfaces and HUD
- - Physics and collision detection powered by [Heron][__link5] and [Rapier][__link6] with automatic generation of convex collision shapes from sprite images
+ - [LDtk][__link3] map loading and rendering using [`bevy_ecs_ldtk`][__link4]
+ - An integration with the [RAUI][__link5] UI library for building in-game user interfaces and HUD
+ - Physics and collision detection powered by [Rapier][__link6] with automatic generation of convex collision shapes from sprite images
  - Text rendering of bitmap fonts in the BDF format
  - A simple but effective sound playing API
 
 
 ## Supported Bevy Version
 
-Bevy Retrograde currently works on the latest Bevy release and may or may not support Bevy master as well. Bevy Retrograde will try to follow the latest Bevy release, but if there are features introduced in Bevy master that we need, we may require Bevy master for a time until the next Bevy release.
+| bevy | bevy_retrograde |
+| --- | --- |
+| 0.7 | 0.3 |
+| 0.6 |  |
+| 0.5 | 0.1, 0.2 |
 
 **`Cargo.toml`:**
 
 
 ```toml
- # The default-features setting is optional, but can make build times faster if you are only
- # developing 2D games.
-bevy = { version = "0.6", default-features = false }
+bevy = { version = "0.7", default-features = false }
 bevy_retrograde = "0.3.0"
 ```
 
@@ -63,7 +65,7 @@ bevy_retrograde = "0.3.0"
  [__link1]: https://github.com/katharostech/katharos-license
  [__link2]: https://github.com/katharostech/bevy_retrograde/tree/master/examples#bevy-retro-examples
  [__link3]: https://ldtk.io
- [__link4]: https://raui-labs.github.io/raui/
- [__link5]: https://github.com/jcornaz/heron
+ [__link4]: https://crates.io/crates/bevy_ecs_ldtk/0.3.0
+ [__link5]: https://crates.io/crates/RAUI
  [__link6]: https://rapier.rs/
 

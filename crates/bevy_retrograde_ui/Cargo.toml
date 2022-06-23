@@ -1,6 +1,6 @@
 [package]
 name = "bevy_retrograde_ui"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Katharos Technology LLC"]
 edition = "2018"
 
@@ -18,9 +18,12 @@ categories = [
 ]
 
 [dependencies]
-# bevy = "0.5"
-# bevy_retrograde_core = { version = "0.2", path = "../bevy_retrograde_core" }
-# bevy_retrograde_text = { version = "0.2", path = "../bevy_retrograde_text" }
-# bevy_retrograde_macros = { version = "0.2", path = "../bevy_retrograde_macros" }
-
-# raui = { version = "0.37.1", features = ["material", "tesselate"] } 
+bevy = { version = "0.7", default-features = false }
+bevy_egui = "0.14.0"
+egui_extras = "0.18.0"
+peg = "0.8.0"
+thiserror = "1.0.31"
+anyhow = "1.0"
+image = "0.23.0"
+unicode-linebreak = "0.1.2"
+rectangle-pack = "0.4.2"

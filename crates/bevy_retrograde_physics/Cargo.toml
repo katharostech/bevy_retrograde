@@ -1,6 +1,6 @@
 [package]
 name = "bevy_retrograde_physics"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["Katharos Technology LLC."]
 edition = "2018"
 
@@ -25,7 +25,7 @@ simd-nightly = ["bevy_rapier2d/simd-nightly"]
 
 [dependencies]
 bevy = { version = "0.7", default-features = false }
-bevy_rapier2d = { version = "0.14.1", features = ["parallel"] }
+bevy_rapier2d = { version = "0.14.1" }
 density-mesh-core = "1.5.0"
 density-mesh-image = "1.5.0"
 image = "0.23.0"

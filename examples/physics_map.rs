@@ -1,6 +1,6 @@
-//! Physics in Bevy Retrograde currently just leverages the heron crate for almost
-//! everything. The only difference is the use of the `TesselatedCollider` component that can be
-//! used to create a convex hull collision shape from a sprite image.
+//! Physics in Bevy Retrograde leverages the Rapier crate for almost everything. The only difference
+//! is the use of the `TesselatedCollider` component that can be used to create a convex hull
+//! collision shape from a sprite image.
 
 use bevy::{
     prelude::*,
