@@ -14,15 +14,9 @@
 
 [skipngo]:  https://github.com/katharostech/skipngo
 
-Bevy Retrograde is a 2D, pixel-perfect renderer for [Bevy][__link0] that can target both web and desktop using OpenGL/WebGL.
+Bevy Retrograde is an opinionated plugin pack for the [Bevy][__link0] game engine with tools to help you make 2D games!
 
-Bevy Retrograde is focused on providing an easy and ergonomic way to write 2D, pixel-perfect games. Compared to the out-of-the-box Bevy setup, you do not have to work with a 3D scene to create 2D games. Sprites and their coordinates are based on pixel positions in a retro-resolution scene.
-
-Bevy Retrograde replaces many of the out of the out-of-the-box Bevy components and Bundles that you would normally use ( `SpriteBundle`, `Camera2DBundle`, etc. ) and comes with its own `Camera`, `Image`, `Sprite`, etc. components and bundles. Bevy Retrograde tries to provide a focused 2D-centric experience on top of Bevy that helps take out some of the pitfalls and makes it easier to think about your game when all you need is 2D.
-
-We want to provide a batteries-included plugin that comes with almost everything you need to make a 2D pixel game with Bevy including, collisions, sound, saving data, etc. While adding these features we will try to maintain full web compatibility, but it can’t be guaranteed that all features will be feasible to implement for web.
-
-These extra features will be included as optional cargo features that can be disabled if not needed and, where applicable, may be packaged as separate Rust crates that can be used even if you don’t want to use the rest of Bevy Retrograde.
+Bevy Retrograde is not specific to pixel-art games, but it does include some features that would be particularly useful for pixel games. The ultimate goal is to act as an extension to Bevy that gives you common tools necessary to make a 2D game such as map loading, physics, UI, save-data, etc. Not all of the features we want to add are implemented yet, but we will be expanding the feature set as we developer our own game with it.
 
 
 ## License
@@ -32,145 +26,64 @@ Bevy Retrograde LDtk is licensed under the [Katharos License][__link1] which pla
 
 ## Development Status
 
-Bevy Retrograde is in early stages of development. The API is not stable and may change dramatically at any time. Planned possible changes include:
+Bevy Retrograde is in early stages of development. The API is not stable and may change dramatically at any time.
 
- - Switching to using Bevy’s built-in renderer for desktop/mobile and [`bevy_webgl2`][__link2] for web instead of using our own OpenGL based renderer. This will potentially make Bevy Retrograde more compatible with the larger Bevy ecosystem instead of it creating an island of plugins that only work on Bevy Retro. We will probably wait for the [second iteration][__link3] of the Bevy rendererer to attempt this.
+We have just made a major update. This update removed ~75% of Bevy Retro ( that’s good! ) by updating to Bevy 0.7, and:
+
+ - Replacing our custom renderer with Bevy’s
+ - Replacing our custom map laoder with [`bevy_ecs_ldtk`][__link2]
+ - Replacing our custom [RAUI][__link3] UI renderer with [`bevy_egui`][__link4]
+
+Now Bevy Retrograde mostly includes some existing libraries and provides small utilities on top such as the 9-patch style UI addtions for egui.
+
+Since it’s been so long since our last we want to get another release out soon, just to get everything working again on top of the latest crates. We are just wating on a [tilemap rendering fix][__link5] to get merged before we publish an `0.3.0` release.
+
+After that we plan to re-visit what extra features we might want, such as an easier way to setup to 2D camera, and a save data system, and we will look at polishing our integrations and utilities where appropriate.
 
 See also [Supported Bevy Version](#supported-bevy-version) below.
 
 
 ## Features & Examples
 
-Check out our [examples][__link4] list to see how to use each Bevy Retrograde feature:
+Check out our [examples][__link6] list to see how to use each Bevy Retrograde feature:
 
  - Supports web and desktop out-of-the-box
- - Sprites and sprite sheets
- - Scaled pixel-perfect rendering with three camera modes: fixed width, fixed height, and letter-boxed
- - Sprites are pixel-perfectly aligned by default but can be set to non-perfect on a per-sprite basis
- - [LDtk][__link5] map loading and rendering
- - An integration with the [RAUI][__link6] UI library for building in-game user interfaces and HUD
- - Physics and collision detection powered by [Heron][__link7] and [Rapier][__link8] with automatic generation of convex collision shapes from sprite images
- - Text rendering of BDF fonts
- - Custom shaders for post-processing, including a built-in CRT shader
- - Render hooks allowing you to drop down into raw [Luminance][__link9] calls for custom rendering
+ - [LDtk][__link7] map loading and rendering using [`bevy_ecs_ldtk`][__link8].
+ - An integration with the [`egui`][__link9] UI library with extra 9-patch style widgets.
+ - Text rendering of bitmap fonts in the BDF format
+ - Physics and collision detection powered by [Rapier][__link10] with automatic generation of convex collision shapes from sprite images.
+ - Sound playing with [`bevy_kira_audio`][__link11].
 
 
 ## Supported Bevy Version
 
-Bevy Retrograde currently works on the latest Bevy release and *may* support Bevy master as well. Bevy Retrograde will try to follow the latest Bevy release, but if there are features introduced in Bevy master that we need, we may require Bevy master for a time until the next Bevy release.
-
-When depending on the `bevy` crate, you must be sure to set `default-features` to `false` in your `Cargo.toml` so that the rendering types in `bevy` don’t conflict with the ones in `bevy_retrograde`.
+| bevy | bevy_retrograde |
+| --- | --- |
+| 0.7 | master ( `0.3` release comming soon! ) |
+| 0.6 |  |
+| 0.5 | 0.1, 0.2 |
 
 **`Cargo.toml`:**
 
 
 ```toml
-bevy = { version = "0.5", default-features = false }
-bevy_retrograde = "0.2.0"
-```
-
-
-## Sample
-
-Here’s a quick sample of what using Bevy Retrograde looks like:
-
-**`main.rs`:**
-
-
-```rust
-use bevy::prelude::*;
-use bevy_retrograde::prelude::*;
-
-fn main() {
-    App::build()
-        .add_plugins(RetroPlugins)
-        .add_startup_system(setup.system())
-        .run();
-}
-
-struct Player;
-
-fn setup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-) {
-    // Load our sprites
-    let red_radish_image = asset_server.load("redRadish.png");
-    let yellow_radish_image = asset_server.load("yellowRadish.png");
-    let blue_radish_image = asset_server.load("blueRadish.png");
-
-    // Spawn the camera
-    commands.spawn().insert_bundle(CameraBundle {
-        camera: Camera {
-            // Set our camera to have a fixed height and an auto-resized width
-            size: CameraSize::FixedHeight(100),
-            background_color: Color::new(0.2, 0.2, 0.2, 1.0),
-            ..Default::default()
-        },
-        ..Default::default()
-    });
-
-    // Spawn a red radish
-    let red_radish = commands
-        .spawn_bundle(SpriteBundle {
-            image: red_radish_image,
-            transform: Transform::from_xyz(0., 0., 0.),
-            sprite: Sprite {
-                flip_x: true,
-                flip_y: false,
-                ..Default::default()
-            },
-            ..Default::default()
-        })
-        // Add our player marker component so we can move it
-        .insert(Player)
-        .id();
-
-    // Spawn a yellow radish
-    let yellow_radish = commands
-        .spawn_bundle(SpriteBundle {
-            image: yellow_radish_image,
-            transform: Transform::from_xyz(-20., 0., 0.),
-            sprite: Sprite {
-                // Flip the sprite upside down 🙃
-                flip_y: true,
-                // By setting a sprite to be non-pixel-perfect you can get smoother movement
-                // for things like characters, like they did in Shovel Knight®.
-                pixel_perfect: false,
-                ..Default::default()
-            },
-            ..Default::default()
-        })
-        .id();
-
-    // Make the yellow radish a child of the red radish
-    commands.entity(red_radish).push_children(&[yellow_radish]);
-
-    // Spawn a blue radish
-    commands.spawn().insert_bundle(SpriteBundle {
-        image: blue_radish_image,
-        // Set the blue radish back a layer so that he shows up under the other two
-        transform: Transform::from_xyz(-20., -20., -1.),
-        sprite: Sprite {
-            flip_x: true,
-            flip_y: false,
-            ..Default::default()
-        },
-        ..Default::default()
-    });
-}
+[dependencies]
+bevy = { version = "0.7", default-features = false }
+bevy_retrograde = { git = "https://github.com/katharostech/bevy_retrograde.git" }
 ```
 
 
 
  [__link0]: https://bevyengine.org
  [__link1]: https://github.com/katharostech/katharos-license
- [__link2]: https://github.com/mrk-its/bevy_webgl2
- [__link3]: https://github.com/bevyengine/bevy/discussions/2351
- [__link4]: https://github.com/katharostech/bevy_retrograde/tree/master/examples#bevy-retro-examples
- [__link5]: https://ldtk.io
- [__link6]: https://raui-labs.github.io/raui/
- [__link7]: https://github.com/jcornaz/heron
- [__link8]: https://rapier.rs/
- [__link9]: https://github.com/phaazon/luminance-rs
+ [__link10]: https://rapier.rs/
+ [__link11]: https://github.com/NiklasEi/bevy_kira_audio
+ [__link2]: https://github.com/Trouv/bevy_ecs_ldtk
+ [__link3]: https://raui-labs.github.io/raui/
+ [__link4]: https://github.com/mvlabat/bevy_egui
+ [__link5]: https://github.com/StarArawn/bevy_ecs_tilemap/pull/197
+ [__link6]: https://github.com/katharostech/bevy_retrograde/tree/master/examples#bevy-retro-examples
+ [__link7]: https://ldtk.io
+ [__link8]: https://github.com/Trouv/bevy_ecs_ldtk
+ [__link9]: https://github.com/emilk/egui
 

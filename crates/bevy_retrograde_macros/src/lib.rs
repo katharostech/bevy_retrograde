@@ -2,10 +2,14 @@
 
 /// Utility to implement deref for single-element tuple structs
 ///
+/// This is particularly useful when you need to create a Bevy
+///
 /// # Example
 ///
-/// ```rust
+/// ```no-test
 /// # use bevy_retrograde_macros::impl_deref;
+///
+/// #[derive(Component)]
 /// struct Score(usize);
 ///
 /// impl_deref!(Score, usize);

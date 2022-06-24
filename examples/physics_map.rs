@@ -1,49 +1,50 @@
-//! Physics in Bevy Retrograde currently just leverages the heron crate for almost
-//! everything. The only difference is the use of the `TesselatedCollider` component that can be
-//! used to create a convex hull collision shape from a sprite image.
+//! Physics in Bevy Retrograde leverages the Rapier crate for almost everything. The only difference
+//! is the use of the `TesselatedCollider` component that can be used to create a convex hull
+//! collision shape from a sprite image.
 
-use bevy_retrograde::core::image::DynamicImage;
-
-use bevy_retrograde::core::image::GenericImageView;
-
-use bevy::{core::FixedTimestep, prelude::*};
+use bevy::{
+    prelude::*,
+    render::camera::{
+        DepthCalculation, OrthographicCameraBundle, OrthographicProjection, ScalingMode,
+    },
+    sprite::SpriteBundle,
+};
 use bevy_retrograde::prelude::*;
 
+use serde::Deserialize;
+
 fn main() {
-    App::build()
+    App::new()
         .insert_resource(WindowDescriptor {
             title: "Bevy Retrograde Physics Map".into(),
             ..Default::default()
         })
-        .add_plugins(RetroPlugins)
-        .add_startup_system(setup.system())
-        .add_system(update_map_collisions.system())
-        .add_stage(
-            "game_stage",
-            SystemStage::parallel().with_run_criteria(FixedTimestep::step(0.015)),
-        )
+        .add_plugins(RetroPlugins::default())
+        .add_startup_system(setup)
+        .add_system(update_map_collisions)
+        .insert_resource(LevelSelection::Index(0))
         .run();
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     asset_server.watch_for_changes().unwrap();
 
-    commands.insert_resource(Gravity::from(Vec3::new(0., 9.8 * 16., 0.)));
-
     // Spawn the camera
-    commands.spawn_bundle(CameraBundle {
-        camera: Camera {
-            size: CameraSize::FixedHeight(160),
-            background_color: Color::new(0.2, 0.2, 0.2, 1.0),
+    const CAMERA_HEIGHT: f32 = 160.0;
+    commands.spawn_bundle(OrthographicCameraBundle {
+        orthographic_projection: OrthographicProjection {
+            scale: CAMERA_HEIGHT / 2.0,
+            scaling_mode: ScalingMode::FixedVertical,
+            depth_calculation: DepthCalculation::ZDifference,
             ..Default::default()
         },
-        transform: Transform::from_xyz(0., 0., 0.),
-        ..Default::default()
+        ..OrthographicCameraBundle::new_2d()
     });
 
     // Spawn the map
-    commands.spawn().insert_bundle(LdtkMapBundle {
-        map: asset_server.load("maps/physicsDemoMap.ldtk"),
+    commands.spawn().insert_bundle(LdtkWorldBundle {
+        ldtk_handle: asset_server.load("maps/physicsDemoMap.ldtk"),
+        transform: Transform::from_translation(Vec3::new(-130., -75., -1.)),
         ..Default::default()
     });
 
@@ -59,16 +60,12 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             let sprite_image = radish_images[((x as i32).abs() % 3) as usize].clone();
             commands
                 .spawn_bundle(SpriteBundle {
-                    image: sprite_image.clone(),
-                    sprite: Sprite {
-                        pixel_perfect: false,
-                        ..Default::default()
-                    },
-                    transform: Transform::from_xyz(x as f32 * 12., -80. - y as f32 * 20., 0.),
+                    texture: sprite_image.clone(),
+                    transform: Transform::from_xyz(x as f32 * 12., 80. + y as f32 * 20., 0.),
                     ..Default::default()
                 })
                 .insert(TesselatedCollider {
-                    image: sprite_image,
+                    texture: sprite_image,
                     tesselator_config: TesselatedColliderConfig {
                         // We want the collision shape for the player to be highly accurate
                         vertice_separation: 0.,
@@ -76,89 +73,84 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                     },
                     ..Default::default()
                 })
-                // The player is also a dynamic body with rotations locked
+                // The player is also a dynamic body
                 .insert(RigidBody::Dynamic)
-                // WARNING: Rotations are not rendered in Bevy Retrograde yet, so if you don't lock the
-                // rotation of dynamic bodies, the sprite will _look_ un-rotated, but the physics engine
-                // will calculate it like it _is_ rotated.
-                .insert(RotationConstraints::lock())
-                // Disable friction and bounciness
-                .insert(PhysicMaterial {
-                    friction: 0.2,
-                    restitution: 1.,
-                    ..Default::default()
-                })
-                // Set the player speed to 0 initially
-                .insert(Velocity::from_linear(Vec3::default()))
+                // And he's bouncy
+                .insert(Restitution::coefficient(0.8))
                 .insert(Player);
         }
     }
 }
 
-struct MapLayerLoaded;
+/// This is the struct for the LDtk tile metadata.
+///
+/// You set this metadata using RON syntax in the LDtk GUI.
+#[derive(Deserialize)]
+struct TileCollisionMetadata {
+    colliders: Vec<ColliderMeta>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename = "Collider")]
+struct ColliderMeta {
+    #[serde(default)]
+    position: Vec2,
+    #[serde(default)]
+    rotation: f32,
+    shape: ColliderShapeMeta,
+}
+
+#[derive(Deserialize)]
+enum ColliderShapeMeta {
+    Rect { size: Vec2 },
+    Circle { diameter: f32 },
+}
+
+#[derive(Component)]
+#[component(storage = "SparseSet")]
+struct TileCollisionLoaded;
+
 /// This system will go through each layer in spawned maps and generate a collision shape for each tile
 fn update_map_collisions(
     mut commands: Commands,
-    map_layers: Query<(Entity, &LdtkMapLayer, &Handle<Image>), Without<MapLayerLoaded>>,
-    image_assets: Res<Assets<Image>>,
+    map_tiles: Query<(Entity, &TileMetadata), Without<TileCollisionLoaded>>,
 ) {
-    for (layer_ent, map_layer, image_handle) in map_layers.iter() {
-        // ( which should be fixed eventually by rust-analyzer )
-        let map_layer: &LdtkMapLayer = map_layer;
+    for (entity, metadata) in map_tiles.iter() {
+        let metadata: &TileMetadata = metadata;
+        let entity: Entity = entity;
 
-        let image = if let Some(image) = image_assets.get(image_handle) {
-            image
-        } else {
-            continue;
-        };
+        let metadata = ron::de::from_str::<TileCollisionMetadata>(&metadata.data).unwrap();
+        let colliders = metadata
+            .colliders
+            .iter()
+            .map(|collider| match collider.shape {
+                ColliderShapeMeta::Rect { size } => (
+                    collider.position,
+                    collider.rotation,
+                    Collider::cuboid(size.x / 2.0, size.y / 2.0),
+                ),
+                ColliderShapeMeta::Circle { diameter } => (
+                    collider.position,
+                    collider.rotation,
+                    Collider::ball(diameter / 2.0),
+                ),
+            })
+            .collect::<Vec<_>>();
 
-        // Get the tile size of the map
-        let tile_size = map_layer.layer_instance.__grid_size as u32;
+        let collider = Collider::compound(colliders);
 
-        let mut layer_commands = commands.entity(layer_ent);
-
-        // For every tile grid
-        for tile_x in 0u32..map_layer.layer_instance.__c_wid as u32 {
-            for tile_y in 0u32..map_layer.layer_instance.__c_hei as u32 {
-                // Get the tile image
-                let tile_img = image
-                    .view(tile_x * tile_size, tile_y * tile_size, tile_size, tile_size)
-                    .to_image();
-
-                // Try to generate a convex collision mesh from the tile
-                let mesh = create_convex_collider(
-                    DynamicImage::ImageRgba8(tile_img),
-                    &TesselatedColliderConfig {
-                        // The maximum accuracy for collision mesh generation
-                        vertice_separation: 0.,
-                        ..Default::default()
-                    },
-                );
-
-                // If mesh generation was successful ( wouldn't be fore empty tiles, etc. )
-                if let Some(mesh) = mesh {
-                    // Spawn a collider as a child of the map layer
-                    layer_commands.with_children(|layer| {
-                        layer.spawn().insert_bundle((
-                            mesh,
-                            Transform::from_xyz(
-                                (tile_x * tile_size + tile_size / 2) as f32,
-                                (tile_y * tile_size + tile_size / 2) as f32,
-                                0.,
-                            ),
-                            GlobalTransform::default(),
-                        ));
-                    });
-                }
-            }
-        }
-
-        layer_commands
-            // Make layer a static body
-            .insert(RigidBody::Static)
-            // Mark as loaded
-            .insert(MapLayerLoaded);
+        commands
+            .entity(entity)
+            .insert(TileCollisionLoaded)
+            .with_children(|children| {
+                children
+                    .spawn()
+                    .insert(RigidBody::Fixed)
+                    .insert(collider)
+                    .insert_bundle(TransformBundle::default());
+            });
     }
 }
 
+#[derive(Component)]
 struct Player;

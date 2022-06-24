@@ -28,19 +28,13 @@ whatever your favorite development http server is.
 
 ### [hello_world]
 
-A good intro into Bevy Retrograde that also shows how to use the hierarchy system.
+A quick intro. It's just normal bevy, but it shows how to setup the camera with a fixed pixe-height viewport and an automatic width.
+
+Eventually there will be a utility for setting up the camera.
 
 ![hello_world](./screenshots/hello_world.gif)
 
 [hello_world]: ./hello_world.rs
-
-### [spritesheet]
-
-An example of how to use animated sprite sheets.
-
-![spritesheet](./screenshots/spritesheet.gif)
-
-[spritesheet]: ./spritesheet.rs
 
 ### [physics_character]
 
@@ -51,27 +45,6 @@ how to do simple character movement.
 
 [physics_character]: ./physics_character.rs
 
-### [physics_map]
-
-An example demonstrating how to create collision shapes for an LDtk map.
-
-![physics_map](./screenshots/physics_map.gif)
-
-[physics_map]: ./physics_map.rs
-
-### [text]
-
-An example showing how to render text using BDF font files.
-
-> **Note:** This example shows how to render text, _without_ using the UI system, by creating text
-> entities. This doesn't allow you to do any sort of layout other than positioning the text in the
-> scene like you would any sprite. See the UI example below to see how to use the UI system to
-> render text.
-
-![text](./screenshots/text.png)
-
-[text]: ./text.rs
-
 ### [ldtk_map]
 
 An example showing you how to load and display an LDtk map file.
@@ -80,58 +53,28 @@ An example showing you how to load and display an LDtk map file.
 
 [ldtk_map]: ./ldtk_map.rs
 
+### [physics_map]
+
+An example demonstrating how to create collision shapes for an LDtk map.
+
+![physics_map](./screenshots/physics_map.gif)
+
+[physics_map]: ./physics_map.rs
+
 ### [ui]
 
-An example demonstrating the [RAUI] UI integration. It shows how to create UI elements that can
-resize with the screen and how to create theme-able buttons and interact with the ECS world from the
-UI.
+An example demonstrating the [Egui] UI integration, and the Bevy Retrograde UI components for 9-patch style UI's and bitmap fonts.
 
-[raui]: https://raui-labs.github.io/raui/
+[raui]: https://github.com/emilk/egui
 
 ![ui](./screenshots/ui.gif)
 
 [ui]: ./ui.rs
+[Egui]: https://github.com/emilk/egui
 
 ### [audio]
 
-An example demonstrating how to play sounds and play music on loop.
+An example demonstrating how to play sounds and play music on loop using [Bevy Kira Audio][bevy-kira]
 
 [audio]: ./audio.rs
-
-### [post_processing]
-
-An example demonstrating how to add post-processing, using either the built-in CRT or your own
-custom shaders.
-
-![post_processing](./screenshots/post_processing.png)
-
-[post_processing]: ./post_processing.rs
-
-### [epaint]
-
-An example demonstrating how to use the [`epaint`](https://docs.rs/epaint) integration to draw
-simple shapes for debug rendering.
-
-![epaint](./screenshots/epaint.png)
-
-[epaint]: ./epaint.rs
-
-### [custom_rendering]
-
-An advanced example that shows how to do fully custom rendering of your own objects. This utilizes
-raw calls to the [Luminance] graphics API allowing you to render _any_ kind of object, even 3D if
-you wanted to.
-
-![custom_rendering](./screenshots/custom_rendering.gif)
-
-[luminance]: https://github.com/phaazon/luminance-rs
-[custom_rendering]: ./custom_rendering.rs
-
-### [radishmark]
-
-A bunnymark style benchmark that also demonstrates how to use the UI system to render
-frames-per-second diagnostics.
-
-![radishmark](./screenshots/radishmark.gif)
-
-[radishmark]: ./radishmark.rs
+[bevy-kira]: https://github.com/NiklasEi/bevy_kira_audio

@@ -1,56 +1,43 @@
 //! Bevy Retrograde physics plugin
+//!
+//! This is a re-export of [`bevy_rapier2d`] with some of our own utilities added.
 
-use bevy::{ecs::component::ComponentDescriptor, prelude::*};
-#[cfg(feature = "debug")]
-use bevy_retrograde_core::prelude::AppBuilderRenderHookExt;
-use bevy_retrograde_core::prelude::Image;
+use bevy::prelude::*;
+use bevy::render::texture::Image;
 use density_mesh_core::prelude::GenerateDensityMeshSettings;
 use density_mesh_core::prelude::PointsSeparation;
 
-pub use heron;
-pub use heron::prelude::*;
+pub use bevy_rapier2d;
+use bevy_rapier2d::prelude::*;
 
 #[doc(hidden)]
 pub mod prelude {
-    pub use crate::RetroPhysicsPlugin;
+    pub use crate::{RetroPhysicsPlugin, TesselatedCollider, TesselatedColliderConfig};
+    pub use bevy_rapier2d::prelude::*;
 }
-
-#[cfg(feature = "debug")]
-mod render_hook;
-#[cfg(feature = "debug")]
-use render_hook::PhysicsDebugRenderHook;
 
 /// Physics plugin for Bevy Retrograde
-pub struct RetroPhysicsPlugin;
-
-#[cfg(feature = "debug")]
-use bevy_retrograde_core::prelude::Color;
-#[cfg(feature = "debug")]
-#[derive(Clone, Debug)]
-pub enum PhysicsDebugRendering {
-    Disabled,
-    Enabled { color: Color },
+pub struct RetroPhysicsPlugin {
+    /// Used to calculate the physics scale.
+    pub pixels_per_meter: f32,
 }
 
-#[cfg(feature = "debug")]
-impl Default for PhysicsDebugRendering {
+impl Default for RetroPhysicsPlugin {
     fn default() -> Self {
-        Self::Disabled
+        Self {
+            pixels_per_meter: 8.0,
+        }
     }
 }
 
 impl Plugin for RetroPhysicsPlugin {
-    fn build(&self, app: &mut AppBuilder) {
-        app.add_plugin(PhysicsPlugin::default());
+    fn build(&self, app: &mut App) {
+        app.add_plugin(RapierPhysicsPlugin::<NoUserData>::default());
 
         #[cfg(feature = "debug")]
-        app.add_render_hook::<PhysicsDebugRenderHook>()
-            .init_resource::<PhysicsDebugRendering>();
+        app.add_plugin(RapierDebugRenderPlugin::default());
 
-        app.register_component(ComponentDescriptor::new::<TesselatedColliderHasLoaded>(
-            bevy::ecs::component::StorageType::SparseSet,
-        ))
-        .add_system_to_stage(CoreStage::PostUpdate, generate_colliders.system());
+        app.add_system_to_stage(CoreStage::PostUpdate, generate_colliders);
     }
 }
 
@@ -60,7 +47,7 @@ impl Plugin for RetroPhysicsPlugin {
 pub fn create_convex_collider(
     image: DynamicImage,
     tesselator_config: &TesselatedColliderConfig,
-) -> Option<CollisionShape> {
+) -> Option<Collider> {
     use density_mesh_core::prelude::DensityMeshGenerator;
     use density_mesh_image::settings::GenerateDensityImageSettings;
     let width = image.width();
@@ -96,28 +83,27 @@ pub fn create_convex_collider(
         .points
         .iter()
         .map(|point| {
-            Vec3::new(
+            Vec2::new(
                 (point.x - width as f32 / 2.0) + 0.5,
-                (point.y - height as f32 / 2.0) + 0.5,
-                0.,
+                -(point.y - height as f32 / 2.0) - 0.5,
             )
         })
         .collect::<Vec<_>>();
 
-    Some(CollisionShape::ConvexHull {
-        points,
-        border_radius: if tesselator_config.vertice_radius != 0.0 {
-            Some(tesselator_config.vertice_radius)
-        } else {
-            None
-        },
-    })
+    if tesselator_config.vertice_radius == 0.0 {
+        Collider::convex_hull(&points)
+    } else {
+        Collider::round_convex_hull(&points, tesselator_config.vertice_radius)
+    }
 }
 
+#[derive(Component)]
+#[component(storage = "SparseSet")]
 struct TesselatedColliderHasLoaded;
 
 use image::DynamicImage;
 use image::GenericImageView;
+use image::ImageBuffer;
 
 /// Sprite collision tesselator config
 #[derive(Debug, Clone)]
@@ -162,9 +148,9 @@ impl Default for TesselatedColliderConfig {
 
 /// A component used to automatically add a [`CollisionShape`] to an entity that is generated
 /// automatically by tesselating [`Image`] collision shape based on it's alpha channel
-#[derive(Default)]
+#[derive(Default, Component)]
 pub struct TesselatedCollider {
-    pub image: Handle<Image>,
+    pub texture: Handle<Image>,
     pub tesselator_config: TesselatedColliderConfig,
 }
 
@@ -176,14 +162,21 @@ fn generate_colliders(
     // TODO: Hot reload collision shape changes
     for (ent, tesselated_collider) in pending_colliders.iter() {
         // Get the collider image
-        let image = if let Some(image) = image_assets.get(&tesselated_collider.image) {
+        let image = if let Some(image) = image_assets.get(&tesselated_collider.texture) {
             image
         } else {
             continue;
         };
 
         let shape = create_convex_collider(
-            DynamicImage::ImageRgba8(image.0.clone()),
+            DynamicImage::ImageRgba8(
+                ImageBuffer::from_vec(
+                    image.texture_descriptor.size.width,
+                    image.texture_descriptor.size.height,
+                    image.data.clone(),
+                )
+                .unwrap(),
+            ),
             &tesselated_collider.tesselator_config,
         )
         .expect("Could not generate collision shape from image");

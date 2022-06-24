@@ -1,4 +1,4 @@
-dev_features:="ldtk,epaint"
+dev_features:="ldtk"
 
 # List the justfile recipes
 list:
@@ -33,13 +33,9 @@ doc *args:
 publish confirm="":
     @if [ "{{confirm}}" = "yes I'm sure" ]; then \
         cd crates/bevy_retrograde_macros && cargo publish --no-verify && cd ../../ && \
-        cd crates/bevy_retrograde_core && cargo publish --no-verify && cd ../../ && \
         cd crates/bevy_retrograde_physics && cargo publish --no-verify && cd ../../ && \
-        cd crates/bevy_retrograde_epaint && cargo publish --no-verify && cd ../../ && \
         cd crates/bevy_retrograde_audio && cargo publish --no-verify && cd ../../ && \
-        cd crates/bevy_retrograde_text && cargo publish --no-verify && cd ../../ && \
         cd crates/bevy_retrograde_ui && cargo publish --no-verify && cd ../../ && \
-        cd crates/bevy_retrograde_ldtk && cargo publish --no-verify && cd ../../ && \
         cargo publish --no-verify; \
     else \
         echo "You must provide argument 'yes I'm sure'"; \

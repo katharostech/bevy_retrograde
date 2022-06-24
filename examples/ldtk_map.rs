@@ -1,24 +1,24 @@
-use bevy::{core::FixedTimestep, prelude::*};
+use bevy::{
+    prelude::*,
+    render::camera::{
+        Camera, DepthCalculation, OrthographicCameraBundle, OrthographicProjection, ScalingMode,
+    },
+};
 use bevy_retrograde::prelude::*;
 
 #[derive(StageLabel, Debug, Clone, Hash, Eq, PartialEq)]
 struct GameStage;
 
 fn main() {
-    App::build()
+    App::new()
         .insert_resource(WindowDescriptor {
             title: "Bevy Retrograde LDtk Map".into(),
             ..Default::default()
         })
-        .add_plugins(RetroPlugins)
-        .add_startup_system(setup.system())
-        .add_stage(
-            GameStage,
-            SystemStage::parallel()
-                .with_run_criteria(FixedTimestep::step(0.012))
-                .with_system(move_camera.system()),
-        )
-        .add_system(set_background_color.system())
+        .add_plugins(RetroPlugins::default())
+        .add_startup_system(setup)
+        .add_system(move_camera)
+        .insert_resource(LevelSelection::Index(0))
         .run();
 }
 
@@ -27,20 +27,24 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     asset_server.watch_for_changes().unwrap();
 
     // Spawn the camera
-    commands.spawn().insert_bundle(CameraBundle {
-        camera: Camera {
-            size: CameraSize::FixedHeight(180),
+    const CAMERA_HEIGHT: f32 = 200.0;
+    commands.spawn_bundle(OrthographicCameraBundle {
+        orthographic_projection: OrthographicProjection {
+            scale: CAMERA_HEIGHT / 2.0,
+            scaling_mode: ScalingMode::FixedVertical,
+            depth_calculation: DepthCalculation::ZDifference,
             ..Default::default()
         },
-        ..Default::default()
+        ..OrthographicCameraBundle::new_2d()
     });
 
     // Spawn the map
-    commands.spawn().insert_bundle(LdtkMapBundle {
-        map: asset_server.load("maps/map.ldtk"),
+    let map = asset_server.load("maps/map.ldtk");
+    commands.spawn_bundle(LdtkWorldBundle {
+        ldtk_handle: map,
         // We offset the map a little to move it more to the center of the screen, because maps are
         // spawned with (0, 0) as the top-left corner of the map
-        transform: Transform::from_xyz(-200., -100., 0.),
+        transform: Transform::from_xyz(-175., -100., 0.),
         ..Default::default()
     });
 }
@@ -49,57 +53,29 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 fn move_camera(
     keyboard_input: Res<Input<KeyCode>>,
     mut query: Query<&mut Transform, With<Camera>>,
+    time: Res<Time>,
 ) {
     for mut transform in query.iter_mut() {
-        const SPEED: f32 = 1.;
+        let speed: f32 = 60.0 * time.delta_seconds();
 
         let mut direction = Vec3::new(0., 0., 0.);
 
-        if keyboard_input.pressed(KeyCode::Left) {
-            direction += Vec3::new(-SPEED, 0., 0.);
+        if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
+            direction += Vec3::new(-speed, 0., 0.);
         }
 
-        if keyboard_input.pressed(KeyCode::Right) {
-            direction += Vec3::new(SPEED, 0., 0.);
+        if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
+            direction += Vec3::new(speed, 0., 0.);
         }
 
-        if keyboard_input.pressed(KeyCode::Up) {
-            direction += Vec3::new(0., -SPEED, 0.);
+        if keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W) {
+            direction += Vec3::new(0., speed, 0.);
         }
 
-        if keyboard_input.pressed(KeyCode::Down) {
-            direction += Vec3::new(0., SPEED, 0.);
+        if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
+            direction += Vec3::new(0., -speed, 0.);
         }
 
         transform.translation += direction;
-    }
-}
-
-/// This system sets the camera background color to the background color of the maps first level
-fn set_background_color(
-    mut cameras: Query<&mut Camera>,
-    maps: Query<&Handle<LdtkMap>>,
-    ldtk_map_assets: Res<Assets<LdtkMap>>,
-) {
-    // If the camera background color isn't set, set it. We also only read the clear
-    // color of the first level for now.
-    for map_handle in maps.iter() {
-        if let Some(map) = ldtk_map_assets.get(map_handle) {
-            let level = map.project.levels.get(0).unwrap();
-
-            for mut camera in cameras.iter_mut() {
-                let decoded = hex::decode(
-                    level
-                        .bg_color
-                        .as_ref()
-                        .unwrap_or(&map.project.default_level_bg_color)
-                        .strip_prefix("#")
-                        .expect("Invalid background color"),
-                )
-                .expect("Invalid background color");
-
-                camera.background_color = Color::from_rgba8(decoded[0], decoded[1], decoded[2], 1);
-            }
-        }
     }
 }
