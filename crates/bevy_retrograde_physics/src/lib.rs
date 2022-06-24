@@ -1,15 +1,19 @@
 //! Bevy Retrograde physics plugin
+//!
+//! This is a re-export of [`bevy_rapier2d`] with some of our own utilities added.
 
 use bevy::prelude::*;
 use bevy::render::texture::Image;
 use density_mesh_core::prelude::GenerateDensityMeshSettings;
 use density_mesh_core::prelude::PointsSeparation;
 
-pub use bevy_rapier2d::prelude::*;
+pub use bevy_rapier2d;
+use bevy_rapier2d::prelude::*;
 
 #[doc(hidden)]
 pub mod prelude {
-    pub use crate::RetroPhysicsPlugin;
+    pub use crate::{RetroPhysicsPlugin, TesselatedCollider, TesselatedColliderConfig};
+    pub use bevy_rapier2d::prelude::*;
 }
 
 /// Physics plugin for Bevy Retrograde
@@ -86,13 +90,11 @@ pub fn create_convex_collider(
         })
         .collect::<Vec<_>>();
 
-    let collider = if tesselator_config.vertice_radius == 0.0 {
+    if tesselator_config.vertice_radius == 0.0 {
         Collider::convex_hull(&points)
     } else {
         Collider::round_convex_hull(&points, tesselator_config.vertice_radius)
-    };
-
-    collider
+    }
 }
 
 #[derive(Component)]

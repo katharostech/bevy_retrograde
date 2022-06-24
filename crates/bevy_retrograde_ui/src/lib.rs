@@ -1,35 +1,40 @@
 //! Bevy Retrograde UI plugin
+//!
+//! Primarily a wrapper around [`bevy_egui`] with extra utilties for 9-patch sytle UI and bitmap
+//! font rendering.
 
-use bevy::prelude::*;
-pub use bevy_egui::*;
-pub use egui_extras;
+use bevy::{asset::AssetPath, prelude::*};
 
 pub mod bdf;
 
-/// UI plugin for Bevy Retrograde built on [bevy_egui]
+/// UI plugin for Bevy Retrograde built on [`bevy_egui`]
 pub struct RetroUiPlugin;
 
 impl Plugin for RetroUiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugin(bevy_egui::EguiPlugin)
+        app.add_plugin(EguiPlugin)
             .add_asset::<RetroFont>()
             .add_asset_loader(RetroFontLoader::default())
             .add_system(font_texture_update);
     }
 }
 
-pub use bordered_frame::*;
 pub mod bordered_frame;
-
-pub use retro_label::*;
+pub mod fonts;
+pub mod retro_button;
 pub mod retro_label;
 
-pub use retro_button::*;
-pub mod retro_button;
+#[doc(hidden)]
+pub mod prelude {
+    pub use crate::{
+        bordered_frame::*, fonts::*, retro_button::*, retro_label::*, BorderImage, RetroEguiUiExt,
+    };
+    pub use bevy_egui::*;
+}
 
-pub use fonts::*;
-pub mod fonts;
+use prelude::*;
 
+/// Extra functions on top of [`egui::Ui`] for retro widgets
 pub trait RetroEguiUiExt {
     fn retro_label(self, text: &str, font: &Handle<RetroFont>) -> egui::Response;
 }
@@ -41,7 +46,7 @@ impl RetroEguiUiExt for &mut egui::Ui {
 }
 
 /// A 9-patch style border image that can be used, for exmaple, with [`RetroFrame`] to render a
-/// bordered frame.
+/// bordered frame
 ///
 /// # Example
 ///
@@ -88,4 +93,27 @@ pub struct BorderImage {
     pub texture_border_size: Rect<f32>,
     /// This is the size of the texture in pixels
     pub texture_size: UVec2,
+}
+
+impl BorderImage {
+    /// Load a border image from the Bevy world
+    pub fn load_from_world<'a, P: Into<AssetPath<'a>>>(
+        world: &mut World,
+        path: P,
+        image_size: UVec2,
+        border_size: Rect<f32>,
+    ) -> Self {
+        let world = world.cell();
+        let asset_server = world.get_resource::<AssetServer>().unwrap();
+        let mut ctx = world.get_resource_mut::<EguiContext>().unwrap();
+
+        let handle = asset_server.load(path);
+
+        Self {
+            egui_texture: ctx.add_image(handle.clone()),
+            handle,
+            texture_border_size: border_size,
+            texture_size: image_size,
+        }
+    }
 }

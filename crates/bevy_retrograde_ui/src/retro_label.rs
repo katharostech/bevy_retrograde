@@ -1,3 +1,5 @@
+//! Bitmap font label widget
+
 use bevy::prelude::Handle;
 use bevy_egui::egui::{self, Widget};
 use unicode_linebreak::BreakOpportunity;
@@ -59,7 +61,7 @@ impl<'a> RetroLabel<'a> {
                 .data
                 .get_temp_mut_or_default::<RetroFontCache>(egui::Id::null())
                 .lock();
-            if let Some(item) = retro_font_cache.get(&self.font) {
+            if let Some(item) = retro_font_cache.get(self.font) {
                 item.clone()
             } else {
                 return None;
@@ -200,8 +202,10 @@ impl<'a> RetroLabel<'a> {
                 }
 
                 // Create mesh for glyph
-                let mut mesh = egui::Mesh::default();
-                mesh.texture_id = layout.font_cache.texture_id;
+                let mut mesh = egui::Mesh {
+                    texture_id: layout.font_cache.texture_id,
+                    ..Default::default()
+                };
 
                 // Calculate glyph position and size
                 let char_y_offset = font.bounds.height as f32 + font.bounds.y as f32

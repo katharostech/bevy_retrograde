@@ -1,33 +1,9 @@
-//! Bordered frame rendering
-//!
-//! Adapted from <https://docs.rs/egui/0.18.1/src/egui/containers/frame.rs.html>
+//! 9-Patch style bordered frame rendering
+// Adapted from <https://docs.rs/egui/0.18.1/src/egui/containers/frame.rs.html>
 
 use crate::BorderImage;
-use bevy::{asset::AssetPath, prelude::*};
-use bevy_egui::{egui, EguiContext};
-
-impl BorderImage {
-    /// Load a border image from the Bevy world
-    pub fn load_from_world<'a, P: Into<AssetPath<'a>>>(
-        world: &mut World,
-        path: P,
-        image_size: UVec2,
-        border_size: Rect<f32>,
-    ) -> Self {
-        let world = world.cell();
-        let asset_server = world.get_resource::<AssetServer>().unwrap();
-        let mut ctx = world.get_resource_mut::<EguiContext>().unwrap();
-
-        let handle = asset_server.load(path);
-
-        Self {
-            egui_texture: ctx.add_image(handle.clone()),
-            handle,
-            texture_border_size: border_size,
-            texture_size: image_size,
-        }
-    }
-}
+use bevy::prelude::*;
+use bevy_egui::egui;
 
 /// A 9-patch style bordered frame.
 ///
@@ -147,8 +123,10 @@ impl BorderedFrame {
         use egui::{Pos2, Rect, Vec2};
         let white = egui::Color32::WHITE;
 
-        let mut mesh = egui::Mesh::default();
-        mesh.texture_id = self.bg_texture;
+        let mut mesh = egui::Mesh {
+            texture_id: self.bg_texture,
+            ..Default::default()
+        };
 
         let s = self.texture_size;
         let b = self.texture_border_size;

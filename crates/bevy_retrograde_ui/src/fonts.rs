@@ -1,3 +1,5 @@
+//! Bitmap font asset loader
+
 use std::{collections::BTreeMap, sync::Arc};
 
 use crate::bdf;
@@ -9,7 +11,7 @@ use bevy::{
     utils::HashMap,
 };
 use bevy_egui::{
-    egui::{self, mutex::Mutex, Widget},
+    egui::{self, mutex::Mutex},
     EguiContext,
 };
 use image::{GenericImage, Rgba, RgbaImage};
@@ -18,8 +20,10 @@ use rectangle_pack::{
     TargetBin,
 };
 
+/// Retro font texture cache. Used internally, but may be useful for advanced users.
 pub type RetroFontCache = Arc<Mutex<HashMap<Handle<RetroFont>, RetroFontCacheItem>>>;
 
+/// Record in the retro font texture cache. Used internally, but may be useful for advanced users.
 #[derive(Clone)]
 pub struct RetroFontCacheItem {
     pub texture_id: egui::TextureId,
@@ -58,53 +62,6 @@ pub(crate) fn font_texture_update(
     }
 }
 
-pub struct RetroLetter<'a> {
-    pub codepoint: char,
-    pub font: &'a Handle<RetroFont>,
-}
-
-impl<'a> Widget for RetroLetter<'a> {
-    fn ui(self, ui: &mut egui::Ui) -> egui::Response {
-        let empty_response = ui.allocate_response(egui::Vec2::ZERO, egui::Sense::hover());
-
-        let (texture, uv, size) = {
-            let ctx = ui.ctx();
-            let mut memory = ctx.memory();
-            let retro_font_texture_datas = memory
-                .data
-                .get_temp_mut_or_default::<RetroFontCache>(egui::Id::null())
-                .lock();
-
-            if let Some(data) = retro_font_texture_datas.get(&self.font) {
-                let font = &data.font_data.font;
-                let size = if let Some(glyph) = font.glyphs.get(&self.codepoint) {
-                    egui::Vec2::new(glyph.bounds.width as f32, font.bounds.height as f32)
-                } else {
-                    return empty_response;
-                };
-                let uv = if let Some(uv) = data.font_data.glyph_uvs.get(&self.codepoint) {
-                    uv
-                } else {
-                    return empty_response;
-                };
-                (data.texture_id, *uv, size)
-            } else {
-                return empty_response;
-            }
-        };
-
-        let (rect, response) = ui.allocate_exact_size(size, egui::Sense::hover());
-
-        let mut mesh = egui::Mesh::default();
-        mesh.texture_id = texture;
-        mesh.add_rect_with_uv(rect, uv, egui::Color32::RED);
-
-        ui.painter().add(mesh);
-
-        response
-    }
-}
-
 /// A bitmap font asset that can be loaded from .bdf files
 #[derive(TypeUuid)]
 #[uuid = "fd2ca871-a323-4811-bae9-aa3c18d0e266"]
@@ -112,12 +69,14 @@ pub struct RetroFont {
     pub data: Arc<RetroFontData>,
 }
 
+/// The data inside of a [`RetroFont`]
 pub struct RetroFontData {
     pub texture: Handle<Image>,
     pub font: bdf::Font,
     pub glyph_uvs: HashMap<char, egui::Rect>,
 }
 
+/// [`RetroFont`] asset loader implementation
 #[derive(Default)]
 pub struct RetroFontLoader;
 

@@ -1,4 +1,7 @@
+//! 9-Patch style button widget
+
 use bevy::prelude::Handle;
+
 /// Bordered button rendering
 ///
 /// Adapted from <https://docs.rs/egui/0.18.1/src/egui/widgets/button.rs.html>
@@ -138,7 +141,7 @@ impl<'a> Widget for RetroButton<'a> {
         response.widget_info(|| WidgetInfo::labeled(WidgetType::Button, text));
 
         if ui.is_rect_visible(rect) {
-            let mut text_rect = rect.clone();
+            let mut text_rect = rect;
             text_rect.min += padding.left_top() + margin.left_top();
             text_rect.max -= padding.right_bottom() + margin.right_bottom();
             text_rect.max.x = text_rect.max.x.max(text_rect.min.x);
@@ -157,7 +160,7 @@ impl<'a> Widget for RetroButton<'a> {
                 default_border
             };
 
-            let mut border_rect = rect.clone();
+            let mut border_rect = rect;
             border_rect.min += margin.left_top();
             border_rect.max -= margin.right_bottom();
             border_rect.max.x = border_rect.max.x.max(border_rect.min.x);
@@ -165,7 +168,7 @@ impl<'a> Widget for RetroButton<'a> {
 
             if let Some(border) = border {
                 ui.painter()
-                    .add(BorderedFrame::new(&border).paint(border_rect));
+                    .add(BorderedFrame::new(border).paint(border_rect));
             }
 
             label.paint_at(ui, label_pos, label_layout);
