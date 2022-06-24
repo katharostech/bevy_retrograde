@@ -6,7 +6,7 @@
 ///
 /// # Example
 ///
-/// ```rust,no_check
+/// ```no-test
 /// # use bevy_retrograde_macros::impl_deref;
 ///
 /// #[derive(Component)]

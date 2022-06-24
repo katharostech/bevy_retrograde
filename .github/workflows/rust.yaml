@@ -46,7 +46,7 @@ jobs:
 
       # No need to run cargo check because clippy will check it
       - name: Clippy
-        run: cargo clippy --workspace --features ldtk,epaint
+        run: cargo clippy --workspace
 
   build-and-test-native:
     needs: check
@@ -79,10 +79,10 @@ jobs:
           override: true
 
       - name: Build
-        run: cargo build --workspace --features ldtk,epaint --verbose
+        run: cargo build --workspace --verbose
 
       - name: Test
-        run: cargo test --workspace --features ldtk,epaint --verbose
+        run: cargo test --workspace --verbose
 
   build-wasm:
     needs: check
@@ -112,4 +112,4 @@ jobs:
           override: true
 
       - name: Build
-        run: cargo build --workspace --features ldtk,epaint --verbose --target wasm32-unknown-unknown
+        run: cargo build --workspace --verbose --target wasm32-unknown-unknown

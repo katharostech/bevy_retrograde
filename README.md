@@ -69,7 +69,6 @@ Check out our [examples][__link6] list to see how to use each Bevy Retrograde fe
 ```toml
 [dependencies]
 bevy = { version = "0.7", default-features = false }
- # 0.3.0 Release is comming soon!
 bevy_retrograde = { git = "https://github.com/katharostech/bevy_retrograde.git" }
 ```
 

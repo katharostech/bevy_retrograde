@@ -53,28 +53,30 @@ impl RetroEguiUiExt for &mut egui::Ui {
 /// You can easily load your border images into a resource using the [`UiBorderImage::load_from_world()`].
 ///
 /// ```
+/// # use bevy::prelude::*;
+/// # use bevy_retrograde_ui::prelude::*;
 /// struct UiTheme {
-///     panel_bg: UiBorderImage,
-///     button_up_bg: UiBorderImage,
-///     button_down_bg: UiBorderImage,
+///     panel_bg: BorderImage,
+///     button_up_bg: BorderImage,
+///     button_down_bg: BorderImage,
 /// }
 ///
 /// impl FromWorld for UiTheme {
 ///     fn from_world(world: &mut World) -> Self {
 ///         Self {
-///             panel_bg: UiBorderImage::load_from_world(
+///             panel_bg: BorderImage::load_from_world(
 ///                 world,
 ///                 "ui/panel.png",
 ///                 UVec2::new(48, 48),
 ///                 Rect::all(8.0),
 ///             ),
-///             button_up_bg: UiBorderImage::load_from_world(
+///             button_up_bg: BorderImage::load_from_world(
 ///                 world,
 ///                 "ui/button-up.png",
 ///                 UVec2::new(32, 16),
 ///                 Rect::all(8.0),
 ///             ),
-///             button_down_bg: UiBorderImage::load_from_world(
+///             button_down_bg: BorderImage::load_from_world(
 ///                 world,
 ///                 "ui/button-down.png",
 ///                 UVec2::new(32, 16),
