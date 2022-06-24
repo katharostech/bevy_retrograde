@@ -31,9 +31,6 @@ default = [
     "ldtk",
     "ui",
     "physics",
-    "bevy/png",
-    "bevy/x11",
-    "bevy/filesystem_watcher"
 ]
 audio = ["bevy_kira_audio"]
 # text = ["bevy_retrograde_text"]
@@ -46,8 +43,9 @@ physics_debug = ["bevy_retrograde_physics/debug"]
 version = "0.7.0"
 default-features = false
 features = [
-    "bevy_core_pipeline",
     "bevy_winit",
+    "png",
+    "x11",
 ]
 
 [dependencies]
@@ -83,3 +81,8 @@ required-features = ["ldtk"]
 name = "physics_map"
 path = "examples/physics_map.rs"
 required-features = ["ldtk"]
+
+[patch.crates-io]
+# Waiting on this PR to be merged and released:
+# https://github.com/StarArawn/bevy_ecs_tilemap/pull/197
+bevy_ecs_tilemap = { git = "https://github.com/zicklag/bevy_ecs_tilemap.git", branch = "feature/fix-tile-bleeding" }

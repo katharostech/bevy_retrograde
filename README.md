@@ -26,28 +26,40 @@ Bevy Retrograde LDtk is licensed under the [Katharos License][__link1] which pla
 
 ## Development Status
 
-Bevy Retrograde is in early stages of development. The API is not stable and may change dramatically at any time. We have just made a major update, migrating from Bevy 0.5 and a custom
+Bevy Retrograde is in early stages of development. The API is not stable and may change dramatically at any time.
+
+We have just made a major update. This update removed ~75% of Bevy Retro ( that’s good! ) by updating to Bevy 0.7, and:
+
+ - Replacing our custom renderer with Bevy’s
+ - Replacing our custom map laoder with [`bevy_ecs_ldtk`][__link2]
+ - Replacing our custom [RAUI][__link3] UI renderer with [`bevy_egui`][__link4]
+
+Now Bevy Retrograde mostly includes some existing libraries and provides small utilities on top such as the 9-patch style UI addtions for egui.
+
+Since it’s been so long since our last we want to get another release out soon, just to get everything working again on top of the latest crates. We are just wating on a [tilemap rendering fix][__link5] to get merged before we publish an `0.3.0` release.
+
+After that we plan to re-visit what extra features we might want, such as an easier way to setup to 2D camera, and a save data system, and we will look at polishing our integrations and utilities where appropriate.
 
 See also [Supported Bevy Version](#supported-bevy-version) below.
 
 
 ## Features & Examples
 
-Check out our [examples][__link2] list to see how to use each Bevy Retrograde feature:
+Check out our [examples][__link6] list to see how to use each Bevy Retrograde feature:
 
  - Supports web and desktop out-of-the-box
- - [LDtk][__link3] map loading and rendering using [`bevy_ecs_ldtk`][__link4]
- - An integration with the [RAUI][__link5] UI library for building in-game user interfaces and HUD
- - Physics and collision detection powered by [Rapier][__link6] with automatic generation of convex collision shapes from sprite images
+ - [LDtk][__link7] map loading and rendering using [`bevy_ecs_ldtk`][__link8].
+ - An integration with the [`egui`][__link9] UI library with extra 9-patch style widgets.
  - Text rendering of bitmap fonts in the BDF format
- - A simple but effective sound playing API
+ - Physics and collision detection powered by [Rapier][__link10] with automatic generation of convex collision shapes from sprite images.
+ - Sound playing with [`bevy_kira_audio`][__link11].
 
 
 ## Supported Bevy Version
 
 | bevy | bevy_retrograde |
 | --- | --- |
-| 0.7 | 0.3 |
+| 0.7 | master ( `0.3` release comming soon! ) |
 | 0.6 |  |
 | 0.5 | 0.1, 0.2 |
 
@@ -55,17 +67,24 @@ Check out our [examples][__link2] list to see how to use each Bevy Retrograde fe
 
 
 ```toml
+[dependencies]
 bevy = { version = "0.7", default-features = false }
-bevy_retrograde = "0.3.0"
+ # 0.3.0 Release is comming soon!
+bevy_retrograde = { git = "https://github.com/katharostech/bevy_retrograde.git" }
 ```
 
 
 
  [__link0]: https://bevyengine.org
  [__link1]: https://github.com/katharostech/katharos-license
- [__link2]: https://github.com/katharostech/bevy_retrograde/tree/master/examples#bevy-retro-examples
- [__link3]: https://ldtk.io
- [__link4]: https://crates.io/crates/bevy_ecs_ldtk/0.3.0
- [__link5]: https://crates.io/crates/RAUI
- [__link6]: https://rapier.rs/
+ [__link10]: https://rapier.rs/
+ [__link11]: https://github.com/NiklasEi/bevy_kira_audio
+ [__link2]: https://github.com/Trouv/bevy_ecs_ldtk
+ [__link3]: https://raui-labs.github.io/raui/
+ [__link4]: https://github.com/mvlabat/bevy_egui
+ [__link5]: https://github.com/StarArawn/bevy_ecs_tilemap/pull/197
+ [__link6]: https://github.com/katharostech/bevy_retrograde/tree/master/examples#bevy-retro-examples
+ [__link7]: https://ldtk.io
+ [__link8]: https://github.com/Trouv/bevy_ecs_ldtk
+ [__link9]: https://github.com/emilk/egui
 
