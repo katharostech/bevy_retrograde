@@ -1,9 +1,4 @@
-use bevy::{
-    prelude::*,
-    render::camera::{
-        DepthCalculation, OrthographicCameraBundle, OrthographicProjection, ScalingMode,
-    },
-};
+use bevy::prelude::*;
 use bevy_retrograde::prelude::*;
 
 fn main() {
@@ -27,17 +22,7 @@ struct Player;
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Spawn the camera
-    const CAMERA_HEIGHT: f32 = 150.0;
-    commands.spawn_bundle(OrthographicCameraBundle {
-        orthographic_projection: OrthographicProjection {
-            scale: CAMERA_HEIGHT / 2.0,
-            scaling_mode: ScalingMode::FixedVertical,
-            depth_calculation: DepthCalculation::ZDifference,
-            ..Default::default()
-        },
-        transform: Transform::from_xyz(0., 75., 0.),
-        ..OrthographicCameraBundle::new_2d()
-    });
+    commands.spawn_bundle(RetroCameraBundle::fixed_height(150.0));
 
     // Load our images
     let block = asset_server.load("block.png");

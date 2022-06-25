@@ -1,9 +1,4 @@
-use bevy::{
-    prelude::*,
-    render::camera::{
-        Camera, DepthCalculation, OrthographicCameraBundle, OrthographicProjection, ScalingMode,
-    },
-};
+use bevy::prelude::*;
 use bevy_retrograde::prelude::*;
 
 #[derive(StageLabel, Debug, Clone, Hash, Eq, PartialEq)]
@@ -27,16 +22,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     asset_server.watch_for_changes().unwrap();
 
     // Spawn the camera
-    const CAMERA_HEIGHT: f32 = 200.0;
-    commands.spawn_bundle(OrthographicCameraBundle {
-        orthographic_projection: OrthographicProjection {
-            scale: CAMERA_HEIGHT / 2.0,
-            scaling_mode: ScalingMode::FixedVertical,
-            depth_calculation: DepthCalculation::ZDifference,
-            ..Default::default()
-        },
-        ..OrthographicCameraBundle::new_2d()
-    });
+    commands.spawn_bundle(RetroCameraBundle::fixed_height(200.0));
 
     // Spawn the map
     let map = asset_server.load("maps/map.ldtk");
