@@ -1,9 +1,4 @@
-use bevy::{
-    prelude::*,
-    render::camera::{
-        DepthCalculation, OrthographicCameraBundle, OrthographicProjection, ScalingMode,
-    },
-};
+use bevy::prelude::*;
 use bevy_retrograde::prelude::*;
 
 struct UiTheme {
@@ -52,27 +47,16 @@ fn main() {
         .insert_resource(LevelSelection::Index(0))
         .init_resource::<UiTheme>()
         .add_startup_system(setup)
-        .add_system(update_ui_scale)
         .add_system(ui)
         .run();
 }
-
-const CAMERA_HEIGHT: f32 = 200.0;
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Enable hot reload
     asset_server.watch_for_changes().unwrap();
 
     // Spawn the camera
-    commands.spawn_bundle(OrthographicCameraBundle {
-        orthographic_projection: OrthographicProjection {
-            scale: CAMERA_HEIGHT / 2.0,
-            scaling_mode: ScalingMode::FixedVertical,
-            depth_calculation: DepthCalculation::ZDifference,
-            ..Default::default()
-        },
-        ..OrthographicCameraBundle::new_2d()
-    });
+    commands.spawn_bundle(RetroCameraBundle::fixed_height(200.0));
 
     // Spawn the map
     let map = asset_server.load("maps/map.ldtk");
@@ -83,16 +67,6 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         transform: Transform::from_xyz(-180., -100., 0.),
         ..Default::default()
     });
-}
-
-/// This system makes sure that the UI scale of Egui matches our game scale so that a pixel in egui
-/// will be the same size as a pixel in our sprites.
-fn update_ui_scale(mut egui_settings: ResMut<EguiSettings>, windows: Res<Windows>) {
-    if let Some(window) = windows.get_primary() {
-        let window_height = window.height();
-        let scale = window_height / CAMERA_HEIGHT;
-        egui_settings.scale_factor = scale as f64;
-    }
 }
 
 fn ui(

@@ -15,6 +15,7 @@ impl Plugin for RetroUiPlugin {
         app.add_plugin(EguiPlugin)
             .add_asset::<RetroFont>()
             .add_asset_loader(RetroFontLoader::default())
+            .add_system(update_ui_scale)
             .add_system(font_texture_update);
     }
 }
@@ -116,6 +117,33 @@ impl BorderImage {
             handle,
             texture_border_size: border_size,
             texture_size: image_size,
+        }
+    }
+}
+
+/// This system makes sure that the UI scale of Egui matches our game scale so that a pixel in egui
+/// will be the same size as a pixel in our sprites.
+fn update_ui_scale(
+    mut egui_settings: ResMut<EguiSettings>,
+    windows: Res<Windows>,
+    projection: Query<&OrthographicProjection, With<Camera>>,
+) {
+    if let Some(window) = windows.get_primary() {
+        let projection: &OrthographicProjection = projection.single();
+
+        match projection.scaling_mode {
+            bevy::render::camera::ScalingMode::FixedVertical => {
+                let window_height = window.height();
+                let scale = window_height / (projection.scale * 2.0);
+                egui_settings.scale_factor = scale as f64;
+            }
+            bevy::render::camera::ScalingMode::FixedHorizontal => {
+                let window_width = window.width();
+                let scale = window_width / (projection.scale * 2.0);
+                egui_settings.scale_factor = scale as f64;
+            }
+            bevy::render::camera::ScalingMode::None => (),
+            bevy::render::camera::ScalingMode::WindowSize => (),
         }
     }
 }

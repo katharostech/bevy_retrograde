@@ -2,13 +2,7 @@
 //! is the use of the `TesselatedCollider` component that can be used to create a convex hull
 //! collision shape from a sprite image.
 
-use bevy::{
-    prelude::*,
-    render::camera::{
-        DepthCalculation, OrthographicCameraBundle, OrthographicProjection, ScalingMode,
-    },
-    sprite::SpriteBundle,
-};
+use bevy::{prelude::*, sprite::SpriteBundle};
 use bevy_retrograde::prelude::*;
 
 use serde::Deserialize;
@@ -30,16 +24,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     asset_server.watch_for_changes().unwrap();
 
     // Spawn the camera
-    const CAMERA_HEIGHT: f32 = 160.0;
-    commands.spawn_bundle(OrthographicCameraBundle {
-        orthographic_projection: OrthographicProjection {
-            scale: CAMERA_HEIGHT / 2.0,
-            scaling_mode: ScalingMode::FixedVertical,
-            depth_calculation: DepthCalculation::ZDifference,
-            ..Default::default()
-        },
-        ..OrthographicCameraBundle::new_2d()
-    });
+    commands.spawn_bundle(RetroCameraBundle::fixed_height(160.0));
 
     // Spawn the map
     commands.spawn().insert_bundle(LdtkWorldBundle {

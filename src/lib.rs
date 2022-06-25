@@ -85,7 +85,14 @@
 //! bevy_retrograde = { git = "https://github.com/katharostech/bevy_retrograde.git" }
 //! ```
 
-mod core;
+use bevy::{
+    prelude::*,
+    render::{
+        camera::{Camera2d, DepthCalculation, ScalingMode},
+        primitives::Frustum,
+        view::VisibleEntities,
+    },
+};
 
 /// Bevy Retrograde default plugins
 pub struct RetroPlugins {
@@ -123,7 +130,7 @@ impl bevy::app::PluginGroup for RetroPlugins {
         #[cfg(feature = "ui")]
         group.add(ui::RetroUiPlugin);
 
-        group.add(core::RetroCorePlugin);
+        group.add(RetroCorePlugin);
     }
 }
 
@@ -161,3 +168,74 @@ pub use bevy_ecs_ldtk as ldtk;
 #[cfg(feature = "ui")]
 #[doc(inline)]
 pub use bevy_retrograde_ui as ui;
+
+/// The Core Bevy plugin
+struct RetroCorePlugin;
+
+impl Plugin for RetroCorePlugin {
+    #[cfg_attr(not(target_arch = "wasm32"), allow(unused))]
+    fn build(&self, app: &mut App) {
+        #[cfg(target_arch = "wasm32")]
+        app.add_system(update_canvas_size);
+    }
+}
+
+/// System that makes sure the WASM canvas size matches the size of the screen
+#[cfg(target_arch = "wasm32")]
+pub fn update_canvas_size(mut windows: ResMut<Windows>) {
+    // Get the browser window size
+    let browser_window = web_sys::window().unwrap();
+    let window_width = browser_window.inner_width().unwrap().as_f64().unwrap();
+    let window_height = browser_window.inner_height().unwrap().as_f64().unwrap();
+
+    let window = windows.get_primary_mut().unwrap();
+
+    // Set the canvas to the browser size
+    window.set_resolution(window_width as f32, window_height as f32);
+}
+
+/// 2D camera with easy controls for sizing the screen
+#[derive(Bundle)]
+pub struct RetroCameraBundle {
+    pub camera: Camera,
+    pub orthographic_projection: OrthographicProjection,
+    pub visible_entities: VisibleEntities,
+    pub frustum: Frustum,
+    pub transform: Transform,
+    pub global_transform: GlobalTransform,
+    pub marker: Camera2d,
+}
+
+impl RetroCameraBundle {
+    fn new(scale: f32, scaling_mode: ScalingMode) -> Self {
+        // Modify the projection
+        let orthographic_projection = OrthographicProjection {
+            scale,
+            scaling_mode,
+            depth_calculation: DepthCalculation::ZDifference,
+            ..Default::default()
+        };
+
+        // And copy the rest of the components from the default 2D camera
+        let bundle = OrthographicCameraBundle::new_2d();
+        Self {
+            camera: bundle.camera,
+            orthographic_projection,
+            visible_entities: bundle.visible_entities,
+            frustum: bundle.frustum,
+            transform: bundle.transform,
+            global_transform: bundle.global_transform,
+            marker: bundle.marker,
+        }
+    }
+
+    /// Create a camera with a fixed width in pixels and a height determined by the window aspect
+    pub fn fixed_width(width: f32) -> Self {
+        Self::new(width / 2.0, ScalingMode::FixedHorizontal)
+    }
+
+    /// Create a camera with a fixed width in pixels and a height determined by the window aspect
+    pub fn fixed_height(height: f32) -> Self {
+        Self::new(height / 2.0, ScalingMode::FixedVertical)
+    }
+}
