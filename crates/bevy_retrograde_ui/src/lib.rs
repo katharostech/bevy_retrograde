@@ -129,21 +129,21 @@ fn update_ui_scale(
     projection: Query<&OrthographicProjection, With<Camera>>,
 ) {
     if let Some(window) = windows.get_primary() {
-        let projection: &OrthographicProjection = projection.single();
-
-        match projection.scaling_mode {
-            bevy::render::camera::ScalingMode::FixedVertical => {
-                let window_height = window.height();
-                let scale = window_height / (projection.scale * 2.0);
-                egui_settings.scale_factor = scale as f64;
+        if let Ok(projection) = projection.get_single() {
+            match projection.scaling_mode {
+                bevy::render::camera::ScalingMode::FixedVertical => {
+                    let window_height = window.height();
+                    let scale = window_height / (projection.scale * 2.0);
+                    egui_settings.scale_factor = scale as f64;
+                }
+                bevy::render::camera::ScalingMode::FixedHorizontal => {
+                    let window_width = window.width();
+                    let scale = window_width / (projection.scale * 2.0);
+                    egui_settings.scale_factor = scale as f64;
+                }
+                bevy::render::camera::ScalingMode::None => (),
+                bevy::render::camera::ScalingMode::WindowSize => (),
             }
-            bevy::render::camera::ScalingMode::FixedHorizontal => {
-                let window_width = window.width();
-                let scale = window_width / (projection.scale * 2.0);
-                egui_settings.scale_factor = scale as f64;
-            }
-            bevy::render::camera::ScalingMode::None => (),
-            bevy::render::camera::ScalingMode::WindowSize => (),
         }
     }
 }
