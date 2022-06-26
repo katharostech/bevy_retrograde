@@ -12,7 +12,9 @@ use bevy_rapier2d::prelude::*;
 
 #[doc(hidden)]
 pub mod prelude {
-    pub use crate::{RetroPhysicsPlugin, TesselatedCollider, TesselatedColliderConfig};
+    pub use crate::{
+        CollisionEventExt, RetroPhysicsPlugin, TesselatedCollider, TesselatedColliderConfig,
+    };
     pub use bevy_rapier2d::prelude::*;
 }
 
@@ -41,10 +43,41 @@ impl Plugin for RetroPhysicsPlugin {
     }
 }
 
+/// Helper methods on [`bevy_rapier2d::CollisionEvent`]
+pub trait CollisionEventExt {
+    fn entities(&self) -> (Entity, Entity);
+    fn is_started(&self) -> bool;
+    fn is_stopped(&self) -> bool;
+}
+
+impl CollisionEventExt for CollisionEvent {
+    /// Get the entities involved in the collision
+    fn entities(&self) -> (Entity, Entity) {
+        match self {
+            CollisionEvent::Started(ent1, ent2, _) | CollisionEvent::Stopped(ent1, ent2, _) => {
+                (*ent1, *ent2)
+            }
+        }
+    }
+
+    /// Whether or not the contact has just started
+    fn is_started(&self) -> bool {
+        match self {
+            CollisionEvent::Started(_, _, _) => true,
+            CollisionEvent::Stopped(_, _, _) => false,
+        }
+    }
+
+    /// Whether or not the contact has just stopped
+    fn is_stopped(&self) -> bool {
+        !self.is_started()
+    }
+}
+
 /// Create a convex hull [`CollisionShape`] from a sprite image based on it's alpha channel
 ///
 /// Returns [`None`] if a mesh for the given image could not be generated
-pub fn create_convex_collider(
+pub fn create_convex_collider_from_image(
     image: DynamicImage,
     tesselator_config: &TesselatedColliderConfig,
 ) -> Option<Collider> {
@@ -168,7 +201,7 @@ fn generate_colliders(
             continue;
         };
 
-        let shape = create_convex_collider(
+        let shape = create_convex_collider_from_image(
             DynamicImage::ImageRgba8(
                 ImageBuffer::from_vec(
                     image.texture_descriptor.size.width,
