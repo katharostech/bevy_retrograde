@@ -26,19 +26,19 @@
 //! updating to Bevy 0.7, and:
 //!
 //!   - Replacing our custom renderer with Bevy's
-//!   - Replacing our custom map laoder with [`bevy_ecs_ldtk`]
+//!   - Replacing our custom map loader with [`bevy_ecs_ldtk`]
 //!   - Replacing our custom [RAUI] UI renderer with [`bevy_egui`]
 //!
 //! Now Bevy Retrograde mostly includes some existing libraries and provides small utilities on top
 //! such as the 9-patch style UI addtions for egui.
 //!
-//! Since it's been so long since our last we want to get another release out soon, just to get
-//! everything working again on top of the latest crates. We are just wating on a [tilemap rendering
+//! Since it's been so long since our last update we want to get another release out soon, just to get
+//! everything working again on top of the latest crates. We are just waiting on a [tilemap rendering
 //! fix](https://github.com/StarArawn/bevy_ecs_tilemap/pull/197) to get merged before we publish an
 //! `0.3.0` release.
 //!
 //! After that we plan to re-visit what extra features we might want, such as an easier way to setup
-//! to 2D camera, and a save data system, and we will look at polishing our integrations and
+//! the 2D camera, and a save data system, and we will look at polishing our integrations and
 //! utilities where appropriate.
 //!
 //! See also [Supported Bevy Version](#supported-bevy-version) below.

@@ -38,7 +38,7 @@ Now Bevy Retrograde mostly includes some existing libraries and provides small u
 
 Since it’s been so long since our last update we want to get another release out soon, just to get everything working again on top of the latest crates. We are just waiting on a [tilemap rendering fix][__link5] to get merged before we publish an `0.3.0` release.
 
-After that we plan to re-visit what extra features we might want, such as an easier way to setup 2D camera, and a save data system, and we will look at polishing our integrations and utilities where appropriate.
+After that we plan to re-visit what extra features we might want, such as an easier way to setup the 2D camera, and a save data system, and we will look at polishing our integrations and utilities where appropriate.
 
 See also [Supported Bevy Version](#supported-bevy-version) below.
 
