@@ -40,18 +40,20 @@ ldtk = ["bevy_ecs_ldtk"]
 physics_debug = ["bevy_retrograde_physics/debug"]
 
 [dependencies.bevy]
-version = "0.7.0"
+version = "0.11.0"
 default-features = false
 features = [
     "bevy_winit",
     "png",
     "x11",
+    "wayland",
+    "filesystem_watcher",
 ]
 
 [dependencies]
 bevy_retrograde_macros = { version = "0.2", path = "crates/bevy_retrograde_macros" }
-bevy_kira_audio = { version = "0.10.0", optional = true }
-bevy_ecs_ldtk = { version = "0.3.0", features = ["atlas"], optional = true }
+bevy_kira_audio = { version = "0.16.0", optional = true }
+bevy_ecs_ldtk = { version = "0.8.0", features = ["atlas"], optional = true }
 bevy_retrograde_ui = { version = "0.3", path = "crates/bevy_retrograde_ui", optional = true }
 bevy_retrograde_physics = { version = "0.3", path = "crates/bevy_retrograde_physics", optional = true }
 dashmap = "5.3.4"
@@ -63,10 +65,10 @@ web-sys = { version = "0.3", features=["Window"] }
 [dev-dependencies]
 hex = "0.4.3"
 rand = "0.8.3"
-image = "0.23.0"
+image = "0.24.6"
 serde = { version = "1.0.137", features = ["derive"] }
-serde_yaml = "0.8.24"
-ron = "0.7.1"
+serde_yaml = "0.9.25"
+ron = "0.8.0"
 
 [profile.dev]
 opt-level = 2
@@ -83,8 +85,3 @@ required-features = ["ldtk"]
 name = "physics_map"
 path = "examples/physics_map.rs"
 required-features = ["ldtk"]
-
-[patch.crates-io]
-# Waiting on this PR to be merged and released:
-# https://github.com/StarArawn/bevy_ecs_tilemap/pull/197
-bevy_ecs_tilemap = { git = "https://github.com/zicklag/bevy_ecs_tilemap.git", branch = "feature/fix-tile-bleeding" }
