@@ -1,6 +1,6 @@
 //! 9-Patch style button widget
 
-use bevy::prelude::Handle;
+use bevy::{prelude::Handle, ui::Val};
 
 /// Bordered button rendering
 ///
@@ -43,27 +43,49 @@ impl<'a> RetroButton<'a> {
 
     /// Set the margin. This will be applied on the outside of the border.
     #[must_use = "You must call .show() to render the button"]
-    pub fn margin(mut self, margin: bevy::math::Rect<f32>) -> Self {
+    pub fn margin(mut self, margin: bevy::ui::UiRect) -> Self {
         self.margin = egui::style::Margin {
-            left: margin.left,
-            right: margin.right,
-            top: margin.top,
-            bottom: margin.bottom,
+            left: if let Val::Px(px) = margin.left {
+                px
+            } else {
+                0.
+            },
+            right: if let Val::Px(px) = margin.right {
+                px
+            } else {
+                0.
+            },
+            top: if let Val::Px(px) = margin.top { px } else { 0. },
+            bottom: if let Val::Px(px) = margin.bottom {
+                px
+            } else {
+                0.
+            },
         };
-
         self
     }
 
     /// Set the padding. This will be applied on the inside of the border.
     #[must_use = "You must call .show() to render the button"]
-    pub fn padding(mut self, margin: bevy::math::Rect<f32>) -> Self {
+    pub fn padding(mut self, margin: bevy::ui::UiRect) -> Self {
         self.padding = egui::style::Margin {
-            left: margin.left,
-            right: margin.right,
-            top: margin.top,
-            bottom: margin.bottom,
+            left: if let Val::Px(px) = margin.left {
+                px
+            } else {
+                0.
+            },
+            right: if let Val::Px(px) = margin.right {
+                px
+            } else {
+                0.
+            },
+            top: if let Val::Px(px) = margin.top { px } else { 0. },
+            bottom: if let Val::Px(px) = margin.bottom {
+                px
+            } else {
+                0.
+            },
         };
-
         self
     }
 

@@ -6,13 +6,13 @@ use crate::bdf;
 use bevy::{
     asset::{AssetLoader, LoadedAsset},
     prelude::*,
-    reflect::TypeUuid,
+    reflect::{TypePath, TypeUuid},
     render::render_resource::{Extent3d, TextureDimension, TextureFormat},
     utils::HashMap,
 };
 use bevy_egui::{
     egui::{self, mutex::Mutex},
-    EguiContext,
+    EguiContexts,
 };
 use image::{GenericImage, Rgba, RgbaImage};
 use rectangle_pack::{
@@ -31,39 +31,35 @@ pub struct RetroFontCacheItem {
 }
 
 /// Loop through all [`RetroFont`] assets and map their texture ids and uvs to their handle
-pub(crate) fn font_texture_update(
-    fonts: Res<Assets<RetroFont>>,
-    mut egui_ctx: ResMut<EguiContext>,
-) {
+pub(crate) fn font_texture_update(fonts: Res<Assets<RetroFont>>, mut egui_ctx: EguiContexts) {
     for (handle_id, font) in fonts.iter() {
-        let texture_id = egui_ctx.add_image(font.data.texture.clone());
+        let texture_id = egui_ctx.add_image(font.data.texture.clone_weak());
         let handle = Handle::weak(handle_id);
 
         let ctx = egui_ctx.ctx_mut();
-        let mut memory = ctx.memory();
-        let mut retro_font_texture_datas = memory
-            .data
-            .get_temp_mut_or_default::<RetroFontCache>(egui::Id::null())
-            .lock();
+        ctx.memory_mut(|ctx| {
+            let mut retro_font_texture_datas = ctx
+                .data
+                .get_temp_mut_or_default::<RetroFontCache>(egui::Id::null())
+                .lock();
 
-        let texture_data =
-            retro_font_texture_datas
-                .entry(handle)
-                .or_insert_with(|| RetroFontCacheItem {
-                    texture_id,
-                    font_data: font.data.clone(),
-                });
-
-        if !Arc::ptr_eq(&texture_data.font_data, &font.data) {
-            texture_data.font_data = font.data.clone();
-        }
-
-        texture_data.texture_id = texture_id;
+            let texture_data =
+                retro_font_texture_datas
+                    .entry(handle)
+                    .or_insert_with(|| RetroFontCacheItem {
+                        texture_id,
+                        font_data: font.data.clone(),
+                    });
+            if !Arc::ptr_eq(&texture_data.font_data, &font.data) {
+                texture_data.font_data = font.data.clone();
+            }
+            texture_data.texture_id = texture_id;
+        });
     }
 }
 
 /// A bitmap font asset that can be loaded from .bdf files
-#[derive(TypeUuid)]
+#[derive(TypeUuid, TypePath)]
 #[uuid = "fd2ca871-a323-4811-bae9-aa3c18d0e266"]
 pub struct RetroFont {
     pub data: Arc<RetroFontData>,

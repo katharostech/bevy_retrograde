@@ -3,12 +3,14 @@ use bevy_retrograde::prelude::*;
 
 fn main() {
     App::new()
-        .insert_resource(WindowDescriptor {
-            title: "Bevy Retrograde Audio".into(),
+        .add_plugins(RetroPlugins::default().set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "Bevy Retrograde Audio".into(),
+                ..Default::default()
+            }),
             ..Default::default()
-        })
-        .add_plugins(RetroPlugins::default())
-        .add_startup_system(setup)
+        }))
+        .add_systems(Startup, setup)
         .run();
 }
 
@@ -23,5 +25,5 @@ fn setup(asset_server: Res<AssetServer>, audio: Res<Audio>) {
     let music = asset_server.load("music.ogg");
 
     // Play it on loop
-    audio.play_looped(music);
+    audio.play(music).looped();
 }
