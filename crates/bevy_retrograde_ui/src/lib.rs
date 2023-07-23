@@ -12,11 +12,13 @@ pub struct RetroUiPlugin;
 
 impl Plugin for RetroUiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugin(EguiPlugin)
-            .add_asset::<RetroFont>()
+        if !app.is_plugin_added::<EguiPlugin>() {
+            app.add_plugins(EguiPlugin);
+        }
+        app.add_asset::<RetroFont>()
             .add_asset_loader(RetroFontLoader::default())
-            .add_system(update_ui_scale)
-            .add_system(font_texture_update);
+            .add_systems(Update, font_texture_update)
+            .add_systems(Update, update_ui_scale);
     }
 }
 
@@ -93,7 +95,7 @@ pub struct BorderImage {
     /// This is the egui texture ID for the image.
     pub egui_texture: egui::TextureId,
     /// This is the size of the frame
-    pub texture_border_size: Rect<f32>,
+    pub texture_border_size: UiRect,
     /// This is the size of the texture in pixels
     pub texture_size: UVec2,
 }
@@ -104,13 +106,13 @@ impl BorderImage {
         world: &mut World,
         path: P,
         image_size: UVec2,
-        border_size: Rect<f32>,
+        border_size: UiRect,
     ) -> Self {
         let world = world.cell();
-        let asset_server = world.get_resource::<AssetServer>().unwrap();
-        let mut ctx = world.get_resource_mut::<EguiContext>().unwrap();
-
+        let asset_server = world.resource::<AssetServer>();
         let handle = asset_server.load(path);
+
+        let mut ctx = world.resource_mut::<bevy_egui::EguiUserTextures>();
 
         Self {
             egui_texture: ctx.add_image(handle.clone()),
@@ -125,24 +127,23 @@ impl BorderImage {
 /// will be the same size as a pixel in our sprites.
 fn update_ui_scale(
     mut egui_settings: ResMut<EguiSettings>,
-    windows: Res<Windows>,
+    windows: Query<&Window, With<bevy::window::PrimaryWindow>>,
     projection: Query<&OrthographicProjection, With<Camera>>,
 ) {
-    if let Some(window) = windows.get_primary() {
+    if let Ok(window) = windows.get_single() {
         if let Ok(projection) = projection.get_single() {
             match projection.scaling_mode {
-                bevy::render::camera::ScalingMode::FixedVertical => {
+                bevy::render::camera::ScalingMode::FixedVertical(_) => {
                     let window_height = window.height();
                     let scale = window_height / (projection.scale * 2.0);
                     egui_settings.scale_factor = scale as f64;
                 }
-                bevy::render::camera::ScalingMode::FixedHorizontal => {
+                bevy::render::camera::ScalingMode::FixedHorizontal(_) => {
                     let window_width = window.width();
                     let scale = window_width / (projection.scale * 2.0);
                     egui_settings.scale_factor = scale as f64;
                 }
-                bevy::render::camera::ScalingMode::None => (),
-                bevy::render::camera::ScalingMode::WindowSize => (),
+                _ => (),
             }
         }
     }

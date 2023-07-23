@@ -2,32 +2,37 @@
 //! is the use of the `TesselatedCollider` component that can be used to create a convex hull
 //! collision shape from a sprite image.
 
-use bevy::{prelude::*, sprite::SpriteBundle};
+use bevy::{prelude::*, sprite::SpriteBundle, asset::ChangeWatcher};
 use bevy_retrograde::prelude::*;
 
 use serde::Deserialize;
 
 fn main() {
     App::new()
-        .insert_resource(WindowDescriptor {
-            title: "Bevy Retrograde Physics Map".into(),
+        .add_plugins(RetroPlugins::default()
+        .set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "Bevy Retrograde Physics Map".into(),
+                ..Default::default()
+            }),
+            ..Default::default()
+        }).set(AssetPlugin {
+            watch_for_changes: ChangeWatcher::with_delay(std::time::Duration::from_secs_f32(0.1)),
             ..Default::default()
         })
-        .add_plugins(RetroPlugins::default())
-        .add_startup_system(setup)
-        .add_system(update_map_collisions)
+        )
+        .add_systems(Startup, setup)
+        .add_systems(Update, update_map_collisions)
         .insert_resource(LevelSelection::Index(0))
         .run();
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    asset_server.watch_for_changes().unwrap();
-
     // Spawn the camera
-    commands.spawn_bundle(RetroCameraBundle::fixed_height(160.0));
+    commands.spawn(RetroCameraBundle::fixed_height(160.0));
 
     // Spawn the map
-    commands.spawn().insert_bundle(LdtkWorldBundle {
+    commands.spawn(LdtkWorldBundle {
         ldtk_handle: asset_server.load("maps/physicsDemoMap.ldtk"),
         transform: Transform::from_translation(Vec3::new(-130., -75., -1.)),
         ..Default::default()
@@ -44,7 +49,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         for x in -10..=10 {
             let sprite_image = radish_images[((x as i32).abs() % 3) as usize].clone();
             commands
-                .spawn_bundle(SpriteBundle {
+                .spawn(SpriteBundle {
                     texture: sprite_image.clone(),
                     transform: Transform::from_xyz(x as f32 * 12., 80. + y as f32 * 20., 0.),
                     ..Default::default()
@@ -129,10 +134,9 @@ fn update_map_collisions(
             .insert(TileCollisionLoaded)
             .with_children(|children| {
                 children
-                    .spawn()
-                    .insert(RigidBody::Fixed)
+                    .spawn(RigidBody::Fixed)
                     .insert(collider)
-                    .insert_bundle(TransformBundle::default());
+                    .insert(TransformBundle::default());
             });
     }
 }

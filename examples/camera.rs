@@ -2,18 +2,21 @@ use bevy::prelude::*;
 use bevy_retrograde::prelude::*;
 
 // Create a stage label that will be used for our game logic stage
-#[derive(StageLabel, Debug, Eq, Hash, PartialEq, Clone)]
+#[derive(SystemSet, Debug, Eq, Hash, PartialEq, Clone)]
 struct GameStage;
 
 fn main() {
     App::new()
-        .insert_resource(WindowDescriptor {
-            title: "Bevy Retrograde Hello World".into(),
+        .add_plugins(RetroPlugins::default().set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "Bevy Retrograde Hello World".into(),
+                ..Default::default()
+            }),
             ..Default::default()
-        })
-        .add_plugins(RetroPlugins::default())
-        .add_startup_system(setup)
-        .add_system(move_player)
+        }).set(ImagePlugin::default_nearest())
+        )
+        .add_systems(Startup, setup)
+        .add_systems(Update, move_player)
         .run();
 }
 
@@ -26,11 +29,11 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     // Spawn the camera with a fixed height of 80 in-game pixels and a width determined by the
     // window aspect.
-    commands.spawn_bundle(RetroCameraBundle::fixed_height(80.0));
+    commands.spawn(RetroCameraBundle::fixed_height(80.0));
 
     // Spawn a red radish
     commands
-        .spawn_bundle(SpriteBundle {
+        .spawn(SpriteBundle {
             texture: red_radish_image,
             transform: Transform::from_xyz(0., 0., 0.),
             ..Default::default()

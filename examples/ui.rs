@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy_retrograde::prelude::*;
 
+#[derive(Resource)]
 struct UiTheme {
     panel_bg: BorderImage,
     button_up_bg: BorderImage,
@@ -15,19 +16,19 @@ impl FromWorld for UiTheme {
                 world,
                 "ui/panel.png",
                 UVec2::new(48, 48),
-                Rect::all(8.0),
+                UiRect::all(Val::Px(8.0)),
             ),
             button_up_bg: BorderImage::load_from_world(
                 world,
                 "ui/button-up.png",
                 UVec2::new(32, 16),
-                Rect::all(8.0),
+                UiRect::all(Val::Px(8.0)),
             ),
             button_down_bg: BorderImage::load_from_world(
                 world,
                 "ui/button-down.png",
                 UVec2::new(32, 16),
-                Rect::all(8.0),
+                UiRect::all(Val::Px(8.0)),
             ),
             font: world
                 .get_resource::<AssetServer>()
@@ -39,28 +40,31 @@ impl FromWorld for UiTheme {
 
 fn main() {
     App::new()
-        .insert_resource(WindowDescriptor {
-            title: "Bevy Retrograde LDtk Map".into(),
+        .add_plugins(RetroPlugins::default().set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "Bevy Retrograde LDtk Map".into(),
+                ..Default::default()
+            }),
             ..Default::default()
-        })
-        .add_plugins(RetroPlugins::default())
+        }).set(AssetPlugin {
+            watch_for_changes: bevy::asset::ChangeWatcher::with_delay(std::time::Duration::from_secs_f32(0.1)),
+            ..Default::default()
+        }).set(ImagePlugin::default_nearest())
+        )
         .insert_resource(LevelSelection::Index(0))
         .init_resource::<UiTheme>()
-        .add_startup_system(setup)
-        .add_system(ui)
+        .add_systems(Startup, setup)
+        .add_systems(Update, ui)
         .run();
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    // Enable hot reload
-    asset_server.watch_for_changes().unwrap();
-
     // Spawn the camera
-    commands.spawn_bundle(RetroCameraBundle::fixed_height(200.0));
+    commands.spawn(RetroCameraBundle::fixed_height(200.0));
 
     // Spawn the map
     let map = asset_server.load("maps/map.ldtk");
-    commands.spawn_bundle(LdtkWorldBundle {
+    commands.spawn(LdtkWorldBundle {
         ldtk_handle: map,
         // We offset the map a little to move it more to the center of the screen, because maps are
         // spawned with (0, 0) as the top-left corner of the map
@@ -71,7 +75,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 fn ui(
     mut map: Query<&mut Transform, With<Handle<LdtkAsset>>>,
-    mut ctx: ResMut<EguiContext>,
+    mut ctx: EguiContexts,
     ui_theme: Res<UiTheme>,
 ) {
     let mut map_transform: Mut<Transform> = if let Ok(map) = map.get_single_mut() {
@@ -91,18 +95,18 @@ fn ui(
             let screen_rect = ui.max_rect();
             // Calculate a margin of 15% of the screen size
             let outer_margin = screen_rect.size() * 0.15;
-            let outer_margin = Rect {
-                left: outer_margin.x,
-                right: outer_margin.x,
+            let outer_margin = UiRect {
+                left: Val::Px(outer_margin.x),
+                right: Val::Px(outer_margin.x),
                 // Make top and bottom margins smaller
-                top: outer_margin.y / 2.0,
-                bottom: outer_margin.y / 2.0,
+                top: Val::Px(outer_margin.y / 2.0),
+                bottom: Val::Px(outer_margin.y / 2.0),
             };
 
             // Render a bordered frame
             BorderedFrame::new(&ui_theme.panel_bg)
                 .margin(outer_margin)
-                .padding(Rect::all(8.0))
+                .padding(UiRect::all(Val::Px(8.0)))
                 .show(ui, |ui| {
                     // Make sure the frame ocupies the entire rect that we allocated for it.
                     //
@@ -124,7 +128,7 @@ fn ui(
                             ui.add_space(4.0);
 
                             if RetroButton::new("Scale Down", &ui_theme.font)
-                                .padding(Rect::all(7.0))
+                                .padding(UiRect::all(Val::Px(7.0)))
                                 .border(&ui_theme.button_up_bg)
                                 .on_click_border(&ui_theme.button_down_bg)
                                 .show(ui)
@@ -134,7 +138,7 @@ fn ui(
                             }
 
                             if RetroButton::new("Scale Up", &ui_theme.font)
-                                .padding(Rect::all(7.0))
+                                .padding(UiRect::all(Val::Px(7.0)))
                                 .border(&ui_theme.button_up_bg)
                                 .on_click_border(&ui_theme.button_down_bg)
                                 .show(ui)

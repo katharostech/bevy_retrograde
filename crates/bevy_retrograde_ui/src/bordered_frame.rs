@@ -29,10 +29,10 @@ impl BorderedFrame {
             bg_texture: style.egui_texture,
             texture_size: egui::Vec2::new(s.x as f32, s.y as f32),
             texture_border_size: egui::style::Margin {
-                left: b.left,
-                right: b.right,
-                top: b.top,
-                bottom: b.bottom,
+                left: if let Val::Px(px) = b.left {px} else {0.},
+                right: if let Val::Px(px) = b.right {px} else {0.},
+                top: if let Val::Px(px) = b.top {px} else {0.},
+                bottom: if let Val::Px(px) = b.bottom {px} else {0.},
             },
             padding: Default::default(),
             margin: Default::default(),
@@ -42,12 +42,12 @@ impl BorderedFrame {
 
     /// Set the padding. This will be applied on the inside of the border.
     #[must_use = "You must call .show() to render the frame"]
-    pub fn padding(mut self, margin: Rect<f32>) -> Self {
+    pub fn padding(mut self, margin: UiRect) -> Self {
         self.padding = egui::style::Margin {
-            left: margin.left,
-            right: margin.right,
-            top: margin.top,
-            bottom: margin.bottom,
+            left: if let Val::Px(px) = margin.left {px} else {0.},
+            right: if let Val::Px(px) = margin.right {px} else {0.},
+            top: if let Val::Px(px) = margin.top {px} else {0.},
+            bottom: if let Val::Px(px) = margin.bottom {px} else {0.},
         };
 
         self
@@ -55,12 +55,12 @@ impl BorderedFrame {
 
     /// Set the margin. This will be applied on the outside of the border.
     #[must_use = "You must call .show() to render the frame"]
-    pub fn margin(mut self, margin: Rect<f32>) -> Self {
+    pub fn margin(mut self, margin: UiRect) -> Self {
         self.margin = egui::style::Margin {
-            left: margin.left,
-            right: margin.right,
-            top: margin.top,
-            bottom: margin.bottom,
+            left: if let Val::Px(px) = margin.left {px} else {0.},
+            right: if let Val::Px(px) = margin.right {px} else {0.},
+            top: if let Val::Px(px) = margin.top {px} else {0.},
+            bottom: if let Val::Px(px) = margin.bottom {px} else {0.},
         };
 
         self

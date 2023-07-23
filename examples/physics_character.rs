@@ -3,13 +3,16 @@ use bevy_retrograde::prelude::*;
 
 fn main() {
     App::new()
-        .insert_resource(WindowDescriptor {
-            title: "Bevy Retrograde Physics Character".into(),
+        .add_plugins(RetroPlugins::default().set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "Bevy Retrograde Physics Character".into(),
+                ..Default::default()
+            }),
             ..Default::default()
-        })
-        .add_plugins(RetroPlugins::default())
-        .add_startup_system(setup)
-        .add_system(move_player)
+        }).set(ImagePlugin::default_nearest())
+        )
+        .add_systems(Startup, setup)
+        .add_systems(Update, move_player)
         .insert_resource(RapierConfiguration {
             gravity: Vec2::ZERO,
             ..Default::default()
@@ -22,7 +25,7 @@ struct Player;
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Spawn the camera
-    commands.spawn_bundle(RetroCameraBundle::fixed_height(150.0));
+    commands.spawn(RetroCameraBundle::fixed_height(300.0));
 
     // Load our images
     let block = asset_server.load("block.png");
@@ -32,7 +35,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Spawn a collider block that will just sit there and be an obstacle
     commands
         // First we spawn a sprite bundle like normal
-        .spawn_bundle(SpriteBundle {
+        .spawn(SpriteBundle {
             texture: block.clone(),
             ..Default::default()
         })
@@ -48,7 +51,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     // Spawn a couple more blocks at different positions
     commands
-        .spawn_bundle(SpriteBundle {
+        .spawn(SpriteBundle {
             texture: block.clone(),
             transform: Transform::from_xyz(200., 24., 0.),
             ..Default::default()
@@ -60,7 +63,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         .insert(RigidBody::Fixed);
 
     commands
-        .spawn_bundle(SpriteBundle {
+        .spawn(SpriteBundle {
             texture: block.clone(),
             transform: Transform::from_xyz(-200., 24., 0.),
             ..Default::default()
@@ -73,7 +76,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     // Spawn a triangle obstacle
     commands
-        .spawn_bundle(SpriteBundle {
+        .spawn(SpriteBundle {
             texture: triangle.clone(),
             transform: Transform::from_xyz(-50., 60., 0.),
             ..Default::default()
@@ -100,7 +103,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     // Spawn the player
     commands
-        .spawn_bundle(SpriteBundle {
+        .spawn(SpriteBundle {
             texture: red_radish.clone(),
             transform: Transform::from_xyz(0., 50., 0.),
             ..Default::default()

@@ -56,16 +56,14 @@ impl<'a> RetroLabel<'a> {
         // Load font data and texture id
         let retro_font_cache_item = {
             let ctx = ui.ctx();
-            let mut memory = ctx.memory();
-            let retro_font_cache = memory
+            let Some(val) = ctx.memory_mut(|memory| {
+                let retro_font_cache = memory
                 .data
                 .get_temp_mut_or_default::<RetroFontCache>(egui::Id::null())
                 .lock();
-            if let Some(item) = retro_font_cache.get(self.font) {
-                item.clone()
-            } else {
-                return None;
-            }
+                retro_font_cache.get(self.font).cloned()
+            }) else {return None;};
+            val
         };
         let font_data = &retro_font_cache_item.font_data;
 

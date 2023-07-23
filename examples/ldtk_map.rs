@@ -1,32 +1,36 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, asset::ChangeWatcher};
 use bevy_retrograde::prelude::*;
 
-#[derive(StageLabel, Debug, Clone, Hash, Eq, PartialEq)]
+#[derive(SystemSet, Debug, Clone, Hash, Eq, PartialEq)]
 struct GameStage;
 
 fn main() {
     App::new()
-        .insert_resource(WindowDescriptor {
-            title: "Bevy Retrograde LDtk Map".into(),
+        .add_plugins(RetroPlugins::default().set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "Bevy Retrograde LDtk Map".into(),
+                ..Default::default()
+            }),
             ..Default::default()
-        })
-        .add_plugins(RetroPlugins::default())
-        .add_startup_system(setup)
-        .add_system(move_camera)
+        }).set(AssetPlugin {
+            watch_for_changes: ChangeWatcher::with_delay(std::time::Duration::from_secs_f32(0.1)),
+            ..Default::default()
+        }).set(ImagePlugin::default_nearest())
+        )
+        .add_systems(Startup, setup)
+        .add_systems(Update, move_camera)
         .insert_resource(LevelSelection::Index(0))
         .run();
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    // Enable hot reload
-    asset_server.watch_for_changes().unwrap();
 
     // Spawn the camera
-    commands.spawn_bundle(RetroCameraBundle::fixed_height(200.0));
+    commands.spawn(RetroCameraBundle::fixed_height(200.0));
 
     // Spawn the map
     let map = asset_server.load("maps/map.ldtk");
-    commands.spawn_bundle(LdtkWorldBundle {
+    commands.spawn(LdtkWorldBundle {
         ldtk_handle: map,
         // We offset the map a little to move it more to the center of the screen, because maps are
         // spawned with (0, 0) as the top-left corner of the map

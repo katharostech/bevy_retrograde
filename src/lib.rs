@@ -89,10 +89,10 @@ use bevy::{
     asset::{Asset, AssetPath, AssetPathId},
     prelude::*,
     render::{
-        camera::{Camera2d, DepthCalculation, ScalingMode},
+        camera::{Camera, ScalingMode, CameraRenderGraph},
         primitives::Frustum,
         view::VisibleEntities,
-    },
+    }, core_pipeline::tonemapping::{Tonemapping, DebandDither},
 };
 use dashmap::DashMap;
 
@@ -111,28 +111,28 @@ impl Default for RetroPlugins {
 }
 
 impl bevy::app::PluginGroup for RetroPlugins {
-    fn build(&mut self, group: &mut bevy::app::PluginGroupBuilder) {
+    fn build(self) -> bevy::app::PluginGroupBuilder {
         // Add the plugins we need from Bevy
-        bevy::DefaultPlugins.build(group);
+        let group = bevy::DefaultPlugins.build();
 
         #[cfg(feature = "audio")]
-        group.add(audio::AudioPlugin);
+        let group = group.add(audio::AudioPlugin);
 
         #[cfg(feature = "ldtk")]
-        group.add(ldtk::LdtkPlugin);
+        let group = group.add(ldtk::LdtkPlugin);
 
         #[cfg(feature = "text")]
-        group.add(text::RetroTextPlugin);
+        let group = group.add(text::RetroTextPlugin);
 
         #[cfg(feature = "physics")]
-        group.add(physics::RetroPhysicsPlugin {
+        let group = group.add(physics::RetroPhysicsPlugin {
             pixels_per_meter: self.pixels_per_meter,
         });
 
         #[cfg(feature = "ui")]
-        group.add(ui::RetroUiPlugin);
+        let group = group.add(ui::RetroUiPlugin);
 
-        group.add(RetroCorePlugin);
+        group.add(RetroCorePlugin)
     }
 }
 
@@ -200,12 +200,15 @@ pub fn update_canvas_size(mut windows: ResMut<Windows>) {
 #[derive(Bundle)]
 pub struct RetroCameraBundle {
     pub camera: Camera,
-    pub orthographic_projection: OrthographicProjection,
+    pub camera_render_graph: CameraRenderGraph,
+    pub projection: OrthographicProjection,
     pub visible_entities: VisibleEntities,
     pub frustum: Frustum,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
-    pub marker: Camera2d,
+    pub camera_2d: Camera2d,
+    pub tonemapping: Tonemapping,
+    pub deband_dither: DebandDither,
 }
 
 impl RetroCameraBundle {
@@ -214,31 +217,33 @@ impl RetroCameraBundle {
         let orthographic_projection = OrthographicProjection {
             scale,
             scaling_mode,
-            depth_calculation: DepthCalculation::ZDifference,
             ..Default::default()
         };
 
         // And copy the rest of the components from the default 2D camera
-        let bundle = OrthographicCameraBundle::new_2d();
+        let bundle = Camera2dBundle::default();
         Self {
             camera: bundle.camera,
-            orthographic_projection,
+            projection: orthographic_projection,
             visible_entities: bundle.visible_entities,
             frustum: bundle.frustum,
             transform: bundle.transform,
             global_transform: bundle.global_transform,
-            marker: bundle.marker,
+            camera_2d: bundle.camera_2d,
+            tonemapping: bundle.tonemapping,
+            deband_dither: bundle.deband_dither,
+            camera_render_graph: bundle.camera_render_graph
         }
     }
 
     /// Create a camera with a fixed width in pixels and a height determined by the window aspect
     pub fn fixed_width(width: f32) -> Self {
-        Self::new(width / 2.0, ScalingMode::FixedHorizontal)
+        Self::new(width / 2.0, ScalingMode::FixedHorizontal(1.))
     }
 
     /// Create a camera with a fixed width in pixels and a height determined by the window aspect
     pub fn fixed_height(height: f32) -> Self {
-        Self::new(height / 2.0, ScalingMode::FixedVertical)
+        Self::new(height / 2.0, ScalingMode::FixedVertical(1.))
     }
 }
 

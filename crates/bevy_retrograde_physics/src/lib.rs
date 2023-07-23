@@ -34,12 +34,14 @@ impl Default for RetroPhysicsPlugin {
 
 impl Plugin for RetroPhysicsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugin(RapierPhysicsPlugin::<NoUserData>::default());
+        if !app.is_plugin_added::<RapierPhysicsPlugin::<NoUserData>>() {
+            app.add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
+        }
 
         #[cfg(feature = "debug")]
         app.add_plugin(RapierDebugRenderPlugin::default());
 
-        app.add_system_to_stage(CoreStage::PostUpdate, generate_colliders);
+        app.add_systems(PostUpdate, generate_colliders);
     }
 }
 
