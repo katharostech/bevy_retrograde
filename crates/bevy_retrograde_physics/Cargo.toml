@@ -19,13 +19,13 @@ categories = [
 
 [features]
 default = ["simd-stable"]
-debug = ["bevy_rapier2d/debug-render"]
+debug = ["bevy_rapier2d/debug-render-2d"]
 simd-stable = ["bevy_rapier2d/simd-stable"]
 simd-nightly = ["bevy_rapier2d/simd-nightly"]
 
 [dependencies]
-bevy = { version = "0.7", default-features = false }
-bevy_rapier2d = { version = "0.14.1" }
+bevy = { version = "0.11", default-features = false }
+bevy_rapier2d = { version = "0.22" }
 density-mesh-core = "1.5.0"
 density-mesh-image = "1.5.0"
-image = "0.23.0"
+image = "0.23"
