@@ -2,7 +2,7 @@
 name = "bevy_retrograde"
 version = "0.3.0"
 authors = ["Katharos Technology LLC."]
-edition = "2018"
+edition = "2021"
 resolver = "2"
 
 license-file = "LICENSE.md"
