@@ -14,6 +14,8 @@
 
 [skipngo]:  https://github.com/katharostech/skipngo
 
+> **⚠️ Project Status - No Longer Developed:** Bevy Retrograde is no longer under development. Development efforts have been moved to it's spiritual successor, the [Bones Framework](https://github.com/fishfolk/bones), which has similar goals, but is not a Bevy plugin. See [this comment](https://github.com/katharostech/bevy_retrograde/issues/80#issuecomment-1771143318) for more context.
+
 Bevy Retrograde is an opinionated plugin pack for the [Bevy][__link0] game engine with tools to help you make 2D games!
 
 Bevy Retrograde is not specific to pixel-art games, but it does include some features that would be particularly useful for pixel games. The ultimate goal is to act as an extension to Bevy that gives you common tools necessary to make a 2D game such as map loading, physics, UI, save-data, etc. Not all of the features we want to add are implemented yet, but we will be expanding the feature set as we developer our own game with it.
